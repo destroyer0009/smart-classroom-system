@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Smart Classroom Allocation System</title>
+</head>
+
+<body style="margin:0; font-family: Arial; background-color:#f4f6f9;">
+
+<div style="background-color:#002147; color:white; padding:20px; text-align:center;">
+  <img src="logo.png" style="height:80px;">
+  <h1>Loknete Shamrao Peje Govt. College of Engineering, Ratnagiri</h1>
+  <h3>Smart Classroom Allocation & Booking System</h3>
+</div>
+<div style="position:absolute; right:20px; top:30px;">
+  <button onclick="window.location.href='timetable.html'"
+          style="padding:8px 15px; margin-right:10px;">
+    Weekly Timetable
+  </button>
+
+  <button onclick="openLogin()"
+          style="padding:8px 15px;">
+    Teacher Login
+  </button>
+</div>
+<div style="padding:40px; text-align:center;">
+
+  <div id="roomsContainer"></div>
+
+</div>
+<div id="loginModal" 
+     style="display:none; position:fixed; top:0; left:0;
+            width:100%; height:100%; background:rgba(0,0,0,0.5);
+            justify-content:center; align-items:center;">
+
+  <div style="background:white; padding:30px; border-radius:10px;">
+    <h2>Teacher Login</h2>
+
+    <input id="teacherID" placeholder="Teacher ID"><br><br>
+    <input id="teacherPass" type="password" placeholder="Password"><br><br>
+
+    <button onclick="login()">Login</button>
+    <button onclick="closeLogin()">Cancel</button>
+
+    <p id="loginMsg"></p>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+
+const firebaseConfig = {
+   apiKey: "AIzaSyAFSLRyN4W5VRg4atDPq7Pae0Kl8-RVP30",
+  authDomain: "smart-classroom-allocation.firebaseapp.com",
+  databaseURL: "https://smart-classroom-allocation-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "smart-classroom-allocation",
+  storageBucket: "smart-classroom-allocation.firebasestorage.app",
+  messagingSenderId: "31952362079",
+  appId: "1:31952362079:web:16fab8d8b9c29390fad9ea"
+};
+
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+
+const rooms = ["LAB31", "CR125", "CR126"];
+
+const slots = [
+  "8:30-9:30",
+  "9:30-10:30",
+  "10:40-11:40",
+  "11:40-12:40",
+  "1:20-2:20",
+  "2:20-3:20",
+  "3:20-4:20"
+];
+
+function getCurrentDay() {
+  const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  return days[new Date().getDay()];
+}
+
+function getCurrentTimeSlot() {
+  const now = new Date();
+  const current = now.getHours() * 60 + now.getMinutes();
+
+  const slotRanges = [
+    ["8:30-9:30", 8*60+30, 9*60+30],
+    ["9:30-10:30", 9*60+30, 10*60+30],
+    ["10:40-11:40", 10*60+40, 11*60+40],
+    ["11:40-12:40", 11*60+40, 12*60+40],
+    ["1:20-2:20", 13*60+20, 14*60+20],
+    ["2:20-3:20", 14*60+20, 15*60+20],
+    ["3:20-4:20", 15*60+20, 16*60+20]
+  ];
+
+  for (let slot of slotRanges) {
+    if (current >= slot[1] && current <= slot[2]) {
+      return slot[0];
+    }
+  }
+  return null;
+}
+
+function getNextSlot(currentSlot) {
+  if (!currentSlot) return slots[0];
+  const index = slots.indexOf(currentSlot);
+  if (index !== -1 && index < slots.length - 1) {
+    return slots[index + 1];
+  }
+  return null;
+}
+
+async function loadRooms() {
+  const container = document.getElementById("roomsContainer");
+  container.innerHTML = "";
+
+  const day = getCurrentDay();
+  const currentSlot = getCurrentTimeSlot();
+  const nextSlot = getNextSlot(currentSlot);
+
+  for (let room of rooms) {
+
+    let currentSubject = "No Lecture";
+    let currentFaculty = "-";
+    let nextSubject = "-";
+    let nextFaculty = "-";
+    let status = "available";
+    let color = "#d4edda";
+
+    if (currentSlot) {
+      const currentRef = ref(database, `classrooms/${room}/timetable/${day}/${currentSlot}`);
+      const currentSnap = await get(currentRef);
+
+      if (currentSnap.exists()) {
+        currentSubject = currentSnap.val().subject;
+        currentFaculty = currentSnap.val().faculty;
+        status = "Ongoing";
+        color = "#f8d7da";
+      }
+    }
+
+    if (nextSlot) {
+      const nextRef = ref(database, `classrooms/${room}/timetable/${day}/${nextSlot}`);
+      const nextSnap = await get(nextRef);
+
+      if (nextSnap.exists()) {
+        nextSubject = nextSnap.val().subject;
+        nextFaculty = nextSnap.val().faculty;
+      }
+    }
+
+    container.innerHTML += `
+      <div style="display:inline-block; width:280px; margin:20px;
+                  padding:20px; border-radius:15px;
+                  background:${color};
+                  box-shadow:0 5px 15px rgba(0,0,0,0.2);">
+
+        <h2>${room}</h2>
+        <p><b>Status:</b> ${status}</p>
+
+        <hr>
+
+        <p><b>Current:</b> ${currentSubject}</p>
+        <p><b>Faculty:</b> ${currentFaculty}</p>
+        <p><b>Time:</b> ${currentSlot ?? "Outside Class Hours"}</p>
+
+        <hr>
+
+        <p><b>Next:</b> ${nextSubject}</p>
+        <p><b>Faculty:</b> ${nextFaculty}</p>
+        <p><b>Time:</b> ${nextSlot ?? "-"}</p>
+
+      </div>
+    `;
+  }
+}
+
+loadRooms();
+setInterval(loadRooms, 60000);
+window.openLogin = function() {
+  document.getElementById("loginModal").style.display = "flex";
+}
+
+window.closeLogin = function() {
+  document.getElementById("loginModal").style.display = "none";
+}
+
+window.login = async function() {
+  const id = document.getElementById("teacherID").value;
+  const pass = document.getElementById("teacherPass").value;
+
+  const teacherRef = ref(database, `teachers/${id}`);
+  const snapshot = await get(teacherRef);
+
+  if (!snapshot.exists()) {
+    document.getElementById("loginMsg").innerHTML = "Invalid ID";
+    return;
+  }
+
+  if (snapshot.val().password === pass) {
+    document.getElementById("loginMsg").innerHTML = "Login Successful";
+  } else {
+    document.getElementById("loginMsg").innerHTML = "Wrong Password";
+  }
+}
+</script>
+
+</body>
+</html>

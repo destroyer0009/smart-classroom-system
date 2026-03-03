@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Weekly Timetable</title>
+</head>
+
+<body style="font-family: Arial; margin:0; background:#f4f6f9;">
+
+<div style="background:#002147; color:white; padding:20px; text-align:center;">
+  <h1>Weekly Timetable</h1>
+  <button onclick="window.location.href='index.html'"
+          style="padding:8px 15px;">Back to Home</button>
+</div>
+
+<div style="padding:30px;">
+  <select id="roomSelect" onchange="loadTimetable()">
+    <option value="LAB31">LAB31</option>
+    <option value="CR125">CR125</option>
+    <option value="CR126">CR126</option>
+  </select>
+
+  <div id="timetableContainer" style="margin-top:20px;"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAFSLRyN4W5VRg4atDPq7Pae0Kl8-RVP30",
+  authDomain: "smart-classroom-allocation.firebaseapp.com",
+  databaseURL: "https://smart-classroom-allocation-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "smart-classroom-allocation",
+  storageBucket: "smart-classroom-allocation.firebasestorage.app",
+  messagingSenderId: "31952362079",
+  appId: "1:31952362079:web:16fab8d8b9c29390fad9ea"
+};
+
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+
+async function loadTimetable() {
+  const room = document.getElementById("roomSelect").value;
+  const container = document.getElementById("timetableContainer");
+  container.innerHTML = "";
+
+  const refPath = ref(database, `classrooms/${room}/timetable`);
+  const snapshot = await get(refPath);
+
+  if (!snapshot.exists()) {
+    container.innerHTML = "No timetable found.";
+    return;
+  }
+
+  const data = snapshot.val();
+
+  for (let day in data) {
+    container.innerHTML += `<h3>${day}</h3>`;
+
+    for (let slot in data[day]) {
+      container.innerHTML += `
+        <p>
+          <b>${slot}</b> —
+          ${data[day][slot].subject}
+          (${data[day][slot].faculty})
+        </p>
+      `;
+    }
+  }
+}
+
+window.loadTimetable = loadTimetable;
+loadTimetable();
+</script>
+
+</body>
+</html>

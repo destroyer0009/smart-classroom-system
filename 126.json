@@ -1,0 +1,82 @@
+{
+  "classrooms": {
+    "LAB31": {
+      "status": "available",
+      "current_faculty": "none",
+      "current_subject": "none",
+      "timetable": {
+        "Monday": {
+          "1:20-2:20": { "subject": "MIT Lab", "faculty": "CRJ" },
+          "2:20-3:20": { "subject": "MIT Lab", "faculty": "CRJ" },
+          "3:20-4:20": { "subject": "MIT Lab", "faculty": "CRJ" }
+        },
+        "Wednesday": {
+          "1:20-2:20": { "subject": "MDECA Lab", "faculty": "NAB" },
+          "2:20-3:20": { "subject": "MDECA Lab", "faculty": "NAB" }
+        },
+        "Friday": {
+          "10:40-11:40": { "subject": "RBS Lab", "faculty": "RRM" },
+          "11:40-12:40": { "subject": "RBS Lab", "faculty": "RRM" }
+        }
+      }
+    },
+
+    "CR125": {
+      "status": "available",
+      "current_faculty": "none",
+      "current_subject": "none",
+      "timetable": {
+        "Monday": {
+          "8:30-9:30": { "subject": "MIT", "faculty": "CRJ" },
+          "9:30-10:30": { "subject": "DSP", "faculty": "SSK" },
+          "10:40-11:40": { "subject": "ADE", "faculty": "CRJ" }
+        },
+        "Tuesday": {
+          "8:30-9:30": { "subject": "MS", "faculty": "RKA" },
+          "9:30-10:30": { "subject": "DSP", "faculty": "SSK" }
+        },
+        "Thursday": {
+          "11:40-12:40": { "subject": "RBS", "faculty": "RRM" },
+          "1:20-2:20": { "subject": "MIT", "faculty": "CRJ" }
+        }
+      }
+    },
+
+    "CR126": {
+      "status": "available",
+      "current_faculty": "none",
+      "current_subject": "none",
+      "timetable": {
+        "Monday": {
+          "11:40-12:40": { "subject": "ADE", "faculty": "CRJ" }
+        },
+        "Wednesday": {
+          "8:30-9:30": { "subject": "DSP", "faculty": "SSK" },
+          "9:30-10:30": { "subject": "MS", "faculty": "RKA" }
+        },
+        "Friday": {
+          "1:20-2:20": { "subject": "MIT", "faculty": "CRJ" },
+          "2:20-3:20": { "subject": "MIT", "faculty": "CRJ" }
+        }
+      }
+    }
+  },
+
+  "teachers": {
+    "CRJ": {
+      "password": "956236"
+    },
+    "SSK": {
+      "password": "874512"
+    },
+    "RKA": {
+      "password": "741258"
+    },
+    "RRM": {
+      "password": "852369"
+    },
+    "NAB": {
+      "password": "963741"
+    }
+  }
+}
