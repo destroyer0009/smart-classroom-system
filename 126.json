@@ -1,62 +1,63 @@
 {
   "classrooms": {
     "LAB31": {
-      "status": "available",
-      "current_faculty": "none",
-      "current_subject": "none",
       "timetable": {
         "Monday": {
-          "1:20-2:20": { "subject": "MIT Lab", "faculty": "CRJ" },
-          "2:20-3:20": { "subject": "MIT Lab", "faculty": "CRJ" },
-          "3:20-4:20": { "subject": "MIT Lab", "faculty": "CRJ" }
+          "8:30-9:30": { "subject": "MG", "faculty": "GSP", "semester": "VII" },
+          "9:30-10:30": { "subject": "MIT", "faculty": "CRJ", "semester": "V" },
+          "10:40-11:40": { "subject": "ADE", "faculty": "NAB", "semester": "III" },
+          "11:40-12:40": { "subject": "ADE", "faculty": "NAB", "semester": "III" }
+        },
+        "Tuesday": {
+          "8:30-9:30": { "subject": "RAC", "faculty": "RKA", "semester": "VII" },
+          "9:30-10:30": { "subject": "DSP", "faculty": "SSK", "semester": "V" },
+          "10:40-11:40": { "subject": "ADE", "faculty": "NAB", "semester": "III" },
+          "11:40-12:40": { "subject": "ADE", "faculty": "NAB", "semester": "III" }
         },
         "Wednesday": {
-          "1:20-2:20": { "subject": "MDECA Lab", "faculty": "NAB" },
-          "2:20-3:20": { "subject": "MDECA Lab", "faculty": "NAB" }
+          "8:30-9:30": { "subject": "DSP", "faculty": "SSK", "semester": "VII" },
+          "9:30-10:30": { "subject": "RAC", "faculty": "RKA", "semester": "V" },
+          "10:40-11:40": { "subject": "OE", "faculty": "CCA", "semester": "III" }
+        },
+        "Thursday": {
+          "8:30-9:30": { "subject": "RAC", "faculty": "RKA", "semester": "VII" },
+          "9:30-10:30": { "subject": "ADE", "faculty": "NAB", "semester": "V" },
+          "10:40-11:40": { "subject": "DSP", "faculty": "SSK", "semester": "III" }
         },
         "Friday": {
-          "10:40-11:40": { "subject": "RBS Lab", "faculty": "RRM" },
-          "11:40-12:40": { "subject": "RBS Lab", "faculty": "RRM" }
+          "8:30-9:30": { "subject": "ADE", "faculty": "NAB", "semester": "VII" },
+          "9:30-10:30": { "subject": "RAC", "faculty": "RKA", "semester": "V" },
+          "10:40-11:40": { "subject": "MIT", "faculty": "CRJ", "semester": "III" }
         }
       }
     },
 
     "CR125": {
-      "status": "available",
-      "current_faculty": "none",
-      "current_subject": "none",
       "timetable": {
         "Monday": {
           "8:30-9:30": { "subject": "MIT", "faculty": "CRJ" },
-          "9:30-10:30": { "subject": "DSP", "faculty": "SSK" },
-          "10:40-11:40": { "subject": "ADE", "faculty": "CRJ" }
+          "9:30-10:30": { "subject": "MDACAD", "faculty": "NAB" }
         },
         "Tuesday": {
-          "8:30-9:30": { "subject": "MS", "faculty": "RKA" },
+          "8:30-9:30": { "subject": "RBS", "faculty": "RKA" },
           "9:30-10:30": { "subject": "DSP", "faculty": "SSK" }
         },
-        "Thursday": {
-          "11:40-12:40": { "subject": "RBS", "faculty": "RRM" },
-          "1:20-2:20": { "subject": "MIT", "faculty": "CRJ" }
+        "Wednesday": {
+          "8:30-9:30": { "subject": "MS", "faculty": "BTI" },
+          "9:30-10:30": { "subject": "MIT", "faculty": "CRJ" }
         }
       }
     },
 
     "CR126": {
-      "status": "available",
-      "current_faculty": "none",
-      "current_subject": "none",
       "timetable": {
         "Monday": {
-          "11:40-12:40": { "subject": "ADE", "faculty": "CRJ" }
-        },
-        "Wednesday": {
           "8:30-9:30": { "subject": "DSP", "faculty": "SSK" },
-          "9:30-10:30": { "subject": "MS", "faculty": "RKA" }
+          "9:30-10:30": { "subject": "ADE", "faculty": "NAB" }
         },
-        "Friday": {
-          "1:20-2:20": { "subject": "MIT", "faculty": "CRJ" },
-          "2:20-3:20": { "subject": "MIT", "faculty": "CRJ" }
+        "Tuesday": {
+          "8:30-9:30": { "subject": "MIT", "faculty": "CRJ" },
+          "9:30-10:30": { "subject": "RAC", "faculty": "RKA" }
         }
       }
     }

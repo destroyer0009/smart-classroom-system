@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Teacher Dashboard</title>
+</head>
+
+<body style="margin:0;font-family:Arial;background:#f4f6f9;">
+
+<div style="background:#002147;color:white;padding:20px;text-align:center;">
+<h2>Teacher Dashboard</h2>
+</div>
+
+<div style="padding:40px;text-align:center;">
+
+<h2 id="teacherName"></h2>
+
+<h3>Today's Lectures</h3>
+
+<div id="lectureContainer"></div>
+
+<button onclick="logout()" style="margin-top:20px;padding:10px 20px;">
+Logout
+</button>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyAFSLRyN4W5VRg4atDPq7Pae0Kl8-RVP30",
+authDomain: "smart-classroom-allocation.firebaseapp.com",
+databaseURL: "https://smart-classroom-allocation-default-rtdb.asia-southeast1.firebasedatabase.app",
+projectId: "smart-classroom-allocation",
+storageBucket: "smart-classroom-allocation.firebasestorage.app",
+messagingSenderId: "31952362079",
+appId: "1:31952362079:web:16fab8d8b9c29390fad9ea"
+};
+
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+
+const teacherID = localStorage.getItem("teacherID");
+
+document.getElementById("teacherName").innerHTML =
+"Welcome " + teacherID;
+
+const rooms = ["LAB31","CR125","CR126"];
+
+const day = new Date().toLocaleString('en-us',{weekday:'long'});
+
+const container = document.getElementById("lectureContainer");
+
+async function loadLectures(){
+
+for(let room of rooms){
+
+const timetableRef = ref(database,`classrooms/${room}/timetable/${day}`);
+
+const snapshot = await get(timetableRef);
+
+if(!snapshot.exists()) continue;
+
+const slots = snapshot.val();
+
+for(let time in slots){
+
+if(slots[time].faculty === teacherID){
+
+container.innerHTML += `
+
+<div style="background:white;padding:20px;margin:15px;
+border-radius:10px;
+box-shadow:0 5px 15px rgba(0,0,0,0.2);">
+
+<h3>${room}</h3>
+
+<p><b>Subject:</b> ${slots[time].subject}</p>
+
+<p><b>Time:</b> ${time}</p>
+
+</div>
+
+`;
+
+}
+
+}
+
+}
+
+}
+
+loadLectures();
+
+window.logout = function(){
+
+localStorage.removeItem("teacherID");
+
+window.location.href = "index.html";
+
+}
+
+</script>
+
+</body>
+</html>
