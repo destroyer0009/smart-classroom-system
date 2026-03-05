@@ -2,25 +2,83 @@
 <html>
 <head>
 <title>Teacher Dashboard</title>
+
+<style>
+
+body{
+font-family:Arial;
+margin:0;
+background:#f4f6f9;
+}
+
+header{
+background:#002147;
+color:white;
+padding:20px;
+text-align:center;
+}
+
+.menu{
+display:flex;
+justify-content:center;
+gap:20px;
+margin-top:20px;
+}
+
+.menu button{
+padding:10px 20px;
+border:none;
+background:#002147;
+color:white;
+cursor:pointer;
+border-radius:5px;
+}
+
+.menu button:hover{
+background:#0056b3;
+}
+
+#content{
+padding:40px;
+text-align:center;
+}
+
+.card{
+background:white;
+padding:20px;
+margin:15px;
+border-radius:10px;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
+display:inline-block;
+width:300px;
+}
+
+</style>
+
 </head>
 
-<body style="margin:0;font-family:Arial;background:#f4f6f9;">
+<body>
 
-<div style="background:#002147;color:white;padding:20px;text-align:center;">
+<header>
 <h2>Teacher Dashboard</h2>
+<h3 id="teacherName"></h3>
+</header>
+
+<div class="menu">
+
+<button onclick="showToday()">Today's Lectures</button>
+
+<button onclick="showWeekly()">Weekly Timetable</button>
+
+<button onclick="showBooking()">Book Classroom</button>
+
+<button onclick="showLogs()">RFID Logs</button>
+
 </div>
 
-<div style="padding:40px;text-align:center;">
+<div id="content">
 
-<h2 id="teacherName"></h2>
-
-<h3>Today's Lectures</h3>
-
-<div id="lectureContainer"></div>
-
-<button onclick="logout()" style="margin-top:20px;padding:10px 20px;">
-Logout
-</button>
+Select a menu
 
 </div>
 
@@ -33,10 +91,7 @@ const firebaseConfig = {
 apiKey: "AIzaSyAFSLRyN4W5VRg4atDPq7Pae0Kl8-RVP30",
 authDomain: "smart-classroom-allocation.firebaseapp.com",
 databaseURL: "https://smart-classroom-allocation-default-rtdb.asia-southeast1.firebasedatabase.app",
-projectId: "smart-classroom-allocation",
-storageBucket: "smart-classroom-allocation.firebasestorage.app",
-messagingSenderId: "31952362079",
-appId: "1:31952362079:web:16fab8d8b9c29390fad9ea"
+projectId: "smart-classroom-allocation"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -44,65 +99,96 @@ const database = getDatabase(app);
 
 const teacherID = localStorage.getItem("teacherID");
 
-document.getElementById("teacherName").innerHTML =
+document.getElementById("teacherName").innerText =
 "Welcome " + teacherID;
 
-const rooms = ["LAB31","CR125","CR126"];
+window.showToday = function(){
 
-const day = new Date().toLocaleString('en-us',{weekday:'long'});
+document.getElementById("content").innerHTML =
+"<h3>Today's lectures will appear here</h3>";
 
-const container = document.getElementById("lectureContainer");
+}
 
-async function loadLectures(){
+window.showWeekly = function(){
 
-for(let room of rooms){
+document.getElementById("content").innerHTML =
+"<h3>Weekly timetable will appear here</h3>";
 
-const timetableRef = ref(database,`classrooms/${room}/timetable/${day}`);
+}
 
-const snapshot = await get(timetableRef);
+window.showLogs = function(){
 
-if(!snapshot.exists()) continue;
+document.getElementById("content").innerHTML =
+"<h3>RFID logs will appear here</h3>";
 
-const slots = snapshot.val();
+}
+window.showBooking = function(){
 
-for(let time in slots){
+document.getElementById("content").innerHTML = `
 
-if(slots[time].faculty === teacherID){
+<h3>Classroom Booking</h3>
 
-container.innerHTML += `
+<select id="room">
+<option>LAB31</option>
+<option>CR125</option>
+<option>CR126</option>
+</select>
 
-<div style="background:white;padding:20px;margin:15px;
-border-radius:10px;
-box-shadow:0 5px 15px rgba(0,0,0,0.2);">
+<br><br>
 
-<h3>${room}</h3>
+<input type="date" id="date">
 
-<p><b>Subject:</b> ${slots[time].subject}</p>
+<br><br>
 
-<p><b>Time:</b> ${time}</p>
+<select id="slot">
+<option>8:30-9:30</option>
+<option>9:30-10:30</option>
+<option>10:40-11:40</option>
+<option>11:40-12:40</option>
+<option>1:20-2:20</option>
+<option>2:20-3:20</option>
+<option>3:20-4:20</option>
+</select>
 
-</div>
+<br><br>
+
+<input id="purpose" placeholder="Purpose">
+
+<br><br>
+
+<button onclick="submitBooking()">Request Booking</button>
+
+<p id="bookingMsg"></p>
 
 `;
 
 }
+window.submitBooking = async function(){
+
+const room = document.getElementById("room").value;
+const date = document.getElementById("date").value;
+const slot = document.getElementById("slot").value;
+const purpose = document.getElementById("purpose").value;
+
+const teacher = localStorage.getItem("teacherID");
+
+const requestRef = ref(database, "booking_requests/" + Date.now());
+
+await set(requestRef,{
+
+teacher: teacher,
+room: room,
+date: date,
+slot: slot,
+purpose: purpose,
+status: "pending"
+
+});
+
+document.getElementById("bookingMsg").innerHTML =
+"Booking Request Sent";
 
 }
-
-}
-
-}
-
-loadLectures();
-
-window.logout = function(){
-
-localStorage.removeItem("teacherID");
-
-window.location.href = "index.html";
-
-}
-
 </script>
 
 </body>

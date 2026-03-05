@@ -44,9 +44,14 @@ Back to Home
 
 <select id="semesterSelect" onchange="loadTimetable()">
 
+<option value="SEM1">Semester 1</option>
+<option value="SEM2">Semester 2</option>
 <option value="SEM3">Semester 3</option>
+<option value="SEM4">Semester 4</option>
 <option value="SEM5">Semester 5</option>
+<option value="SEM6">Semester 6</option>
 <option value="SEM7">Semester 7</option>
+<option value="SEM8">Semester 8</option>
 
 </select>
 
@@ -148,6 +153,7 @@ Back to Home
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
 import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
 
+
 const firebaseConfig = {
 
 apiKey: "AIzaSyAFSLRyN4W5VRg4atDPq7Pae0Kl8-RVP30",
@@ -173,13 +179,6 @@ const refPath=ref(database,`semesters/${semester}/timetable`);
 
 const snapshot=await get(refPath);
 
-if(!snapshot.exists()){
-alert("No timetable found");
-return;
-}
-
-const data=snapshot.val();
-
 
 const slots=[
 "8:30-9:30",
@@ -191,7 +190,6 @@ const slots=[
 "3:20-4:20"
 ];
 
-
 const days=[
 "Monday",
 "Tuesday",
@@ -202,7 +200,7 @@ const days=[
 ];
 
 
-/* clear all cells */
+/* CLEAR TABLE */
 
 for(let day of days){
 
@@ -221,7 +219,7 @@ day+"_"+slot
 const cell=document.getElementById(id);
 
 if(cell){
-cell.innerHTML="";
+cell.innerHTML="-";
 }
 
 }
@@ -229,7 +227,14 @@ cell.innerHTML="";
 }
 
 
-/* fill timetable */
+if(!snapshot.exists()){
+return;
+}
+
+const data=snapshot.val();
+
+
+/* FILL TIMETABLE */
 
 for(let day in data){
 
@@ -249,16 +254,14 @@ const cell=document.getElementById(id);
 
 if(!cell) continue;
 
-const subject=data[day][slot].subject;
-const faculty=data[day][slot].faculty;
-
-cell.innerHTML=subject+"<br>("+faculty+")";
+cell.innerHTML=data[day][slot].subject+"<br>("+data[day][slot].faculty+")";
 
 }
 
 }
 
 }
+
 
 loadTimetable();
 
