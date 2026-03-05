@@ -50,17 +50,24 @@ font-size:14px;
 
 <body>
 
-<div style="background:#002147;color:white;padding:15px;text-align:center;">
-<h3>Mechanical Engineering Timetable</h3>
+<div style="background:#002147;color:white;padding:15px;text-align:center; position:relative;">
+
+<button onclick="window.location.href='index.html'"
+style="position:absolute; left:20px; top:15px; padding:6px 12px;">
+Home
+</button>
+
+<h3>Mechatronics Engineering Timetable</h3>
+
 </div>
 
 <center>
 
 <select id="semesterSelect" onchange="changeSemester()">
 
-<option value="sem3">Semester III</option>
-<option value="sem5">Semester V</option>
-<option value="sem7">Semester VII</option>
+<option value="SEM3">Semester III</option>
+<option value="SEM5">Semester V</option>
+<option value="SEM7">Semester VII</option>
 
 </select>
 
@@ -68,7 +75,9 @@ font-size:14px;
 
 <!-- ================= SEM 3 ================= -->
 
-<table id="sem3">
+<div style="padding:30px;">
+
+<table>
 
 <tr class="header">
 
@@ -87,265 +96,205 @@ font-size:14px;
 
 <tr>
 <td>Monday</td>
-<td>M3 (JSP)</td>
-<td>MD&CAD (NAB)</td>
+
+<td id="Monday_830"></td>
+<td id="Monday_930"></td>
+
 <td rowspan="6" class="break">BREAK</td>
-<td>MSM (RKA)</td>
-<td>ADE (NGP)</td>
+
+<td id="Monday_1040"></td>
+<td id="Monday_1140"></td>
+
 <td rowspan="6" class="break">LUNCH</td>
-<td>ADE Lab</td>
-<td>MD&CAD Lab</td>
-<td>MSM Lab</td>
+
+<td id="Monday_120"></td>
+<td id="Monday_220"></td>
+<td id="Monday_320"></td>
+
 </tr>
 
 <tr>
 <td>Tuesday</td>
-<td>M3</td>
-<td>MSM</td>
-<td>OE-IoT</td>
-<td>ADE</td>
-<td>ADE Lab</td>
-<td>MD&CAD Lab</td>
-<td>MSM Lab</td>
+
+<td id="Tuesday_830"></td>
+<td id="Tuesday_930"></td>
+
+<td id="Tuesday_1040"></td>
+<td id="Tuesday_1140"></td>
+
+<td id="Tuesday_120"></td>
+<td id="Tuesday_220"></td>
+<td id="Tuesday_320"></td>
+
 </tr>
 
 <tr>
 <td>Wednesday</td>
-<td>M3 Tut</td>
-<td></td>
-<td>OE-IoT</td>
-<td>ADE Tut</td>
-<td>ADE Lab</td>
-<td>MD&CAD Lab</td>
-<td>MSM Lab</td>
+
+<td id="Wednesday_830"></td>
+<td id="Wednesday_930"></td>
+
+<td id="Wednesday_1040"></td>
+<td id="Wednesday_1140"></td>
+
+<td id="Wednesday_120"></td>
+<td id="Wednesday_220"></td>
+<td id="Wednesday_320"></td>
+
 </tr>
 
 <tr>
 <td>Thursday</td>
-<td>M3 Tut</td>
-<td>MD&CAD</td>
-<td>OE-IoT</td>
-<td>CoI</td>
-<td>ADE Lab</td>
-<td>MD&CAD Lab</td>
-<td>MSM Lab</td>
+
+<td id="Thursday_830"></td>
+<td id="Thursday_930"></td>
+
+<td id="Thursday_1040"></td>
+<td id="Thursday_1140"></td>
+
+<td id="Thursday_120"></td>
+<td id="Thursday_220"></td>
+<td id="Thursday_320"></td>
+
 </tr>
 
 <tr>
 <td>Friday</td>
-<td>M3 Tut</td>
-<td>MSM</td>
-<td>EL-II MEMS</td>
-<td>LBA</td>
-<td>MDM-EDC</td>
-<td>MDM-EDC</td>
-<td></td>
+
+<td id="Friday_830"></td>
+<td id="Friday_930"></td>
+
+<td id="Friday_1040"></td>
+<td id="Friday_1140"></td>
+
+<td id="Friday_120"></td>
+<td id="Friday_220"></td>
+<td id="Friday_320"></td>
+
 </tr>
 
 <tr>
 <td>Saturday</td>
-<td>M3 Tut</td>
-<td>M3 Tut</td>
-<td>CoI</td>
-<td>CoI</td>
-<td>MDM-EDC</td>
-<td>MDM-EDC</td>
-<td></td>
+
+<td id="Saturday_830"></td>
+<td id="Saturday_930"></td>
+
+<td id="Saturday_1040"></td>
+<td id="Saturday_1140"></td>
+
+<td id="Saturday_120"></td>
+<td id="Saturday_220"></td>
+<td id="Saturday_320"></td>
+
 </tr>
 
 </table>
 
-<!-- ================= SEM 5 ================= -->
+</div>
 
-<table id="sem5" style="display:none">
+<script type="module">
 
-<tr class="header">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
 
-<th>Day</th>
-<th>8:30-9:30</th>
-<th>9:30-10:30</th>
-<th>10:30-10:40</th>
-<th>10:40-11:40</th>
-<th>11:40-12:40</th>
-<th>12:40-1:20</th>
-<th>1:20-2:20</th>
-<th>2:20-3:20</th>
-<th>3:20-4:20</th>
+const firebaseConfig = {
+apiKey: "AIzaSyAFSLRyN4W5VRg4atDPq7Pae0Kl8-RVP30",
+  authDomain: "smart-classroom-allocation.firebaseapp.com",
+  databaseURL: "https://smart-classroom-allocation-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "smart-classroom-allocation",
+  storageBucket: "smart-classroom-allocation.firebasestorage.app",
+  messagingSenderId: "31952362079",
+  appId: "1:31952362079:web:16fab8d8b9c29390fad9ea"
+};
 
-</tr>
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
 
-<tr>
-<td>Monday</td>
-<td>MT Tut</td>
-<td>DAS Tut</td>
-<td rowspan="6" class="break">BREAK</td>
-<td>MT (CRJ)</td>
-<td>MM (RKA)</td>
-<td rowspan="6" class="break">LUNCH</td>
-<td>MM Lab</td>
-<td>MT Lab</td>
-<td></td>
-</tr>
+async function loadTimetable(){
 
-<tr>
-<td>Tuesday</td>
-<td>MT Tut</td>
-<td></td>
-<td>EL-II MEMS</td>
-<td>DAS</td>
-<td>MT</td>
-<td>MM</td>
-<td></td>
-</tr>
+const semester=document.getElementById("semesterSelect").value;
 
-<tr>
-<td>Wednesday</td>
-<td></td>
-<td>MT Tut</td>
-<td>MM</td>
-<td>DAS</td>
-<td>DAS Tut</td>
-<td>OE-I RER</td>
-<td></td>
-</tr>
+const snapshot=await get(ref(database,"semesters/"+semester+"/timetable"));
 
-<tr>
-<td>Thursday</td>
-<td></td>
-<td>MT Tut</td>
-<td>EL-II MEMS</td>
-<td>OE-I RER</td>
-<td>DAS Tut</td>
-<td>DAS Tut</td>
-<td></td>
-</tr>
+if(!snapshot.exists()) return;
 
-<tr>
-<td>Friday</td>
-<td></td>
-<td></td>
-<td>DAS</td>
-<td></td>
-<td>MT</td>
-<td>OE-I RER</td>
-<td></td>
-</tr>
+const data=snapshot.val();
 
-<tr>
-<td>Saturday</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
+const slots=[
+"8:30-9:30",
+"9:30-10:30",
+"10:40-11:40",
+"11:40-12:40",
+"1:20-2:20",
+"2:20-3:20",
+"3:20-4:20"
+];
 
-</table>
+const days=[
+"Monday",
+"Tuesday",
+"Wednesday",
+"Thursday",
+"Friday",
+"Saturday"
+];
 
-<!-- ================= SEM 7 ================= -->
+/* Clear table first */
 
-<table id="sem7" style="display:none">
+for(let day of days){
 
-<tr class="header">
+for(let slot of slots){
 
-<th>Day</th>
-<th>8:30-9:30</th>
-<th>9:30-10:30</th>
-<th>10:30-10:40</th>
-<th>10:40-11:40</th>
-<th>11:40-12:40</th>
-<th>12:40-1:20</th>
-<th>1:20-2:20</th>
-<th>2:20-3:20</th>
-<th>3:20-4:20</th>
+const id=
+day+"_"+slot
+.replace("8:30-9:30","830")
+.replace("9:30-10:30","930")
+.replace("10:40-11:40","1040")
+.replace("11:40-12:40","1140")
+.replace("1:20-2:20","120")
+.replace("2:20-3:20","220")
+.replace("3:20-4:20","320");
 
-</tr>
+const cell=document.getElementById(id);
 
-<tr>
-<td>Monday</td>
-<td>RBS Tut</td>
-<td>DSP</td>
-<td rowspan="6" class="break">BREAK</td>
-<td>E-V DIP</td>
-<td>RBS</td>
-<td rowspan="6" class="break">LUNCH</td>
-<td>OE-IV-EE</td>
-<td>OE-IV-EE</td>
-<td></td>
-</tr>
-
-<tr>
-<td>Tuesday</td>
-<td>RBS Tut</td>
-<td>DSP</td>
-<td>RBS Lab</td>
-<td>CAM Lab</td>
-<td>OE-IV-EE</td>
-<td>OE-III-ED</td>
-<td></td>
-</tr>
-
-<tr>
-<td>Wednesday</td>
-<td>RBS Tut</td>
-<td>DSP</td>
-<td>RBS Lab</td>
-<td>CAM Lab</td>
-<td>OE-III-ED</td>
-<td></td>
-<td></td>
-</tr>
-
-<tr>
-<td>Thursday</td>
-<td>E-V DIP</td>
-<td>RBS</td>
-<td>RBS Lab</td>
-<td>CAM Lab</td>
-<td>OE-III-ED</td>
-<td>MP-II</td>
-<td>MP-II</td>
-</tr>
-
-<tr>
-<td>Friday</td>
-<td>E-V DIP</td>
-<td>RBS</td>
-<td>RBS Lab</td>
-<td>CAM Lab</td>
-<td>MP-II</td>
-<td>MP-II</td>
-<td>MP-II</td>
-</tr>
-
-<tr>
-<td>Saturday</td>
-<td>RBS Tut</td>
-<td>DSP Tut</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-
-</table>
-
-<script>
-
-function changeSemester(){
-
-let sem=document.getElementById("semesterSelect").value;
-
-document.getElementById("sem3").style.display="none";
-document.getElementById("sem5").style.display="none";
-document.getElementById("sem7").style.display="none";
-
-document.getElementById(sem).style.display="table";
+if(cell){
+cell.innerHTML="-";
+}
 
 }
+
+}
+
+/* Fill timetable */
+
+for(let day in data){
+
+for(let slot in data[day]){
+
+const id=
+day+"_"+slot
+.replace("8:30-9:30","830")
+.replace("9:30-10:30","930")
+.replace("10:40-11:40","1040")
+.replace("11:40-12:40","1140")
+.replace("1:20-2:20","120")
+.replace("2:20-3:20","220")
+.replace("3:20-4:20","320");
+
+const cell=document.getElementById(id);
+
+if(!cell) continue;
+
+cell.innerHTML=data[day][slot].subject+"<br>("+data[day][slot].faculty+")";
+
+}
+
+}
+
+}
+
+loadTimetable();
+document.getElementById("semesterSelect").addEventListener("change",loadTimetable);
 
 </script>
 
