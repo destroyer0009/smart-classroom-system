@@ -1,76 +1,269 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-  <title>Weekly Timetable</title>
+<title>Weekly Timetable</title>
+
+<style>
+
+body{
+font-family:Arial;
+margin:0;
+background:#f4f6f9;
+}
+
+table{
+border-collapse:collapse;
+width:100%;
+}
+
+td,th{
+padding:10px;
+border:1px solid #333;
+text-align:center;
+}
+
+</style>
+
 </head>
 
-<body style="font-family: Arial; margin:0; background:#f4f6f9;">
+<body>
 
-<div style="background:#002147; color:white; padding:20px; text-align:center;">
-  <h1>Weekly Timetable</h1>
-  <button onclick="window.location.href='index.html'"
-          style="padding:8px 15px;">Back to Home</button>
+<div style="background:#002147;color:white;padding:20px;text-align:center;">
+<h1>Weekly Timetable</h1>
+
+<button onclick="window.location.href='index.html'"
+style="padding:8px 15px;">
+Back to Home
+</button>
+
 </div>
+
 
 <div style="padding:30px;">
-  <select id="roomSelect" onchange="loadTimetable()">
-    <option value="LAB31">LAB31</option>
-    <option value="CR125">CR125</option>
-    <option value="CR126">CR126</option>
-  </select>
 
-  <div id="timetableContainer" style="margin-top:20px;"></div>
+<select id="semesterSelect" onchange="loadTimetable()">
+
+<option value="SEM3">Semester 3</option>
+<option value="SEM5">Semester 5</option>
+<option value="SEM7">Semester 7</option>
+
+</select>
+
+
+<table>
+
+<tr style="background:#002147;color:white">
+
+<th>Day / Time</th>
+<th>8:30-9:30</th>
+<th>9:30-10:30</th>
+<th>10:30-10:40</th>
+<th>10:40-11:40</th>
+<th>11:40-12:40</th>
+<th>12:40-1:20</th>
+<th>1:20-2:20</th>
+<th>2:20-3:20</th>
+<th>3:20-4:20</th>
+
+</tr>
+
+
+<tr>
+<td><b>Monday</b></td>
+<td id="Monday_830"></td>
+<td id="Monday_930"></td>
+<td rowspan="6"><b>Break</b></td>
+<td id="Monday_1040"></td>
+<td id="Monday_1140"></td>
+<td rowspan="6"><b>Lunch</b></td>
+<td id="Monday_120"></td>
+<td id="Monday_220"></td>
+<td id="Monday_320"></td>
+</tr>
+
+<tr>
+<td><b>Tuesday</b></td>
+<td id="Tuesday_830"></td>
+<td id="Tuesday_930"></td>
+<td id="Tuesday_1040"></td>
+<td id="Tuesday_1140"></td>
+<td id="Tuesday_120"></td>
+<td id="Tuesday_220"></td>
+<td id="Tuesday_320"></td>
+</tr>
+
+<tr>
+<td><b>Wednesday</b></td>
+<td id="Wednesday_830"></td>
+<td id="Wednesday_930"></td>
+<td id="Wednesday_1040"></td>
+<td id="Wednesday_1140"></td>
+<td id="Wednesday_120"></td>
+<td id="Wednesday_220"></td>
+<td id="Wednesday_320"></td>
+</tr>
+
+<tr>
+<td><b>Thursday</b></td>
+<td id="Thursday_830"></td>
+<td id="Thursday_930"></td>
+<td id="Thursday_1040"></td>
+<td id="Thursday_1140"></td>
+<td id="Thursday_120"></td>
+<td id="Thursday_220"></td>
+<td id="Thursday_320"></td>
+</tr>
+
+<tr>
+<td><b>Friday</b></td>
+<td id="Friday_830"></td>
+<td id="Friday_930"></td>
+<td id="Friday_1040"></td>
+<td id="Friday_1140"></td>
+<td id="Friday_120"></td>
+<td id="Friday_220"></td>
+<td id="Friday_320"></td>
+</tr>
+
+<tr>
+<td><b>Saturday</b></td>
+<td id="Saturday_830"></td>
+<td id="Saturday_930"></td>
+<td id="Saturday_1040"></td>
+<td id="Saturday_1140"></td>
+<td id="Saturday_120"></td>
+<td id="Saturday_220"></td>
+<td id="Saturday_320"></td>
+</tr>
+
+</table>
+
 </div>
 
+
+
 <script type="module">
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
 import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyAFSLRyN4W5VRg4atDPq7Pae0Kl8-RVP30",
-  authDomain: "smart-classroom-allocation.firebaseapp.com",
-  databaseURL: "https://smart-classroom-allocation-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "smart-classroom-allocation",
-  storageBucket: "smart-classroom-allocation.firebasestorage.app",
-  messagingSenderId: "31952362079",
-  appId: "1:31952362079:web:16fab8d8b9c29390fad9ea"
+
+apiKey: "AIzaSyAFSLRyN4W5VRg4atDPq7Pae0Kl8-RVP30",
+authDomain: "smart-classroom-allocation.firebaseapp.com",
+databaseURL: "https://smart-classroom-allocation-default-rtdb.asia-southeast1.firebasedatabase.app",
+projectId: "smart-classroom-allocation",
+storageBucket: "smart-classroom-allocation.firebasestorage.app",
+messagingSenderId: "31952362079",
+appId: "1:31952362079:web:16fab8d8b9c29390fad9ea"
+
 };
 
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
-async function loadTimetable() {
-  const room = document.getElementById("roomSelect").value;
-  const container = document.getElementById("timetableContainer");
-  container.innerHTML = "";
 
-  const refPath = ref(database, `classrooms/${room}/timetable`);
-  const snapshot = await get(refPath);
 
-  if (!snapshot.exists()) {
-    container.innerHTML = "No timetable found.";
-    return;
-  }
+async function loadTimetable(){
 
-  const data = snapshot.val();
+const semester=document.getElementById("semesterSelect").value;
 
-  for (let day in data) {
-    container.innerHTML += `<h3>${day}</h3>`;
+const refPath=ref(database,`semesters/${semester}/timetable`);
 
-    for (let slot in data[day]) {
-      container.innerHTML += `
-        <p>
-          <b>${slot}</b> —
-          ${data[day][slot].subject}
-          (${data[day][slot].faculty})
-        </p>
-      `;
-    }
-  }
+const snapshot=await get(refPath);
+
+if(!snapshot.exists()){
+alert("No timetable found");
+return;
 }
 
-window.loadTimetable = loadTimetable;
+const data=snapshot.val();
+
+
+const slots=[
+"8:30-9:30",
+"9:30-10:30",
+"10:40-11:40",
+"11:40-12:40",
+"1:20-2:20",
+"2:20-3:20",
+"3:20-4:20"
+];
+
+
+const days=[
+"Monday",
+"Tuesday",
+"Wednesday",
+"Thursday",
+"Friday",
+"Saturday"
+];
+
+
+/* clear all cells */
+
+for(let day of days){
+
+for(let slot of slots){
+
+const id=
+day+"_"+slot
+.replace("8:30-9:30","830")
+.replace("9:30-10:30","930")
+.replace("10:40-11:40","1040")
+.replace("11:40-12:40","1140")
+.replace("1:20-2:20","120")
+.replace("2:20-3:20","220")
+.replace("3:20-4:20","320");
+
+const cell=document.getElementById(id);
+
+if(cell){
+cell.innerHTML="";
+}
+
+}
+
+}
+
+
+/* fill timetable */
+
+for(let day in data){
+
+for(let slot in data[day]){
+
+const id=
+day+"_"+slot
+.replace("8:30-9:30","830")
+.replace("9:30-10:30","930")
+.replace("10:40-11:40","1040")
+.replace("11:40-12:40","1140")
+.replace("1:20-2:20","120")
+.replace("2:20-3:20","220")
+.replace("3:20-4:20","320");
+
+const cell=document.getElementById(id);
+
+if(!cell) continue;
+
+const subject=data[day][slot].subject;
+const faculty=data[day][slot].faculty;
+
+cell.innerHTML=subject+"<br>("+faculty+")";
+
+}
+
+}
+
+}
+
 loadTimetable();
+
+setInterval(loadTimetable,60000);
+
 </script>
 
 </body>
