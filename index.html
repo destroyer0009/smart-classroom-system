@@ -61,9 +61,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
-
-const rooms = ["LAB31", "CR125", "CR126"];
-
+const rooms = ["LAB31","CR125","CR126"];
 const slots = [
   "8:30-9:30",
   "9:30-10:30",
@@ -176,33 +174,7 @@ async function loadRooms() {
 }
 
 loadRooms();
-setInterval(loadRooms, 60000);
-window.openLogin = function() {
-  document.getElementById("loginModal").style.display = "flex";
-}
-
-window.closeLogin = function() {
-  document.getElementById("loginModal").style.display = "none";
-}
-
-window.login = async function() {
-  const id = document.getElementById("teacherID").value;
-  const pass = document.getElementById("teacherPass").value;
-
-  const teacherRef = ref(database, `teachers/${id}`);
-  const snapshot = await get(teacherRef);
-
-  if (!snapshot.exists()) {
-    document.getElementById("loginMsg").innerHTML = "Invalid ID";
-    return;
-  }
-
-  if (snapshot.val().password === pass) {
-    document.getElementById("loginMsg").innerHTML = "Login Successful";
-  } else {
-    document.getElementById("loginMsg").innerHTML = "Wrong Password";
-  }
-}
+setInterval(loadRooms,60000);
 </script>
 
 </body>
