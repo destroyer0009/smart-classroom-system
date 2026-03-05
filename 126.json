@@ -1,7 +1,7 @@
 {
   "semesters": {
 
-    "Semester 3": {
+    "SEM3": {
       "timetable": {
 
         "Monday": {
@@ -43,7 +43,7 @@
     },
 
 
-    "Semester 5": {
+    "SEM5": {
       "timetable": {
 
         "Monday": {
@@ -85,7 +85,7 @@
     },
 
 
-    "Semester 7": {
+    "SEM7": {
       "timetable": {
 
         "Monday": {

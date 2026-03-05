@@ -264,7 +264,9 @@ cell.innerHTML=data[day][slot].subject+"<br>("+data[day][slot].faculty+")";
 
 
 loadTimetable();
+const snapshot = await get(refPath);
 
+console.log(snapshot.val());
 setInterval(loadTimetable,60000);
 
 </script>
