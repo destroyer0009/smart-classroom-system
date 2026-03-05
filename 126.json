@@ -3,128 +3,133 @@
 
     "SEM3": {
       "timetable": {
-
         "Monday": {
           "8:30-9:30": { "subject": "ADE", "faculty": "NAB" },
           "9:30-10:30": { "subject": "ADE", "faculty": "NAB" },
           "10:40-11:40": { "subject": "OE", "faculty": "CCA" },
           "11:40-12:40": { "subject": "MS", "faculty": "BTI" }
         },
-
         "Tuesday": {
           "8:30-9:30": { "subject": "ADE", "faculty": "NAB" },
           "9:30-10:30": { "subject": "ADE", "faculty": "NAB" },
           "10:40-11:40": { "subject": "OE", "faculty": "CCA" },
           "11:40-12:40": { "subject": "MS", "faculty": "BTI" }
         },
-
         "Wednesday": {
           "8:30-9:30": { "subject": "OE", "faculty": "CCA" },
           "9:30-10:30": { "subject": "MS", "faculty": "BTI" },
           "10:40-11:40": { "subject": "ADE", "faculty": "NAB" }
         },
-
         "Thursday": {
           "8:30-9:30": { "subject": "MS", "faculty": "BTI" },
           "9:30-10:30": { "subject": "OE", "faculty": "CCA" },
           "10:40-11:40": { "subject": "ADE", "faculty": "NAB" }
         },
-
         "Friday": {
           "8:30-9:30": { "subject": "ADE", "faculty": "NAB" },
           "9:30-10:30": { "subject": "OE", "faculty": "CCA" },
           "10:40-11:40": { "subject": "MS", "faculty": "BTI" }
         },
-
         "Saturday": {
-          "8:30-9:30": { "subject": "Tutorial", "faculty": "-" }
+          "8:30-9:30": { "subject": "ADE", "faculty": "NAB" }
         }
       }
     },
 
-
     "SEM5": {
       "timetable": {
-
         "Monday": {
           "8:30-9:30": { "subject": "MIT", "faculty": "CRJ" },
           "9:30-10:30": { "subject": "DSP", "faculty": "SSK" },
           "10:40-11:40": { "subject": "ADE", "faculty": "NAB" },
           "11:40-12:40": { "subject": "MDACAD", "faculty": "NAB" }
         },
-
         "Tuesday": {
           "8:30-9:30": { "subject": "DSP", "faculty": "SSK" },
           "9:30-10:30": { "subject": "MIT", "faculty": "CRJ" },
           "10:40-11:40": { "subject": "ADE", "faculty": "NAB" },
           "11:40-12:40": { "subject": "MDACAD", "faculty": "NAB" }
         },
-
         "Wednesday": {
           "8:30-9:30": { "subject": "ADE", "faculty": "NAB" },
           "9:30-10:30": { "subject": "DSP", "faculty": "SSK" },
           "10:40-11:40": { "subject": "MIT", "faculty": "CRJ" }
         },
-
         "Thursday": {
           "8:30-9:30": { "subject": "DSP", "faculty": "SSK" },
           "9:30-10:30": { "subject": "ADE", "faculty": "NAB" },
           "10:40-11:40": { "subject": "MIT", "faculty": "CRJ" }
         },
-
         "Friday": {
           "8:30-9:30": { "subject": "MIT", "faculty": "CRJ" },
           "9:30-10:30": { "subject": "ADE", "faculty": "NAB" },
           "10:40-11:40": { "subject": "DSP", "faculty": "SSK" }
-        },
-
-        "Saturday": {
-          "8:30-9:30": { "subject": "Seminar", "faculty": "-" }
         }
       }
     },
 
-
     "SEM7": {
       "timetable": {
-
         "Monday": {
           "8:30-9:30": { "subject": "MG", "faculty": "GSP" },
           "9:30-10:30": { "subject": "MIT", "faculty": "CRJ" },
-          "10:40-11:40": { "subject": "RAC", "faculty": "RKA" },
-          "11:40-12:40": { "subject": "Project", "faculty": "RRM" }
+          "10:40-11:40": { "subject": "RAC", "faculty": "RKA" }
         },
-
         "Tuesday": {
           "8:30-9:30": { "subject": "RAC", "faculty": "RKA" },
           "9:30-10:30": { "subject": "MIT", "faculty": "CRJ" },
-          "10:40-11:40": { "subject": "MG", "faculty": "GSP" },
-          "11:40-12:40": { "subject": "Project", "faculty": "RRM" }
+          "10:40-11:40": { "subject": "MG", "faculty": "GSP" }
         },
-
         "Wednesday": {
           "8:30-9:30": { "subject": "MIT", "faculty": "CRJ" },
-          "9:30-10:30": { "subject": "RAC", "faculty": "RKA" },
-          "10:40-11:40": { "subject": "Project", "faculty": "RRM" }
+          "9:30-10:30": { "subject": "RAC", "faculty": "RKA" }
         },
-
         "Thursday": {
           "8:30-9:30": { "subject": "MG", "faculty": "GSP" },
           "9:30-10:30": { "subject": "MIT", "faculty": "CRJ" },
           "10:40-11:40": { "subject": "RAC", "faculty": "RKA" }
         },
-
         "Friday": {
-          "8:30-9:30": { "subject": "Project", "faculty": "RRM" },
-          "9:30-10:30": { "subject": "MG", "faculty": "GSP" },
-          "10:40-11:40": { "subject": "MIT", "faculty": "CRJ" }
-        },
-
-        "Saturday": {
-          "8:30-9:30": { "subject": "Project Work", "faculty": "-" }
+          "8:30-9:30": { "subject": "MG", "faculty": "GSP" },
+          "9:30-10:30": { "subject": "MIT", "faculty": "CRJ" }
         }
       }
     }
+  },
+
+  "classrooms": {
+
+    "LAB31": {
+      "timetable": {
+        "Monday": {
+          "8:30-9:30": { "subject": "MG", "faculty": "GSP", "semester": "VII" },
+          "9:30-10:30": { "subject": "MIT", "faculty": "CRJ", "semester": "V" }
+        },
+        "Tuesday": {
+          "8:30-9:30": { "subject": "RAC", "faculty": "RKA", "semester": "VII" },
+          "9:30-10:30": { "subject": "DSP", "faculty": "SSK", "semester": "V" }
+        }
+      }
+    },
+
+    "CR125": {
+      "timetable": {
+        "Monday": {
+          "8:30-9:30": { "subject": "MIT", "faculty": "CRJ" },
+          "9:30-10:30": { "subject": "MDACAD", "faculty": "NAB" }
+        }
+      }
+    },
+
+    "CR126": {
+      "timetable": {
+        "Monday": {
+          "8:30-9:30": { "subject": "DSP", "faculty": "SSK" },
+          "9:30-10:30": { "subject": "ADE", "faculty": "NAB" }
+        }
+      }
+    }
+
   },
 
   "teachers": {

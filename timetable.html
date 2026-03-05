@@ -2,7 +2,8 @@
 <html>
 
 <head>
-<title>Weekly Timetable</title>
+
+<title>Mechanical Engineering Timetable</title>
 
 <style>
 
@@ -14,13 +15,33 @@ background:#f4f6f9;
 
 table{
 border-collapse:collapse;
-width:100%;
+width:95%;
+margin:auto;
+font-size:12px;
 }
 
 td,th{
-padding:10px;
-border:1px solid #333;
+border:1px solid black;
+padding:3px;
 text-align:center;
+height:28px;
+}
+
+.header{
+background:#002147;
+color:white;
+}
+
+.break{
+writing-mode:vertical-rl;
+font-weight:bold;
+font-size:11px;
+}
+
+select{
+padding:6px;
+margin:20px;
+font-size:14px;
 }
 
 </style>
@@ -29,38 +50,29 @@ text-align:center;
 
 <body>
 
-<div style="background:#002147;color:white;padding:20px;text-align:center;">
-<h1>Weekly Timetable</h1>
-
-<button onclick="window.location.href='index.html'"
-style="padding:8px 15px;">
-Back to Home
-</button>
-
+<div style="background:#002147;color:white;padding:15px;text-align:center;">
+<h3>Mechanical Engineering Timetable</h3>
 </div>
 
+<center>
 
-<div style="padding:30px;">
+<select id="semesterSelect" onchange="changeSemester()">
 
-<select id="semesterSelect" onchange="loadTimetable()">
-
-<option value="SEM1">Semester 1</option>
-<option value="SEM2">Semester 2</option>
-<option value="SEM3">Semester 3</option>
-<option value="SEM4">Semester 4</option>
-<option value="SEM5">Semester 5</option>
-<option value="SEM6">Semester 6</option>
-<option value="SEM7">Semester 7</option>
-<option value="SEM8">Semester 8</option>
+<option value="sem3">Semester III</option>
+<option value="sem5">Semester V</option>
+<option value="sem7">Semester VII</option>
 
 </select>
 
+</center>
 
-<table>
+<!-- ================= SEM 3 ================= -->
 
-<tr style="background:#002147;color:white">
+<table id="sem3">
 
-<th>Day / Time</th>
+<tr class="header">
+
+<th>Day</th>
 <th>8:30-9:30</th>
 <th>9:30-10:30</th>
 <th>10:30-10:40</th>
@@ -73,201 +85,267 @@ Back to Home
 
 </tr>
 
-
 <tr>
-<td><b>Monday</b></td>
-<td id="Monday_830"></td>
-<td id="Monday_930"></td>
-<td rowspan="6"><b>Break</b></td>
-<td id="Monday_1040"></td>
-<td id="Monday_1140"></td>
-<td rowspan="6"><b>Lunch</b></td>
-<td id="Monday_120"></td>
-<td id="Monday_220"></td>
-<td id="Monday_320"></td>
+<td>Monday</td>
+<td>M3 (JSP)</td>
+<td>MD&CAD (NAB)</td>
+<td rowspan="6" class="break">BREAK</td>
+<td>MSM (RKA)</td>
+<td>ADE (NGP)</td>
+<td rowspan="6" class="break">LUNCH</td>
+<td>ADE Lab</td>
+<td>MD&CAD Lab</td>
+<td>MSM Lab</td>
 </tr>
 
 <tr>
-<td><b>Tuesday</b></td>
-<td id="Tuesday_830"></td>
-<td id="Tuesday_930"></td>
-<td id="Tuesday_1040"></td>
-<td id="Tuesday_1140"></td>
-<td id="Tuesday_120"></td>
-<td id="Tuesday_220"></td>
-<td id="Tuesday_320"></td>
+<td>Tuesday</td>
+<td>M3</td>
+<td>MSM</td>
+<td>OE-IoT</td>
+<td>ADE</td>
+<td>ADE Lab</td>
+<td>MD&CAD Lab</td>
+<td>MSM Lab</td>
 </tr>
 
 <tr>
-<td><b>Wednesday</b></td>
-<td id="Wednesday_830"></td>
-<td id="Wednesday_930"></td>
-<td id="Wednesday_1040"></td>
-<td id="Wednesday_1140"></td>
-<td id="Wednesday_120"></td>
-<td id="Wednesday_220"></td>
-<td id="Wednesday_320"></td>
+<td>Wednesday</td>
+<td>M3 Tut</td>
+<td></td>
+<td>OE-IoT</td>
+<td>ADE Tut</td>
+<td>ADE Lab</td>
+<td>MD&CAD Lab</td>
+<td>MSM Lab</td>
 </tr>
 
 <tr>
-<td><b>Thursday</b></td>
-<td id="Thursday_830"></td>
-<td id="Thursday_930"></td>
-<td id="Thursday_1040"></td>
-<td id="Thursday_1140"></td>
-<td id="Thursday_120"></td>
-<td id="Thursday_220"></td>
-<td id="Thursday_320"></td>
+<td>Thursday</td>
+<td>M3 Tut</td>
+<td>MD&CAD</td>
+<td>OE-IoT</td>
+<td>CoI</td>
+<td>ADE Lab</td>
+<td>MD&CAD Lab</td>
+<td>MSM Lab</td>
 </tr>
 
 <tr>
-<td><b>Friday</b></td>
-<td id="Friday_830"></td>
-<td id="Friday_930"></td>
-<td id="Friday_1040"></td>
-<td id="Friday_1140"></td>
-<td id="Friday_120"></td>
-<td id="Friday_220"></td>
-<td id="Friday_320"></td>
+<td>Friday</td>
+<td>M3 Tut</td>
+<td>MSM</td>
+<td>EL-II MEMS</td>
+<td>LBA</td>
+<td>MDM-EDC</td>
+<td>MDM-EDC</td>
+<td></td>
 </tr>
 
 <tr>
-<td><b>Saturday</b></td>
-<td id="Saturday_830"></td>
-<td id="Saturday_930"></td>
-<td id="Saturday_1040"></td>
-<td id="Saturday_1140"></td>
-<td id="Saturday_120"></td>
-<td id="Saturday_220"></td>
-<td id="Saturday_320"></td>
+<td>Saturday</td>
+<td>M3 Tut</td>
+<td>M3 Tut</td>
+<td>CoI</td>
+<td>CoI</td>
+<td>MDM-EDC</td>
+<td>MDM-EDC</td>
+<td></td>
 </tr>
 
 </table>
 
-</div>
+<!-- ================= SEM 5 ================= -->
 
+<table id="sem5" style="display:none">
 
+<tr class="header">
 
-<script type="module">
+<th>Day</th>
+<th>8:30-9:30</th>
+<th>9:30-10:30</th>
+<th>10:30-10:40</th>
+<th>10:40-11:40</th>
+<th>11:40-12:40</th>
+<th>12:40-1:20</th>
+<th>1:20-2:20</th>
+<th>2:20-3:20</th>
+<th>3:20-4:20</th>
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+</tr>
 
+<tr>
+<td>Monday</td>
+<td>MT Tut</td>
+<td>DAS Tut</td>
+<td rowspan="6" class="break">BREAK</td>
+<td>MT (CRJ)</td>
+<td>MM (RKA)</td>
+<td rowspan="6" class="break">LUNCH</td>
+<td>MM Lab</td>
+<td>MT Lab</td>
+<td></td>
+</tr>
 
-const firebaseConfig = {
+<tr>
+<td>Tuesday</td>
+<td>MT Tut</td>
+<td></td>
+<td>EL-II MEMS</td>
+<td>DAS</td>
+<td>MT</td>
+<td>MM</td>
+<td></td>
+</tr>
 
-apiKey: "AIzaSyAFSLRyN4W5VRg4atDPq7Pae0Kl8-RVP30",
-authDomain: "smart-classroom-allocation.firebaseapp.com",
-databaseURL: "https://smart-classroom-allocation-default-rtdb.asia-southeast1.firebasedatabase.app",
-projectId: "smart-classroom-allocation",
-storageBucket: "smart-classroom-allocation.firebasestorage.app",
-messagingSenderId: "31952362079",
-appId: "1:31952362079:web:16fab8d8b9c29390fad9ea"
+<tr>
+<td>Wednesday</td>
+<td></td>
+<td>MT Tut</td>
+<td>MM</td>
+<td>DAS</td>
+<td>DAS Tut</td>
+<td>OE-I RER</td>
+<td></td>
+</tr>
 
-};
+<tr>
+<td>Thursday</td>
+<td></td>
+<td>MT Tut</td>
+<td>EL-II MEMS</td>
+<td>OE-I RER</td>
+<td>DAS Tut</td>
+<td>DAS Tut</td>
+<td></td>
+</tr>
 
-const app = initializeApp(firebaseConfig);
-const database = getDatabase(app);
+<tr>
+<td>Friday</td>
+<td></td>
+<td></td>
+<td>DAS</td>
+<td></td>
+<td>MT</td>
+<td>OE-I RER</td>
+<td></td>
+</tr>
 
+<tr>
+<td>Saturday</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
 
+</table>
 
-async function loadTimetable(){
+<!-- ================= SEM 7 ================= -->
 
-const semester=document.getElementById("semesterSelect").value;
+<table id="sem7" style="display:none">
 
-const refPath=ref(database,`semesters/${semester}/timetable`);
+<tr class="header">
 
-const snapshot=await get(refPath);
+<th>Day</th>
+<th>8:30-9:30</th>
+<th>9:30-10:30</th>
+<th>10:30-10:40</th>
+<th>10:40-11:40</th>
+<th>11:40-12:40</th>
+<th>12:40-1:20</th>
+<th>1:20-2:20</th>
+<th>2:20-3:20</th>
+<th>3:20-4:20</th>
 
+</tr>
 
-const slots=[
-"8:30-9:30",
-"9:30-10:30",
-"10:40-11:40",
-"11:40-12:40",
-"1:20-2:20",
-"2:20-3:20",
-"3:20-4:20"
-];
+<tr>
+<td>Monday</td>
+<td>RBS Tut</td>
+<td>DSP</td>
+<td rowspan="6" class="break">BREAK</td>
+<td>E-V DIP</td>
+<td>RBS</td>
+<td rowspan="6" class="break">LUNCH</td>
+<td>OE-IV-EE</td>
+<td>OE-IV-EE</td>
+<td></td>
+</tr>
 
-const days=[
-"Monday",
-"Tuesday",
-"Wednesday",
-"Thursday",
-"Friday",
-"Saturday"
-];
+<tr>
+<td>Tuesday</td>
+<td>RBS Tut</td>
+<td>DSP</td>
+<td>RBS Lab</td>
+<td>CAM Lab</td>
+<td>OE-IV-EE</td>
+<td>OE-III-ED</td>
+<td></td>
+</tr>
 
+<tr>
+<td>Wednesday</td>
+<td>RBS Tut</td>
+<td>DSP</td>
+<td>RBS Lab</td>
+<td>CAM Lab</td>
+<td>OE-III-ED</td>
+<td></td>
+<td></td>
+</tr>
 
-/* CLEAR TABLE */
+<tr>
+<td>Thursday</td>
+<td>E-V DIP</td>
+<td>RBS</td>
+<td>RBS Lab</td>
+<td>CAM Lab</td>
+<td>OE-III-ED</td>
+<td>MP-II</td>
+<td>MP-II</td>
+</tr>
 
-for(let day of days){
+<tr>
+<td>Friday</td>
+<td>E-V DIP</td>
+<td>RBS</td>
+<td>RBS Lab</td>
+<td>CAM Lab</td>
+<td>MP-II</td>
+<td>MP-II</td>
+<td>MP-II</td>
+</tr>
 
-for(let slot of slots){
+<tr>
+<td>Saturday</td>
+<td>RBS Tut</td>
+<td>DSP Tut</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
 
-const id=
-day+"_"+slot
-.replace("8:30-9:30","830")
-.replace("9:30-10:30","930")
-.replace("10:40-11:40","1040")
-.replace("11:40-12:40","1140")
-.replace("1:20-2:20","120")
-.replace("2:20-3:20","220")
-.replace("3:20-4:20","320");
+</table>
 
-const cell=document.getElementById(id);
+<script>
 
-if(cell){
-cell.innerHTML="-";
+function changeSemester(){
+
+let sem=document.getElementById("semesterSelect").value;
+
+document.getElementById("sem3").style.display="none";
+document.getElementById("sem5").style.display="none";
+document.getElementById("sem7").style.display="none";
+
+document.getElementById(sem).style.display="table";
+
 }
-
-}
-
-}
-
-
-if(!snapshot.exists()){
-return;
-}
-
-const data=snapshot.val();
-
-
-/* FILL TIMETABLE */
-
-for(let day in data){
-
-for(let slot in data[day]){
-
-const id=
-day+"_"+slot
-.replace("8:30-9:30","830")
-.replace("9:30-10:30","930")
-.replace("10:40-11:40","1040")
-.replace("11:40-12:40","1140")
-.replace("1:20-2:20","120")
-.replace("2:20-3:20","220")
-.replace("3:20-4:20","320");
-
-const cell=document.getElementById(id);
-
-if(!cell) continue;
-
-cell.innerHTML=data[day][slot].subject+"<br>("+data[day][slot].faculty+")";
-
-}
-
-}
-
-}
-
-
-loadTimetable();
-const snapshot = await get(refPath);
-
-console.log(snapshot.val());
-setInterval(loadTimetable,60000);
 
 </script>
 
