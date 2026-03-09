@@ -313,6 +313,12 @@ cursor:pointer;
 
 <br><br>
 
+<label>Notice Valid Until:</label>
+
+<input type="datetime-local" id="noticeExpiry">
+
+<br><br>
+
 <button onclick="postNotice()">Publish Notice</button>
 
 </div>
@@ -481,7 +487,11 @@ loadLiveClassrooms();
 
 window.postNotice=function(){
 
+window.postNotice = function(){
+
 const notice=document.getElementById("noticeText").value;
+
+const expiry=document.getElementById("noticeExpiry").value;
 
 if(notice===""){
 
@@ -493,13 +503,16 @@ return;
 
 set(ref(database,"notice/current"),{
 
-message:notice
+message:notice,
+expiry:expiry
 
 });
 
 alert("Notice Published");
 
 document.getElementById("noticeText").value="";
+
+}
 
 }
 
