@@ -127,10 +127,21 @@ const noticeRef = ref(database,"notice/current");
 
 onValue(noticeRef,(snapshot)=>{
 
-if(snapshot.exists()){
+if(!snapshot.exists()) return;
 
-document.getElementById("noticeBoard").innerText =
-snapshot.val().message;
+const data=snapshot.val();
+
+const now=new Date();
+
+const expiry=new Date(data.expiry);
+
+if(now < expiry){
+
+document.getElementById("noticeBoard").innerText=data.message;
+
+}else{
+
+document.getElementById("noticeBoard").innerText="No Notice";
 
 }
 
