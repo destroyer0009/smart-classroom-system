@@ -433,7 +433,16 @@ function postNotice(){
 
 const notice=document.getElementById("noticeText").value;
 
-localStorage.setItem("admin_notice",notice);
+set(ref(database,"notice/current"),{
+message:notice
+});
+function postNotice(){
+
+const notice=document.getElementById("noticeText").value;
+
+set(ref(database,"notice/current"),{
+message:notice
+});
 
 alert("Notice Published");
 

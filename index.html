@@ -12,9 +12,7 @@
   <h3>Smart Classroom Allocation & Booking System</h3>
 </div>
 <div style="background:#ffefc2;padding:10px;text-align:center;font-weight:bold;">
-
-<span id="noticeBoard">No Notice</span>
-
+📢 NOTICE: <span id="noticeBoard">No Notice</span>
 </div>
 
 <div style="position:absolute; right:20px; top:30px;">
@@ -107,7 +105,7 @@ justify-content:center; align-items:center;">
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
 
 const firebaseConfig = {
 
@@ -123,7 +121,20 @@ appId: "1:31952362079:web:16fab8d8b9c29390fad9ea"
 
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
+/* LIVE NOTICE FROM FIREBASE */
 
+const noticeRef = ref(database,"notice/current");
+
+onValue(noticeRef,(snapshot)=>{
+
+if(snapshot.exists()){
+
+document.getElementById("noticeBoard").innerText =
+snapshot.val().message;
+
+}
+
+});
 const rooms = ["LAB31","CR125","CR126"];
 
 const slots = [
@@ -422,11 +433,6 @@ document.getElementById("roomModal").style.display="none";
 
 }
 
-const notice=localStorage.getItem("admin_notice");
-
-if(notice){
-document.getElementById("noticeBoard").innerText=notice;
-}
 
 </script>
 
