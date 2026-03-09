@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Admin Dashboard</title>
+
+<style>
+
+body{
+margin:0;
+font-family:Arial;
+background:#f4f6f9;
+}
+
+/* HEADER */
+
+.header{
+background:#002147;
+color:white;
+padding:20px;
+text-align:center;
+}
+
+/* NAVBAR */
+
+.navbar{
+background:#1b3a6b;
+padding:10px;
+text-align:center;
+}
+
+.navbar button{
+padding:10px 20px;
+margin:5px;
+border:none;
+background:white;
+cursor:pointer;
+border-radius:5px;
+}
+
+/* CONTENT */
+
+.section{
+display:none;
+padding:30px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+background:white;
+}
+
+th,td{
+border:1px solid #ccc;
+padding:10px;
+text-align:center;
+}
+
+th{
+background:#002147;
+color:white;
+}
+
+/* CARD */
+
+.card{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 3px 10px rgba(0,0,0,0.2);
+margin-bottom:20px;
+}
+
+/* INPUT */
+
+input{
+padding:8px;
+margin:5px;
+}
+
+button.action{
+padding:6px 12px;
+margin:3px;
+cursor:pointer;
+}
+
+</style>
+
+</head>
+
+<body>
+
+
+<!-- HEADER -->
+
+<div class="header">
+
+<h1>Admin Dashboard</h1>
+<h3>Smart Classroom Allocation System</h3>
+
+</div>
+
+
+<!-- NAVBAR -->
+
+<div class="navbar">
+
+<button onclick="showSection('requests')">Booking Requests</button>
+
+<button onclick="showSection('teachers')">Manage Teachers</button>
+
+<button onclick="showSection('rfid')">RFID Management</button>
+
+<button onclick="showSection('classrooms')">Classroom Control</button>
+
+<button onclick="showSection('logs')">System Logs</button>
+
+<button onclick="showSection('live')">Live Classrooms</button>
+
+<button onclick="showSection('notice')">Admin Notice</button>
+
+<button onclick="window.location.href='index.html'">Home</button>
+
+</div>
+
+
+<!-- BOOKING REQUESTS -->
+
+<div id="requests" class="section">
+
+<div class="card">
+
+<h2>Lecture Booking Requests</h2>
+
+<table>
+
+<tr>
+<th>Teacher</th>
+<th>Subject</th>
+<th>Day</th>
+<th>Time</th>
+<th>Action</th>
+</tr>
+
+<tr>
+<td>CRJ</td>
+<td>MIT</td>
+<td>Tuesday</td>
+<td>10:40</td>
+<td>
+
+<button class="action">Approve</button>
+<button class="action">Reject</button>
+
+</td>
+</tr>
+
+</table>
+
+</div>
+
+</div>
+
+
+<!-- MANAGE TEACHERS -->
+
+<div id="teachers" class="section">
+
+<div class="card">
+
+<h2>Add New Teacher</h2>
+
+<input placeholder="Teacher Name">
+
+<input placeholder="Teacher ID">
+
+<input placeholder="Password">
+
+<input placeholder="RFID UID">
+
+<button>Add Teacher</button>
+
+</div>
+
+<div class="card">
+
+<h2>Teacher List</h2>
+
+<table>
+
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>RFID</th>
+<th>Action</th>
+</tr>
+
+<tr>
+<td>CRJ</td>
+<td>Mr. C.R. Jadhav</td>
+<td>A1B2C3</td>
+
+<td>
+
+<button class="action">Edit</button>
+<button class="action">Delete</button>
+
+</td>
+
+</tr>
+
+</table>
+
+</div>
+
+</div>
+
+
+<!-- RFID MANAGEMENT -->
+
+<div id="rfid" class="section">
+
+<div class="card">
+
+<h2>Update RFID Card</h2>
+
+<input placeholder="Teacher ID">
+
+<input placeholder="New RFID UID">
+
+<button>Update RFID</button>
+
+</div>
+
+</div>
+
+
+<!-- CLASSROOM CONTROL -->
+
+<div id="classrooms" class="section">
+
+<div class="card">
+
+<h2>Modify Classroom Lecture</h2>
+
+<table>
+
+<tr>
+<th>Room</th>
+<th>Subject</th>
+<th>Teacher</th>
+<th>Status</th>
+<th>Action</th>
+</tr>
+
+<tr>
+<td>LAB31</td>
+<td>MIT</td>
+<td>CRJ</td>
+<td id="lecStatus">Active</td>
+
+<td>
+
+<button class="action" onclick="suspendLecture()">Suspend</button>
+
+<button class="action" onclick="resumeLecture()">Resume</button>
+
+<button class="action" onclick="cancelLecture()">Cancel Lecture</button>
+
+</td>
+
+</tr>
+
+</table>
+
+</div>
+
+</div>
+
+<div id="live" class="section">
+
+<div class="card">
+
+<h2>Live Classroom Status</h2>
+
+<table>
+
+<tr>
+<th>Room</th>
+<th>Current Subject</th>
+<th>Faculty</th>
+<th>Status</th>
+</tr>
+
+<tbody id="liveClassTable">
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+<div id="notice" class="section">
+
+<div class="card">
+
+<h2>Post Notice</h2>
+
+<textarea id="noticeText" rows="4" style="width:100%;" placeholder="Write notice here..."></textarea>
+
+<br><br>
+
+<button onclick="postNotice()">Publish Notice</button>
+
+</div>
+
+</div>
+
+<!-- SYSTEM LOGS -->
+
+<div id="logs" class="section">
+
+<div class="card">
+
+<h2>RFID Scan Logs</h2>
+
+<table>
+
+<tr>
+<th>Teacher</th>
+<th>Room</th>
+<th>Time</th>
+<th>Status</th>
+</tr>
+
+<tr>
+<td>CRJ</td>
+<td>LAB31</td>
+<td>10:38</td>
+<td>Valid</td>
+</tr>
+
+<tr>
+<td>SSK</td>
+<td>CR125</td>
+<td>09:12</td>
+<td>Invalid</td>
+</tr>
+
+</table>
+
+</div>
+
+</div>
+
+
+<script>
+
+function showSection(id){
+
+const sections=document.querySelectorAll(".section");
+
+sections.forEach(s => s.style.display="none");
+
+document.getElementById(id).style.display="block";
+
+}
+
+showSection("requests");
+
+
+/* SUSPEND LECTURE */
+
+function suspendLecture(){
+
+document.getElementById("lecStatus").innerText="Suspended";
+
+alert("Lecture Temporarily Suspended");
+
+}
+
+
+/* RESUME LECTURE */
+
+function resumeLecture(){
+
+document.getElementById("lecStatus").innerText="Active";
+
+alert("Lecture Resumed");
+
+}
+
+
+/* CANCEL LECTURE */
+
+function cancelLecture(){
+
+document.getElementById("lecStatus").innerText="Cancelled";
+
+alert("Lecture Cancelled");
+
+}
+
+function loadLiveClassrooms(){
+
+const table=document.getElementById("liveClassTable");
+
+table.innerHTML="";
+
+const rooms=["LAB31","CR125","CR126"];
+
+rooms.forEach(room => {
+
+table.innerHTML += `
+<tr>
+<td>${room}</td>
+<td id="${room}_sub">-</td>
+<td id="${room}_fac">-</td>
+<td id="${room}_stat">Available</td>
+</tr>
+`;
+
+});
+
+}
+
+loadLiveClassrooms();
+
+function postNotice(){
+
+const notice=document.getElementById("noticeText").value;
+
+localStorage.setItem("admin_notice",notice);
+
+alert("Notice Published");
+
+}
+
+</script>
+
+
+</body>
+</html>

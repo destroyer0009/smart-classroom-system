@@ -11,6 +11,11 @@
   <h1>Loknete Shamrao Peje Govt. College of Engineering, Ratnagiri</h1>
   <h3>Smart Classroom Allocation & Booking System</h3>
 </div>
+<div style="background:#ffefc2;padding:10px;text-align:center;font-weight:bold;">
+
+<span id="noticeBoard">No Notice</span>
+
+</div>
 
 <div style="position:absolute; right:20px; top:30px;">
 
@@ -416,6 +421,13 @@ window.closeRoom=function(){
 document.getElementById("roomModal").style.display="none";
 
 }
+
+const notice=localStorage.getItem("admin_notice");
+
+if(notice){
+document.getElementById("noticeBoard").innerText=notice;
+}
+
 </script>
 
 </body>
