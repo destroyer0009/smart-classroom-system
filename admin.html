@@ -357,9 +357,28 @@ cursor:pointer;
 </div>
 
 
-<script>
+<script type="module">
 
-function showSection(id){
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyAFSLRyN4W5VRg4atDPq7Pae0Kl8-RVP30",
+authDomain: "smart-classroom-allocation.firebaseapp.com",
+databaseURL: "https://smart-classroom-allocation-default-rtdb.asia-southeast1.firebasedatabase.app",
+projectId: "smart-classroom-allocation",
+storageBucket: "smart-classroom-allocation.firebasestorage.app",
+messagingSenderId: "31952362079",
+appId: "1:31952362079:web:16fab8d8b9c29390fad9ea"
+};
+
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+
+
+/* PAGE SECTION SWITCH */
+
+window.showSection=function(id){
 
 const sections=document.querySelectorAll(".section");
 
@@ -374,7 +393,7 @@ showSection("requests");
 
 /* SUSPEND LECTURE */
 
-function suspendLecture(){
+window.suspendLecture=function(){
 
 document.getElementById("lecStatus").innerText="Suspended";
 
@@ -385,7 +404,7 @@ alert("Lecture Temporarily Suspended");
 
 /* RESUME LECTURE */
 
-function resumeLecture(){
+window.resumeLecture=function(){
 
 document.getElementById("lecStatus").innerText="Active";
 
@@ -396,7 +415,7 @@ alert("Lecture Resumed");
 
 /* CANCEL LECTURE */
 
-function cancelLecture(){
+window.cancelLecture=function(){
 
 document.getElementById("lecStatus").innerText="Cancelled";
 
@@ -404,24 +423,52 @@ alert("Lecture Cancelled");
 
 }
 
+
+/* LIVE CLASSROOM STATUS */
+
 function loadLiveClassrooms(){
 
 const table=document.getElementById("liveClassTable");
 
-table.innerHTML="";
-
 const rooms=["LAB31","CR125","CR126"];
+
+table.innerHTML="";
 
 rooms.forEach(room => {
 
-table.innerHTML += `
+table.innerHTML+=`
+
 <tr>
+
 <td>${room}</td>
-<td id="${room}_sub">-</td>
+
+<td id="${room}_sub">Loading...</td>
+
 <td id="${room}_fac">-</td>
-<td id="${room}_stat">Available</td>
+
+<td id="${room}_stat">Checking...</td>
+
 </tr>
+
 `;
+
+const roomRef=ref(database,"classrooms/"+room+"/status");
+
+onValue(roomRef,(snapshot)=>{
+
+if(snapshot.exists()){
+
+const data=snapshot.val();
+
+document.getElementById(room+"_sub").innerText=data.subject || "-";
+
+document.getElementById(room+"_fac").innerText=data.faculty || "-";
+
+document.getElementById(room+"_stat").innerText=data.status || "Available";
+
+}
+
+});
 
 });
 
@@ -429,22 +476,30 @@ table.innerHTML += `
 
 loadLiveClassrooms();
 
-function postNotice(){
+
+/* POST NOTICE */
+
+window.postNotice=function(){
 
 const notice=document.getElementById("noticeText").value;
 
-set(ref(database,"notice/current"),{
-message:notice
-});
-function postNotice(){
+if(notice===""){
 
-const notice=document.getElementById("noticeText").value;
+alert("Write notice first");
+
+return;
+
+}
 
 set(ref(database,"notice/current"),{
+
 message:notice
+
 });
 
 alert("Notice Published");
+
+document.getElementById("noticeText").value="";
 
 }
 
