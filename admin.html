@@ -565,10 +565,13 @@ opt.text=s;
 
 semSelect.appendChild(opt);
 
+
+
 });
+document.getElementById("semSelect").value="";
 
 }
-loadSemesters();
+
 
 function loadTimetable(){
 
@@ -584,7 +587,7 @@ return;
 
 const ttRef=ref(database,"previous_timetables/"+term+"/"+sem);
 
-onValue(ttRef,(snapshot)=>{
+get(ttRef).then((snapshot)=>{
 
 table.innerHTML="";
 
@@ -593,12 +596,13 @@ table.innerHTML="<tr><td colspan='10'>No timetable data found</td></tr>";
 return;
 }
 
+const data=snapshot.val();
+
 const days=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
 days.forEach(day=>{
 
-const data = snapshot.val() || {};
-const d = data[day] || {};
+const d=data[day] || {};
 
 table.innerHTML+=`
 
@@ -625,9 +629,6 @@ table.innerHTML+=`
 });
 
 }
-
-
-
 /* POST NOTICE */
 
 window.postNotice = function(){
