@@ -120,6 +120,8 @@ cursor:pointer;
 
 <button onclick="showSection('notice')">Admin Notice</button>
 
+<button onclick="showSection('uploadTT')">Upload Timetable</button>
+
 <button onclick="window.location.href='previous_tt.html'">
 Previous Year Timetable
 </button>
@@ -302,6 +304,70 @@ Previous Year Timetable
 </tbody>
 
 </table>
+
+</div>
+
+</div>
+
+<div id="uploadTT" class="section">
+
+<div class="card">
+
+<h2>Upload New Term Timetable</h2>
+
+<label>Term:</label>
+<input id="ttTerm" placeholder="Example: winter2026">
+
+<br><br>
+
+<label>Semester:</label>
+<select id="ttSem">
+<option value="Sem1">Sem1</option>
+<option value="Sem2">Sem2</option>
+<option value="Sem3">Sem3</option>
+<option value="Sem4">Sem4</option>
+<option value="Sem5">Sem5</option>
+<option value="Sem6">Sem6</option>
+<option value="Sem7">Sem7</option>
+<option value="Sem8">Sem8</option>
+</select>
+
+<br><br>
+
+<label>Day:</label>
+<select id="ttDay">
+<option>Monday</option>
+<option>Tuesday</option>
+<option>Wednesday</option>
+<option>Thursday</option>
+<option>Friday</option>
+<option>Saturday</option>
+</select>
+
+<br><br>
+
+<label>Time Slot:</label>
+<select id="ttSlot">
+<option value="s1">8:30-9:30</option>
+<option value="s2">9:30-10:30</option>
+<option value="s3">10:30-10:40</option>
+<option value="s4">10:40-11:40</option>
+<option value="s5">11:40-12:40</option>
+<option value="s6">12:40-1:20</option>
+<option value="s7">1:20-2:20</option>
+<option value="s8">2:20-3:20</option>
+<option value="s9">3:20-4:20</option>
+</select>
+
+<br><br>
+
+<input id="ttSubject" placeholder="Subject">
+
+<input id="ttFaculty" placeholder="Faculty ID">
+
+<br><br>
+
+<button onclick="uploadTimetable()">Add Lecture</button>
 
 </div>
 
@@ -658,6 +724,31 @@ alert("Notice Published");
 document.getElementById("noticeText").value="";
 }
 
+window.uploadTimetable = function(){
+
+const term=document.getElementById("ttTerm").value;
+const sem=document.getElementById("ttSem").value;
+const day=document.getElementById("ttDay").value;
+const slot=document.getElementById("ttSlot").value;
+
+const subject=document.getElementById("ttSubject").value;
+const faculty=document.getElementById("ttFaculty").value;
+
+if(term==="" || subject===""){
+alert("Fill all details");
+return;
+}
+
+const path=`classrooms/LAB31/timetable/${day}/${slot}`;
+
+set(ref(database,`terms/${term}/${sem}/${day}/${slot}`),{
+subject:subject,
+faculty:faculty
+});
+
+alert("Lecture Added to Timetable");
+
+}
 </script>
 
 
