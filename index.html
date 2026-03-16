@@ -7,13 +7,17 @@
 
 .noticeBar{
 background:#ffefc2;
+overflow:hidden;
 padding:10px;
 font-weight:bold;
+position:relative;
 }
 
 .noticeSlider{
-display:block;
-white-space:normal;
+display:inline-block;
+white-space:nowrap;
+position:absolute;
+animation:slideNotice 20s linear infinite;
 }
 
 .noticeSlider span{
@@ -23,11 +27,11 @@ margin-right:80px;
 @keyframes slideNotice{
 
 0%{
-transform:translateX(100vw);
+left:100%;
 }
 
 100%{
-transform:translateX(-100%);
+left:-100%;
 }
 
 }
