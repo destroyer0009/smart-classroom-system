@@ -16,6 +16,25 @@ background:#002147;
 color:white;
 padding:20px;
 text-align:center;
+position:relative;
+}
+
+.logoutBtn{
+position:absolute;
+right:20px;
+top:20px;
+padding:8px 15px;
+border:none;
+background:white;
+color:#002147;
+cursor:pointer;
+border-radius:5px;
+font-weight:bold;
+}
+
+.logoutBtn:hover{
+background:#1b3a6b;
+color:white;
 }
 
 .menu{
@@ -27,11 +46,18 @@ margin-top:20px;
 
 .menu button{
 padding:10px 20px;
+margin:5px;
 border:none;
-background:#002147;
-color:white;
+background:white;
+color:#002147;
 cursor:pointer;
 border-radius:5px;
+font-weight:bold;
+}
+
+.menu button:hover{
+background:#002147;
+color:white;
 }
 
 .menu button:hover{
@@ -53,6 +79,29 @@ display:inline-block;
 width:300px;
 }
 
+/* NAVBAR */
+
+.navbar{
+background:#1b3a6b;
+padding:10px;
+text-align:center;
+}
+
+.navbar button{
+padding:10px 20px;
+margin:5px;
+border:none;
+background:white;
+cursor:pointer;
+border-radius:5px;
+font-size:14px;
+}
+
+.navbar button:hover{
+background:#002147;
+color:white;
+}
+
 </style>
 
 </head>
@@ -60,19 +109,48 @@ width:300px;
 <body>
 
 <header>
+
 <h2>Teacher Dashboard</h2>
+
 <h3 id="teacherName"></h3>
+
+<button class="logoutBtn" onclick="logout()">Logout</button>
+
 </header>
 
-<div class="menu">
+<!-- <div class="menu">
+
+<button onclick="goHome()">Home</button>
 
 <button onclick="showToday()">Today's Lectures</button>
 
 <button onclick="showWeekly()">Weekly Timetable</button>
 
+<button onclick="showCancel()">Cancel Lecture</button>
+
 <button onclick="showBooking()">Book Classroom</button>
 
 <button onclick="showLogs()">RFID Logs</button>
+
+<button onclick="logout()">Logout</button>
+
+</div> -->
+
+<div class="navbar">
+
+<button onclick="showToday()">Today's Lectures</button>
+
+<button onclick="showWeekly()">Weekly Timetable</button>
+
+<button onclick="showCancel()">Cancel Lecture</button>
+
+<button onclick="showLate()">Late</button>
+
+<button onclick="showBooking()">Book Classroom</button>
+
+<button onclick="showLogs()">RFID Logs</button>
+
+
 
 </div>
 
@@ -187,6 +265,136 @@ status: "pending"
 
 document.getElementById("bookingMsg").innerHTML =
 "Booking Request Sent";
+
+}
+window.goHome = function(){
+
+window.location.href = "index.html";
+
+}
+window.logout = function(){
+
+localStorage.removeItem("teacherID");
+
+window.location.href = "index.html";
+
+}
+window.showCancel = function(){
+
+document.getElementById("content").innerHTML = `
+
+<h3>Cancel Lecture</h3>
+
+<select id="cancelSubject">
+
+<option>Web Technology</option>
+<option>Artificial Intelligence</option>
+<option>Database</option>
+
+</select>
+
+<br><br>
+
+<input type="date" id="cancelDate">
+
+<br><br>
+
+<select id="cancelSlot">
+
+<option>8:30-9:30</option>
+<option>9:30-10:30</option>
+<option>10:40-11:40</option>
+<option>11:40-12:40</option>
+<option>1:20-2:20</option>
+<option>2:20-3:20</option>
+<option>3:20-4:20</option>
+
+</select>
+
+<br><br>
+
+<button onclick="cancelLecture()">Cancel Lecture</button>
+
+<p id="cancelMsg"></p>
+
+`;
+
+}
+
+window.cancelLecture = function(){
+
+document.getElementById("cancelMsg").innerHTML =
+"Lecture Cancelled Successfully";
+
+}
+window.showLate = function(){
+
+document.getElementById("content").innerHTML = `
+
+<h3>Teacher Late Notification</h3>
+
+<select id="lateSubject">
+
+<option>MIT</option>
+<option>ADE</option>
+<option>DSP</option>
+
+</select>
+
+<br><br>
+
+<input type="date" id="lateDate">
+
+<br><br>
+
+<select id="lateSlot">
+
+<option>8:30-9:30</option>
+<option>9:30-10:30</option>
+<option>10:40-11:40</option>
+<option>11:40-12:40</option>
+<option>1:20-2:20</option>
+<option>2:20-3:20</option>
+<option>3:20-4:20</option>
+
+</select>
+
+<br><br>
+
+<input id="lateMinutes" placeholder="Late minutes">
+
+<br><br>
+
+<button onclick="submitLate()">Submit Late</button>
+
+<p id="lateMsg"></p>
+
+`;
+
+}
+
+window.submitLate = async function(){
+
+const subject=document.getElementById("lateSubject").value;
+const date=document.getElementById("lateDate").value;
+const slot=document.getElementById("lateSlot").value;
+const minutes=document.getElementById("lateMinutes").value;
+
+const teacher=localStorage.getItem("teacherID");
+
+await set(ref(database,"late_notifications/"+Date.now()),{
+
+teacher:teacher,
+subject:subject,
+date:date,
+slot:slot,
+minutes:minutes,
+status:"late"
+
+});
+
+document.getElementById("lateMsg").innerHTML=
+"Late notification sent";
 
 }
 </script>

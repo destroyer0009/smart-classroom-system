@@ -120,6 +120,8 @@ cursor:pointer;
 
 <button onclick="showSection('notice')">Admin Notice</button>
 
+<button onclick="showSection('prevTimetable')">Previous Year Timetable</button>
+
 <button onclick="window.location.href='index.html'">Home</button>
 
 </div>
@@ -296,6 +298,55 @@ cursor:pointer;
 <tbody id="liveClassTable">
 
 </tbody>
+
+</table>
+
+</div>
+
+</div>
+
+<div id="prevTimetable" class="section">
+
+<div class="card">
+
+<h2>Previous Timetable Archive</h2>
+
+<label>Select Term:</label>
+
+<select id="termSelect" onchange="loadSemesters()">
+<option value="">Select Term</option>
+<option value="winter2024">Winter 2024</option>
+<option value="summer2024">Summer 2024</option>
+</select>
+
+<br><br>
+
+<label>Select Semester:</label>
+
+<select id="semSelect" onchange="loadTimetable()">
+<option value="">Select Semester</option>
+</select>
+
+</div>
+
+<div class="card">
+
+<table>
+
+<tr>
+<th>Day</th>
+<th>8:30-9:30</th>
+<th>9:30-10:30</th>
+<th>10:30-10:40</th>
+<th>10:40-11:40</th>
+<th>11:40-12:40</th>
+<th>12:40-1:20</th>
+<th>1:20-2:20</th>
+<th>2:20-3:20</th>
+<th>3:20-4:20</th>
+</tr>
+
+<tbody id="archiveTTBody"></tbody>
 
 </table>
 
@@ -482,6 +533,82 @@ document.getElementById(room+"_stat").innerText=data.status || "Available";
 
 loadLiveClassrooms();
 
+function loadSemesters(){
+
+const term=document.getElementById("termSelect").value;
+
+const semSelect=document.getElementById("semSelect");
+
+semSelect.innerHTML="<option value=''>Select Semester</option>";
+
+let sems=[];
+
+if(term==="winter2024"){
+sems=["Sem3","Sem5","Sem7"];
+}
+
+if(term==="summer2024"){
+sems=["Sem2","Sem4","Sem6"];
+}
+
+sems.forEach(s=>{
+
+let opt=document.createElement("option");
+
+opt.value=s;
+opt.text=s;
+
+semSelect.appendChild(opt);
+
+});
+
+}
+
+function loadTimetable(){
+
+const term=document.getElementById("termSelect").value;
+
+const sem=document.getElementById("semSelect").value;
+
+const table=document.getElementById("archiveTTBody");
+
+const ttRef=ref(database,"previous_timetables/"+term+"/"+sem);
+
+onValue(ttRef,(snapshot)=>{
+
+table.innerHTML="";
+
+snapshot.forEach(daySnap=>{
+
+const day=daySnap.key;
+
+const d=daySnap.val();
+
+table.innerHTML+=`
+
+<tr>
+
+<td>${day}</td>
+
+<td>${d.s1 || "-"}</td>
+<td>${d.s2 || "-"}</td>
+<td>${d.s3 || "-"}</td>
+<td>${d.s4 || "-"}</td>
+<td>${d.s5 || "-"}</td>
+<td>${d.s6 || "-"}</td>
+<td>${d.s7 || "-"}</td>
+<td>${d.s8 || "-"}</td>
+<td>${d.s9 || "-"}</td>
+
+</tr>
+
+`;
+
+});
+
+});
+
+}
 
 /* POST NOTICE */
 
