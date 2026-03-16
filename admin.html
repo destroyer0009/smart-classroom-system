@@ -120,7 +120,9 @@ cursor:pointer;
 
 <button onclick="showSection('notice')">Admin Notice</button>
 
-<button onclick="showSection('prevTimetable')">Previous Year Timetable</button>
+<button onclick="window.location.href='previous_tt.html'">
+Previous Year Timetable
+</button>
 
 <button onclick="window.location.href='index.html'">Home</button>
 
@@ -445,13 +447,14 @@ sections.forEach(s => s.style.display="none");
 document.getElementById(id).style.display="block";
 
 if(id==="prevTimetable"){
-loadSemesters();
+document.getElementById("termSelect").value="";
+document.getElementById("semSelect").innerHTML="<option value=''>Select Semester</option>";
+document.getElementById("archiveTTBody").innerHTML="";
 }
 
 }
 showSection("requests");
-document.getElementById("termSelect").value="winter2024";
-loadSemesters();
+
 
 
 /* SUSPEND LECTURE */
@@ -544,24 +547,17 @@ function loadSemesters(){
 const term=document.getElementById("termSelect").value;
 const semSelect=document.getElementById("semSelect");
 
-semSelect.innerHTML="";
-
-let defaultOpt=document.createElement("option");
-defaultOpt.value="";
-defaultOpt.text="Select Semester";
-semSelect.appendChild(defaultOpt);
-
+semSelect.innerHTML="<option value=''>Select Semester</option>";
 document.getElementById("archiveTTBody").innerHTML="";
 
-if(term==="") return;
+if(!term) return;
 
 let sems=[];
 
 if(term==="winter2024"){
 sems=["Sem3","Sem5","Sem7"];
 }
-
-if(term==="summer2024"){
+else if(term==="summer2024"){
 sems=["Sem2","Sem4","Sem6"];
 }
 
@@ -569,7 +565,7 @@ sems.forEach(function(s){
 
 let opt=document.createElement("option");
 opt.value=s;
-opt.text=s;
+opt.textContent=s;
 
 semSelect.appendChild(opt);
 
@@ -599,7 +595,11 @@ table.innerHTML="<tr><td colspan='10'>No timetable data found</td></tr>";
 return;
 }
 
-const data=snapshot.val() || {};
+const data=snapshot.val();
+if(!data){
+table.innerHTML="<tr><td colspan='10'>No timetable data</td></tr>";
+return;
+}
 
 const days=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
