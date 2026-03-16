@@ -15,7 +15,7 @@ font-weight:bold;
 .noticeSlider{
 display:inline-block;
 white-space:nowrap;
-animation:slideNotice 20s linear infinite;
+animation:slideNotice 15s linear infinite;
 position:relative;
 }
 
@@ -164,7 +164,7 @@ const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 /* LIVE NOTICE FROM FIREBASE */
 
-const noticeRef = ref(database,"notices");
+const noticeRef = ref(database,"notice/current");
 
 onValue(noticeRef,(snapshot)=>{
 
