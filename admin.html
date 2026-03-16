@@ -315,8 +315,8 @@ cursor:pointer;
 
 <select id="termSelect" onchange="loadSemesters()">
 <option value="">Select Term</option>
-<option value="winter2024">Winter 2024</option>
-<option value="summer2024">Summer 2024</option>
+<option value="winter2024">winter2024</option>
+<option value="summer2024">summer2024</option>
 </select>
 
 <br><br>
@@ -325,6 +325,7 @@ cursor:pointer;
 
 <select id="semSelect" onchange="loadTimetable()">
 <option value="">Select Semester</option>
+<option disabled>---</option>
 </select>
 
 </div>
@@ -536,25 +537,29 @@ loadLiveClassrooms();
 function loadSemesters(){
 
 const term=document.getElementById("termSelect").value;
-
 const semSelect=document.getElementById("semSelect");
 
-semSelect.innerHTML="<option value=''>Select Semester</option>";
+semSelect.innerHTML="";
+
+let defaultOpt=document.createElement("option");
+defaultOpt.value="";
+defaultOpt.text="Select Semester";
+semSelect.appendChild(defaultOpt);
+
+document.getElementById("archiveTTBody").innerHTML="";
 
 let sems=[];
 
 if(term==="winter2024"){
 sems=["Sem3","Sem5","Sem7"];
 }
-
-if(term==="summer2024"){
+else if(term==="summer2024"){
 sems=["Sem2","Sem4","Sem6"];
 }
 
-sems.forEach(s=>{
+sems.forEach(function(s){
 
 let opt=document.createElement("option");
-
 opt.value=s;
 opt.text=s;
 
@@ -563,14 +568,19 @@ semSelect.appendChild(opt);
 });
 
 }
+loadSemesters();
 
 function loadTimetable(){
 
 const term=document.getElementById("termSelect").value;
-
 const sem=document.getElementById("semSelect").value;
 
 const table=document.getElementById("archiveTTBody");
+
+if(term==="" || sem===""){
+table.innerHTML="";
+return;
+}
 
 const ttRef=ref(database,"previous_timetables/"+term+"/"+sem);
 
@@ -578,11 +588,16 @@ onValue(ttRef,(snapshot)=>{
 
 table.innerHTML="";
 
-snapshot.forEach(daySnap=>{
+if(!snapshot.exists()){
+table.innerHTML="<tr><td colspan='10'>No timetable data found</td></tr>";
+return;
+}
 
-const day=daySnap.key;
+const days=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
-const d=daySnap.val();
+days.forEach(day=>{
+
+const d=snapshot.val()[day] || {};
 
 table.innerHTML+=`
 
@@ -610,37 +625,28 @@ table.innerHTML+=`
 
 }
 
-/* POST NOTICE */
+loadTimetable();
 
-window.postNotice=function(){
+/* POST NOTICE */
 
 window.postNotice = function(){
 
 const notice=document.getElementById("noticeText").value;
-
 const expiry=document.getElementById("noticeExpiry").value;
 
 if(notice===""){
-
 alert("Write notice first");
-
 return;
-
 }
 
 set(ref(database,"notice/current"),{
-
 message:notice,
 expiry:expiry
-
 });
 
 alert("Notice Published");
 
 document.getElementById("noticeText").value="";
-
-}
-
 }
 
 </script>

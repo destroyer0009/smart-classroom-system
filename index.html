@@ -2,6 +2,40 @@
 <html>
 <head>
   <title>Smart Classroom Allocation System</title>
+
+  <style>
+
+.noticeBar{
+background:#ffefc2;
+overflow:hidden;
+padding:10px;
+font-weight:bold;
+}
+
+.noticeSlider{
+display:inline-block;
+white-space:nowrap;
+animation:slideNotice 20s linear infinite;
+}
+
+.noticeSlider span{
+margin-right:80px;
+}
+
+@keyframes slideNotice{
+
+0%{
+transform:translateX(100%);
+}
+
+100%{
+transform:translateX(-100%);
+}
+
+}
+
+</style>
+
 </head>
 
 <body style="margin:0; font-family: Arial; background-color:#f4f6f9;">
@@ -11,8 +45,14 @@
   <h1>Loknete Shamrao Peje Govt. College of Engineering, Ratnagiri</h1>
   <h3>Smart Classroom Allocation & Booking System</h3>
 </div>
-<div style="background:#ffefc2;padding:10px;text-align:center;font-weight:bold;">
-📢 NOTICE: <span id="noticeBoard">No Notice</span>
+<div class="noticeBar">
+
+<div class="noticeSlider" id="noticeSlider">
+
+<span>Loading notices...</span>
+
+</div>
+
 </div>
 
 <div style="position:absolute; right:20px; top:30px;">
@@ -123,27 +163,34 @@ const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 /* LIVE NOTICE FROM FIREBASE */
 
-const noticeRef = ref(database,"notice/current");
+const noticeRef = ref(database,"notices");
 
 onValue(noticeRef,(snapshot)=>{
 
-if(!snapshot.exists()) return;
+const container=document.getElementById("noticeSlider");
 
-const data=snapshot.val();
+container.innerHTML="";
+
+if(!snapshot.exists()){
+container.innerHTML="<span>No Notice</span>";
+return;
+}
 
 const now=new Date();
+
+snapshot.forEach(child=>{
+
+const data=child.val();
 
 const expiry=new Date(data.expiry);
 
 if(now < expiry){
 
-document.getElementById("noticeBoard").innerText=data.message;
-
-}else{
-
-document.getElementById("noticeBoard").innerText="No Notice";
+container.innerHTML += `<span>📢 ${data.message}</span>`;
 
 }
+
+});
 
 });
 const rooms = ["LAB31","CR125","CR126"];
