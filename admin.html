@@ -444,9 +444,14 @@ sections.forEach(s => s.style.display="none");
 
 document.getElementById(id).style.display="block";
 
+if(id==="prevTimetable"){
+loadSemesters();
 }
 
+}
 showSection("requests");
+document.getElementById("termSelect").value="winter2024";
+loadSemesters();
 
 
 /* SUSPEND LECTURE */
@@ -548,12 +553,15 @@ semSelect.appendChild(defaultOpt);
 
 document.getElementById("archiveTTBody").innerHTML="";
 
+if(term==="") return;
+
 let sems=[];
 
 if(term==="winter2024"){
 sems=["Sem3","Sem5","Sem7"];
 }
-else if(term==="summer2024"){
+
+if(term==="summer2024"){
 sems=["Sem2","Sem4","Sem6"];
 }
 
@@ -565,14 +573,9 @@ opt.text=s;
 
 semSelect.appendChild(opt);
 
-
-
 });
-document.getElementById("semSelect").value="";
 
 }
-
-
 function loadTimetable(){
 
 const term=document.getElementById("termSelect").value;
@@ -596,7 +599,7 @@ table.innerHTML="<tr><td colspan='10'>No timetable data found</td></tr>";
 return;
 }
 
-const data=snapshot.val();
+const data=snapshot.val() || {};
 
 const days=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
