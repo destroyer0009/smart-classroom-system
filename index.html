@@ -10,13 +10,12 @@ background:#ffefc2;
 overflow:hidden;
 padding:10px;
 font-weight:bold;
-position:relative;
+width:100%;
 }
 
 .noticeSlider{
 display:inline-block;
 white-space:nowrap;
-position:absolute;
 animation:slideNotice 20s linear infinite;
 }
 
@@ -27,11 +26,11 @@ margin-right:80px;
 @keyframes slideNotice{
 
 0%{
-left:100%;
+transform:translateX(100%);
 }
 
 100%{
-left:-100%;
+transform:translateX(-100%);
 }
 
 }
