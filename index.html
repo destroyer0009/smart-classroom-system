@@ -7,16 +7,13 @@
 
 .noticeBar{
 background:#ffefc2;
-overflow:hidden;
 padding:10px;
 font-weight:bold;
 }
 
 .noticeSlider{
-display:inline-block;
-white-space:nowrap;
-animation:slideNotice 15s linear infinite;
-position:relative;
+display:block;
+white-space:normal;
 }
 
 .noticeSlider span{
@@ -187,7 +184,7 @@ const expiry=new Date(data.expiry);
 
 if(now < expiry){
 
-container.innerHTML += `<span>📢 ${data.message}</span>`;
+container.innerHTML += `<span>📢 ${data.message} | </span>`;
 
 }
 

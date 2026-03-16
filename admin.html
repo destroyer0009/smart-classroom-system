@@ -634,6 +634,8 @@ table.innerHTML+=`
 }
 /* POST NOTICE */
 
+import { push } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+
 window.postNotice = function(){
 
 const notice=document.getElementById("noticeText").value;
@@ -644,7 +646,9 @@ alert("Write notice first");
 return;
 }
 
-set(ref(database,"notice/current"),{
+const noticeRef = ref(database,"notice/current");
+
+push(noticeRef,{
 message:notice,
 expiry:expiry
 });
