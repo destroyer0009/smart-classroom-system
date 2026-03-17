@@ -110,6 +110,8 @@ color:white;
 
 <header>
 
+<img src="logo.png" style="height:70px; display:block; margin:auto;">
+
 <h2>Teacher Dashboard</h2>
 
 <h3 id="teacherName"></h3>
@@ -177,8 +179,26 @@ const database = getDatabase(app);
 
 const teacherID = localStorage.getItem("teacherID");
 
+const teacherRef = ref(database, "teachers/" + teacherID);
+
+get(teacherRef).then((snapshot) => {
+
+if(snapshot.exists()){
+
+const name = snapshot.val().name;
+
+document.getElementById("teacherName").innerText =
+"Welcome " + name;
+
+}
+else{
+
 document.getElementById("teacherName").innerText =
 "Welcome " + teacherID;
+
+}
+
+});
 
 window.showToday = function(){
 
