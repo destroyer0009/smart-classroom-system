@@ -220,15 +220,18 @@ container.innerHTML += `<span>📢 ${data.message} | </span>`;
 const rooms = ["LAB31","CR125","CR126"];
 
 const slots = [
-"8:30-9:30",
-"9:30-10:30",
-"10:40-11:40",
-"11:40-12:40",
-"1:20-2:20",
-"2:20-3:20",
-"3:20-4:20",
-"4:20-5:20"
+"s1","s2","s3","s4","s5","s6","s7","s8"
 ];
+const slotMap = {
+"s1":"8:30-9:30",
+"s2":"9:30-10:30",
+"s3":"10:40-11:40",
+"s4":"11:40-12:40",
+"s5":"1:20-2:20",
+"s6":"2:20-3:20",
+"s7":"3:20-4:20",
+"s8":"4:20-5:20"
+};
 
 
 function getCurrentDay(){
@@ -380,7 +383,7 @@ ${status}
 
 <p><b>Current:</b> ${currentSubject}</p>
 <p><b>Faculty:</b> ${currentFaculty}</p>
-<p><b>Time:</b> ${currentSlot ?? "Outside Class Hours"}</p>
+<p><b>Time:</b> ${currentSlot ? slotMap[currentSlot] : "Outside Class Hours"}</p>
 
 <hr>
 
