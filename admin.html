@@ -147,6 +147,8 @@ cursor:pointer;
 
 <button onclick="showSection('uploadTT')">Upload Timetable</button>
 
+<button onclick="showSection('editTT')">Edit Current Timetable</button>
+
 <button onclick="window.location.href='previous_tt.html'">
 Previous Year Timetable
 </button>
@@ -382,6 +384,7 @@ Previous Year Timetable
 <option value="s7">1:20-2:20</option>
 <option value="s8">2:20-3:20</option>
 <option value="s9">3:20-4:20</option>
+<option value="s10">4:20-5:20</option>
 </select>
 
 <br><br>
@@ -397,7 +400,58 @@ Previous Year Timetable
 </div>
 
 </div>
+<div id="editTT" class="section">
 
+<div class="card">
+
+<h2>Edit Current Timetable (Live)</h2>
+
+<label>Classroom:</label>
+<select id="editRoom">
+<option>LAB31</option>
+<option>CR125</option>
+<option>CR126</option>
+</select>
+
+<br><br>
+
+<label>Day:</label>
+<select id="editDay">
+<option>Monday</option>
+<option>Tuesday</option>
+<option>Wednesday</option>
+<option>Thursday</option>
+<option>Friday</option>
+<option>Saturday</option>
+</select>
+
+<br><br>
+
+<label>Time Slot:</label>
+<select id="editSlot">
+<option value="8:30-9:30">8:30-9:30</option>
+<option value="9:30-10:30">9:30-10:30</option>
+<option value="10:40-11:40">10:40-11:40</option>
+<option value="11:40-12:40">11:40-12:40</option>
+<option value="1:20-2:20">1:20-2:20</option>
+<option value="2:20-3:20">2:20-3:20</option>
+<option value="3:20-4:20">3:20-4:20</option>
+<option value="4:20-5:20">4:20-5:20</option>
+</select>
+
+<br><br>
+
+<input id="editSubject" placeholder="Subject">
+<input id="editFaculty" placeholder="Faculty ID">
+
+<br><br>
+
+<button onclick="saveCurrentTimetable()">Save / Update</button>
+<button onclick="deleteLecture()">Delete Lecture</button>
+
+</div>
+
+</div>
 <div id="prevTimetable" class="section">
 
 <div class="card">
@@ -438,6 +492,7 @@ Previous Year Timetable
 <th>1:20-2:20</th>
 <th>2:20-3:20</th>
 <th>3:20-4:20</th>
+<th>4:20-5:20</th>
 </tr>
 
 <tbody id="archiveTTBody"></tbody>
@@ -713,6 +768,7 @@ table.innerHTML+=`
 <td>${d.s7 || "-"}</td>
 <td>${d.s8 || "-"}</td>
 <td>${d.s9 || "-"}</td>
+<td>${d.s10 || "-"}</td>
 
 </tr>
 
@@ -772,6 +828,49 @@ faculty:faculty
 });
 
 alert("Lecture Added to Timetable");
+
+}
+/* SAVE CURRENT TIMETABLE */
+
+window.saveCurrentTimetable = function(){
+
+const room=document.getElementById("editRoom").value;
+const day=document.getElementById("editDay").value;
+const slot=document.getElementById("editSlot").value;
+
+const subject=document.getElementById("editSubject").value;
+const faculty=document.getElementById("editFaculty").value;
+
+if(subject===""){
+alert("Enter subject");
+return;
+}
+
+set(ref(database,
+`classrooms/${room}/timetable/${day}/${slot}`),{
+
+subject:subject,
+faculty:faculty
+
+});
+
+alert("Timetable Updated Successfully");
+
+}
+
+
+/* DELETE LECTURE */
+
+window.deleteLecture = function(){
+
+const room=document.getElementById("editRoom").value;
+const day=document.getElementById("editDay").value;
+const slot=document.getElementById("editSlot").value;
+
+set(ref(database,
+`classrooms/${room}/timetable/${day}/${slot}`), null);
+
+alert("Lecture Deleted");
 
 }
 </script>
