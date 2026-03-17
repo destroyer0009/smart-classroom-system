@@ -16,7 +16,8 @@ width:100%;
 .noticeSlider{
 display:inline-block;
 white-space:nowrap;
-animation:slideNotice 20s linear infinite;
+cursor:pointer;
+animation:slideNotice 40s linear infinite;
 }
 
 .noticeSlider span{
@@ -46,6 +47,7 @@ transform:translateX(-100%);
   <h1>Loknete Shamrao Peje Govt. College of Engineering, Ratnagiri</h1>
   <h3>Smart Classroom Allocation & Booking System</h3>
 </div>
+<h3 id="currentTime"></h3>
 <div class="noticeBar">
 
 <div class="noticeSlider" id="noticeSlider" onclick="openNoticeBoard()">
@@ -224,7 +226,8 @@ const slots = [
 "11:40-12:40",
 "1:20-2:20",
 "2:20-3:20",
-"3:20-4:20"
+"3:20-4:20",
+"4:20-5:20"
 ];
 
 
@@ -251,7 +254,8 @@ const slotRanges=[
 ["11:40-12:40",11*60+40,12*60+40],
 ["1:20-2:20",13*60+20,14*60+20],
 ["2:20-3:20",14*60+20,15*60+20],
-["3:20-4:20",15*60+20,16*60+20]
+["3:20-4:20",15*60+20,16*60+20],
+["4:20-5:20",16*60+20,17*60+20]
 
 ];
 
@@ -312,19 +316,27 @@ if(currentSlot){
 
 const currentRef=ref(database,`classrooms/${room}/timetable/${day}/${currentSlot}`);
 
-const snap=await get(currentRef);
+await new Promise((resolve)=>{
+
+onValue(currentRef,(snap)=>{
 
 if(snap.exists()){
-
 currentSubject=snap.val().subject;
-
 currentFaculty=snap.val().faculty;
-
 status="Ongoing";
-
-color="#f8d7da";
-
+color="#ffcccc";
+}else{
+currentSubject="Free";
+currentFaculty="-";
+status="Available";
+color="#d4edda";
 }
+
+resolve();
+
+},{onlyOnce:true});
+
+});
 
 }
 
@@ -355,7 +367,14 @@ box-shadow:0 5px 15px rgba(0,0,0,0.2);cursor:pointer;">
 
 <h2>${room}</h2>
 
-<p><b>Status:</b> ${status}</p>
+<p><b>Status:</b> 
+<span style="
+color:${status==='Ongoing'?'red':'green'};
+font-weight:bold;
+">
+${status}
+</span>
+</p>
 
 <hr>
 
@@ -492,17 +511,20 @@ const data = snapshot.val();
 
 container.innerHTML="";
 
-for(let slot in data){
+const order = [
+"8:30-9:30","9:30-10:30","10:40-11:40",
+"11:40-12:40","1:20-2:20","2:20-3:20","3:20-4:20"
+];
 
+order.forEach(slot=>{
+if(data[slot]){
 container.innerHTML += `
-
 <p>
 <b>${slot}</b> — ${data[slot].subject} (${data[slot].faculty})
 </p>
-
 `;
-
 }
+});
 
 }
 
@@ -568,6 +590,11 @@ window.closeNoticeBoard=function(){
 document.getElementById("noticeModal").style.display="none";
 
 }
+
+setInterval(()=>{
+document.getElementById("currentTime").innerText =
+"" + new Date().toLocaleTimeString();
+},1000);
 
 </script>
 

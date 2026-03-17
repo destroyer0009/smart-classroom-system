@@ -82,7 +82,6 @@ color:white;
 
 <h2>Summer 2024</h2>
 
-<button onclick="loadTT('summer2024','Sem2')">Sem 2</button>
 <button onclick="loadTT('summer2024','Sem4')">Sem 4</button>
 <button onclick="loadTT('summer2024','Sem6')">Sem 6</button>
 
@@ -102,6 +101,7 @@ color:white;
 <th>1:20-2:20</th>
 <th>2:20-3:20</th>
 <th>3:20-4:20</th>
+<th>4:20-5:20</th>
 </tr>
 
 <tbody id="ttBody"></tbody>
@@ -141,7 +141,7 @@ table.innerHTML="";
 
 if(!snapshot.exists()){
 
-table.innerHTML="<tr><td colspan='10'>No timetable found</td></tr>";
+table.innerHTML="<tr><td colspan='11'>No timetable found</td></tr>";
 return;
 
 }
@@ -169,6 +169,7 @@ table.innerHTML+=`
 <td>${d.s7||"-"}</td>
 <td>${d.s8||"-"}</td>
 <td>${d.s9||"-"}</td>
+<td>${d.s10||"-"}</td>
 
 </tr>
 

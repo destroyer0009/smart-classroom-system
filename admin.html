@@ -88,7 +88,9 @@ padding:20px;
 border-radius:10px;
 box-shadow:0 3px 10px rgba(0,0,0,0.2);
 margin-bottom:20px;
+margin-bottom:30px;
 }
+
 
 /* INPUT */
 
@@ -103,6 +105,20 @@ margin:3px;
 cursor:pointer;
 }
 
+button.primary{
+background:#007bff;
+color:white;
+}
+
+button.success{
+background:#28a745;
+color:white;
+}
+
+button.danger{
+background:#dc3545;
+color:white;
+}
 </style>
 
 </head>
@@ -402,21 +418,23 @@ Previous Year Timetable
 </div>
 <div id="editTT" class="section">
 
+
+
 <div class="card">
 
-<h2>Edit Current Timetable (Live)</h2>
+<h2>📘 Academic Timetable (Subject + Faculty)</h2>
 
-<label>Classroom:</label>
-<select id="editRoom">
-<option>LAB31</option>
-<option>CR125</option>
-<option>CR126</option>
+<label>Semester:</label>
+<select id="ttSemEdit">
+<option value="SEM3">SEM3</option>
+<option value="SEM5">SEM5</option>
+<option value="SEM7">SEM7</option>
 </select>
 
 <br><br>
 
 <label>Day:</label>
-<select id="editDay">
+<select id="ttDayEdit">
 <option>Monday</option>
 <option>Tuesday</option>
 <option>Wednesday</option>
@@ -428,29 +446,76 @@ Previous Year Timetable
 <br><br>
 
 <label>Time Slot:</label>
-<select id="editSlot">
-<option value="8:30-9:30">8:30-9:30</option>
-<option value="9:30-10:30">9:30-10:30</option>
-<option value="10:40-11:40">10:40-11:40</option>
-<option value="11:40-12:40">11:40-12:40</option>
-<option value="1:20-2:20">1:20-2:20</option>
-<option value="2:20-3:20">2:20-3:20</option>
-<option value="3:20-4:20">3:20-4:20</option>
-<option value="4:20-5:20">4:20-5:20</option>
+<select id="ttSlotEdit">
+<option>8:30-9:30</option>
+<option>9:30-10:30</option>
+<option>10:40-11:40</option>
+<option>11:40-12:40</option>
+<option>1:20-2:20</option>
+<option>2:20-3:20</option>
+<option>3:20-4:20</option>
+<option>4:20-5:20</option>
 </select>
 
 <br><br>
 
-<input id="editSubject" placeholder="Subject">
-<input id="editFaculty" placeholder="Faculty ID">
+<input id="ttSubEdit" placeholder="Subject">
+<input id="ttFacEdit" placeholder="Faculty">
 
 <br><br>
 
-<button onclick="saveCurrentTimetable()">Save / Update</button>
-<button onclick="deleteLecture()">Delete Lecture</button>
+<button class="primary" onclick="saveAcademicTT()">Update Timetable</button>
 
 </div>
+<div class="card">
 
+<h2>🏫 Classroom Allocation (Live)</h2>
+
+<label>Room:</label>
+<select id="roomEdit">
+<option>LAB31</option>
+<option>CR125</option>
+<option>CR126</option>
+</select>
+
+<br><br>
+
+<label>Day:</label>
+<select id="roomDayEdit">
+<option>Monday</option>
+<option>Tuesday</option>
+<option>Wednesday</option>
+<option>Thursday</option>
+<option>Friday</option>
+<option>Saturday</option>
+</select>
+
+<br><br>
+
+<label>Time Slot:</label>
+<select id="roomSlotEdit">
+<option>8:30-9:30</option>
+<option>9:30-10:30</option>
+<option>10:40-11:40</option>
+<option>11:40-12:40</option>
+<option>1:20-2:20</option>
+<option>2:20-3:20</option>
+<option>3:20-4:20</option>
+<option>4:20-5:20</option>
+</select>
+
+<br><br>
+
+<input id="roomSubEdit" placeholder="Subject">
+<input id="roomFacEdit" placeholder="Faculty">
+
+<br><br>
+
+<button class="success" onclick="saveClassroomTT()">Update Classroom</button>
+
+<button class="danger" onclick="deleteClassroomTT()">Delete Lecture</button>
+
+</div>
 </div>
 <div id="prevTimetable" class="section">
 
@@ -737,13 +802,13 @@ get(ttRef).then((snapshot)=>{
 table.innerHTML="";
 
 if(!snapshot.exists()){
-table.innerHTML="<tr><td colspan='10'>No timetable data found</td></tr>";
+table.innerHTML="<tr><td colspan='11'>No timetable data found</td></tr>";
 return;
 }
 
 const data=snapshot.val();
 if(!data){
-table.innerHTML="<tr><td colspan='10'>No timetable data</td></tr>";
+table.innerHTML="<tr><td colspan='11'>No timetable data</td></tr>";
 return;
 }
 
@@ -830,16 +895,40 @@ faculty:faculty
 alert("Lecture Added to Timetable");
 
 }
-/* SAVE CURRENT TIMETABLE */
 
-window.saveCurrentTimetable = function(){
+window.saveAcademicTT = function(){
 
-const room=document.getElementById("editRoom").value;
-const day=document.getElementById("editDay").value;
-const slot=document.getElementById("editSlot").value;
+const sem = document.getElementById("ttSemEdit").value;
+const day = document.getElementById("ttDayEdit").value;
+const slot = document.getElementById("ttSlotEdit").value;
 
-const subject=document.getElementById("editSubject").value;
-const faculty=document.getElementById("editFaculty").value;
+const subject = document.getElementById("ttSubEdit").value;
+const faculty = document.getElementById("ttFacEdit").value;
+
+if(subject===""){
+alert("Enter subject");
+return;
+}
+
+set(ref(database,
+`semesters/${sem}/timetable/${day}/${slot}`),{
+
+subject:subject,
+faculty:faculty
+
+});
+
+alert("Academic Timetable Saved");
+
+}
+window.saveClassroomTT = function(){
+
+const room = document.getElementById("roomEdit").value;
+const day = document.getElementById("roomDayEdit").value;
+const slot = document.getElementById("roomSlotEdit").value;
+
+const subject = document.getElementById("roomSubEdit").value;
+const faculty = document.getElementById("roomFacEdit").value;
 
 if(subject===""){
 alert("Enter subject");
@@ -854,24 +943,21 @@ faculty:faculty
 
 });
 
-alert("Timetable Updated Successfully");
+alert("Classroom Assigned");
 
 }
+window.deleteClassroomTT = function(){
 
+if(!confirm("Delete this lecture?")) return;
 
-/* DELETE LECTURE */
-
-window.deleteLecture = function(){
-
-const room=document.getElementById("editRoom").value;
-const day=document.getElementById("editDay").value;
-const slot=document.getElementById("editSlot").value;
+const room = document.getElementById("roomEdit").value;
+const day = document.getElementById("roomDayEdit").value;
+const slot = document.getElementById("roomSlotEdit").value;
 
 set(ref(database,
 `classrooms/${room}/timetable/${day}/${slot}`), null);
 
 alert("Lecture Deleted");
-
 }
 </script>
 
