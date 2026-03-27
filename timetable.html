@@ -232,15 +232,15 @@ if(!snapshot.exists()) return;
 
 const data=snapshot.val();
 
-const slots=[
-"8:30-9:30",
-"9:30-10:30",
-"10:40-11:40",
-"11:40-12:40",
-"1:20-2:20",
-"2:20-3:20",
-"3:20-4:20"
-];
+const slotMap = {
+s1:"830",
+s2:"930",
+s3:"1040",
+s4:"1140",
+s5:"120",
+s6:"220",
+s7:"320"
+};
 
 const days=[
 "Monday",
@@ -253,24 +253,79 @@ const days=[
 
 /* Clear table first */
 
+const allSlots = ["830","930","1040","1140","120","220","320"];
+
 for(let day of days){
 
-for(let slot of slots){
+for(let s of allSlots){
 
-const id=
-day+"_"+slot
-.replace("8:30-9:30","830")
-.replace("9:30-10:30","930")
-.replace("10:40-11:40","1040")
-.replace("11:40-12:40","1140")
-.replace("1:20-2:20","120")
-.replace("2:20-3:20","220")
-.replace("3:20-4:20","320");
-
-const cell=document.getElementById(id);
+const cell = document.getElementById(day + "_" + s);
 
 if(cell){
-cell.innerHTML="-";
+cell.innerHTML = "-";
+}
+
+}
+
+}
+
+async function loadTimetable(){
+
+const semester=document.getElementById("semesterSelect").value;
+
+const snapshot=await get(ref(database,"semesters/"+semester+"/timetable"));
+
+const days=[
+"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"
+];
+
+const slotMap = {
+s1:"830",
+s2:"930",
+s3:"1040",
+s4:"1140",
+s5:"120",
+s6:"220",
+s7:"320"
+};
+
+const allSlots = ["830","930","1040","1140","120","220","320"];
+
+/* CLEAR TABLE FIRST */
+
+for(let day of days){
+
+for(let s of allSlots){
+
+const cell = document.getElementById(day + "_" + s);
+
+if(cell){
+cell.innerHTML = "-";
+}
+
+}
+
+}
+
+if(!snapshot.exists()) return;
+
+const data=snapshot.val();
+
+/* FILL DATA */
+
+for(let day in data){
+
+for(let slot in data[day]){
+
+const id = day + "_" + slotMap[slot];
+
+const cell = document.getElementById(id);
+
+if(!cell) continue;
+
+cell.innerHTML =
+data[day][slot].subject + "<br>(" + data[day][slot].faculty + ")";
+
 }
 
 }
@@ -283,21 +338,13 @@ for(let day in data){
 
 for(let slot in data[day]){
 
-const id=
-day+"_"+slot
-.replace("8:30-9:30","830")
-.replace("9:30-10:30","930")
-.replace("10:40-11:40","1040")
-.replace("11:40-12:40","1140")
-.replace("1:20-2:20","120")
-.replace("2:20-3:20","220")
-.replace("3:20-4:20","320");
+const id = day + "_" + slotMap[slot];
 
-const cell=document.getElementById(id);
+const cell = document.getElementById(id);
 
 if(!cell) continue;
 
-cell.innerHTML=data[day][slot].subject+"<br>("+data[day][slot].faculty+")";
+cell.innerHTML = data[day][slot].subject + "<br>(" + data[day][slot].faculty + ")";
 
 }
 

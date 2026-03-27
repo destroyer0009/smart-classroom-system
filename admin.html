@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 
+<meta charset="UTF-8">
 <title>Admin Dashboard</title>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 
 
@@ -119,6 +120,10 @@ button.danger{
 background:#dc3545;
 color:white;
 }
+
+textarea{
+width:100%;
+}
 </style>
 
 </head>
@@ -127,7 +132,7 @@ color:white;
 
 <div class="collegeHeader">
 
-<img src="logo.png" class="collegeLogo">
+<img src="logo.png" class="collegeLogo" alt="Loknete Shamrao Peje Govt. College of Engineering, Ratnagiri Logo">
 
 <h1>Loknete Shamrao Peje Govt. College of Engineering, Ratnagiri</h1>
 
@@ -163,7 +168,7 @@ color:white;
 
 <button onclick="showSection('uploadTT')">Upload Timetable</button>
 
-<button onclick="showSection('editTT')">Edit Current Timetable</button>
+
 
 <button onclick="window.location.href='previous_tt.html'">
 Previous Year Timetable
@@ -183,28 +188,7 @@ Previous Year Timetable
 <h2>Lecture Booking Requests</h2>
 
 <table>
-
-<tr>
-<th>Teacher</th>
-<th>Subject</th>
-<th>Day</th>
-<th>Time</th>
-<th>Action</th>
-</tr>
-
-<tr>
-<td>CRJ</td>
-<td>MIT</td>
-<td>Tuesday</td>
-<td>10:40</td>
-<td>
-
-<button class="action">Approve</button>
-<button class="action">Reject</button>
-
-</td>
-</tr>
-
+<tbody id="bookingTable"></tbody>
 </table>
 
 </div>
@@ -228,7 +212,7 @@ Previous Year Timetable
 
 <input placeholder="RFID UID">
 
-<button>Add Teacher</button>
+<button onclick="addTeacher()">Add Teacher</button>
 
 </div>
 
@@ -278,7 +262,7 @@ Previous Year Timetable
 
 <input placeholder="New RFID UID">
 
-<button>Update RFID</button>
+<button onclick="updateRFID()">Update RFID</button>
 
 </div>
 
@@ -353,7 +337,31 @@ Previous Year Timetable
 </div>
 
 <div id="uploadTT" class="section">
+<hr>
 
+<h3>Upload Excel Timetable</h3>
+
+<input type="file" id="excelFile" accept=".xlsx,.xls">
+
+<br><br>
+<button onclick="showUploadOptions()">Upload Timetable</button>
+
+<div id="uploadOptions" style="display:none; margin-top:10px;">
+
+  <button onclick="uploadClassroomExcel()">Upload Classroom Timetable</button>
+
+  <button onclick="uploadDepartmentExcel()">Upload Department Timetable</button>
+
+</div>
+<button onclick="showDownloadOptions()">Download Timetable</button>
+
+<div id="downloadOptions" style="display:none; margin-top:10px;">
+  
+  <button onclick="exportClassroomExcel()">Download Classroom Timetable</button>
+  
+  <button onclick="exportDepartmentExcel()">Download Department Timetable</button>
+
+</div>
 <div class="card">
 
 <h2>Upload New Term Timetable</h2>
@@ -416,107 +424,8 @@ Previous Year Timetable
 </div>
 
 </div>
-<div id="editTT" class="section">
 
 
-
-<div class="card">
-
-<h2>📘 Academic Timetable (Subject + Faculty)</h2>
-
-<label>Semester:</label>
-<select id="ttSemEdit">
-<option value="SEM3">SEM3</option>
-<option value="SEM5">SEM5</option>
-<option value="SEM7">SEM7</option>
-</select>
-
-<br><br>
-
-<label>Day:</label>
-<select id="ttDayEdit">
-<option>Monday</option>
-<option>Tuesday</option>
-<option>Wednesday</option>
-<option>Thursday</option>
-<option>Friday</option>
-<option>Saturday</option>
-</select>
-
-<br><br>
-
-<label>Time Slot:</label>
-<select id="ttSlotEdit">
-<option value="s1">8:30-9:30</option>
-<option value="s2">9:30-10:30</option>
-<option value="s3">10:40-11:40</option>
-<option value="s4">11:40-12:40</option>
-<option value="s5">1:20-2:20</option>
-<option value="s6">2:20-3:20</option>
-<option value="s7">3:20-4:20</option>
-<option value="s8">4:20-5:20</option>
-</select>
-
-<br><br>
-
-<input id="ttSubEdit" placeholder="Subject">
-<input id="ttFacEdit" placeholder="Faculty">
-
-<br><br>
-
-<button class="primary" onclick="saveAcademicTT()">Update Timetable</button>
-
-</div>
-<div class="card">
-
-<h2>🏫 Classroom Allocation (Live)</h2>
-
-<label>Room:</label>
-<select id="roomEdit">
-<option>LAB31</option>
-<option>CR125</option>
-<option>CR126</option>
-</select>
-
-<br><br>
-
-<label>Day:</label>
-<select id="roomDayEdit">
-<option>Monday</option>
-<option>Tuesday</option>
-<option>Wednesday</option>
-<option>Thursday</option>
-<option>Friday</option>
-<option>Saturday</option>
-</select>
-
-<br><br>
-
-<label>Time Slot:</label>
-<select id="roomSlotEdit">
-<option value="s1">8:30-9:30</option>
-<option value="s2">9:30-10:30</option>
-<option value="s3">10:40-11:40</option>
-<option value="s4">11:40-12:40</option>
-<option value="s5">1:20-2:20</option>
-<option value="s6">2:20-3:20</option>
-<option value="s7">3:20-4:20</option>
-<option value="s8">4:20-5:20</option>
-</select>
-
-<br><br>
-
-<input id="roomSubEdit" placeholder="Subject">
-<input id="roomFacEdit" placeholder="Faculty">
-
-<br><br>
-
-<button class="success" onclick="saveClassroomTT()">Update Classroom</button>
-
-<button class="danger" onclick="deleteClassroomTT()">Delete Lecture</button>
-
-</div>
-</div>
 <div id="prevTimetable" class="section">
 
 <div class="card">
@@ -574,7 +483,7 @@ Previous Year Timetable
 
 <h2>Post Notice</h2>
 
-<textarea id="noticeText" rows="4" style="width:100%;" placeholder="Write notice here..."></textarea>
+<textarea id="noticeText" rows="4" placeholder="Write notice here..."></textarea>
 
 <br><br>
 
@@ -656,7 +565,9 @@ const sections=document.querySelectorAll(".section");
 sections.forEach(s => s.style.display="none");
 
 document.getElementById(id).style.display="block";
-
+if(id === "requests"){
+loadBookingRequests();
+}
 if(id==="prevTimetable"){
 document.getElementById("termSelect").value="";
 document.getElementById("semSelect").innerHTML="<option value=''>Select Semester</option>";
@@ -959,6 +870,285 @@ set(ref(database,
 
 alert("Lecture Deleted");
 }
+
+window.uploadClassroomExcel = async function(){
+
+const file = document.getElementById("excelFile").files[0];
+
+if(!file){
+alert("Select file first");
+return;
+}
+
+// CLEAR ONLY CLASSROOM DATA
+await set(ref(database,"classrooms"), null);
+
+const data = await file.arrayBuffer();
+const workbook = XLSX.read(data);
+
+const sheet = workbook.Sheets[workbook.SheetNames[0]];
+const json = XLSX.utils.sheet_to_json(sheet);
+
+for(let row of json){
+
+const {Day, Slot, Subject, Faculty, Room} = row;
+
+if(!Day || !Slot || !Subject || !Faculty || !Room) continue;
+
+await set(ref(database,
+`classrooms/${Room}/timetable/${Day}/${Slot}`),{
+subject:Subject,
+faculty:Faculty
+});
+
+}
+
+alert("Classroom Timetable Uploaded");
+}
+window.uploadDepartmentExcel = async function(){
+
+const file = document.getElementById("excelFile").files[0];
+
+if(!file){
+alert("Select file first");
+return;
+}
+
+// CLEAR ONLY SEMESTER DATA
+await set(ref(database,"semesters"), null);
+
+const data = await file.arrayBuffer();
+const workbook = XLSX.read(data);
+
+const sheet = workbook.Sheets[workbook.SheetNames[0]];
+const json = XLSX.utils.sheet_to_json(sheet);
+
+for(let row of json){
+
+const {Day, Slot, Subject, Faculty, Semester} = row;
+
+if(!Day || !Slot || !Subject || !Faculty || !Semester) continue;
+
+await set(ref(database,
+`semesters/${Semester}/timetable/${Day}/${Slot}`),{
+subject:Subject,
+faculty:Faculty
+});
+
+}
+
+alert("Department Timetable Uploaded");
+}
+window.exportClassroomExcel = async function(){
+
+const snapshot = await get(ref(database,"classrooms"));
+
+if(!snapshot.exists()){
+alert("No classroom data");
+return;
+}
+
+const data = snapshot.val();
+let excelData = [];
+
+for(let room in data){
+
+if(!data[room].timetable) continue;
+
+for(let day in data[room].timetable){
+
+for(let slot in data[room].timetable[day]){
+
+const entry = data[room].timetable[day][slot];
+
+excelData.push({
+Day: day,
+Slot: slot,
+Subject: entry.subject || "",
+Faculty: entry.faculty || "",
+Room: room
+});
+
+}
+
+}
+
+}
+
+const ws = XLSX.utils.json_to_sheet(excelData);
+const wb = XLSX.utils.book_new();
+
+XLSX.utils.book_append_sheet(wb, ws, "Classrooms");
+
+XLSX.writeFile(wb, "Classroom_Timetable.xlsx");
+
+}
+window.exportDepartmentExcel = async function(){
+
+const snapshot = await get(ref(database,"semesters"));
+
+if(!snapshot.exists()){
+alert("No semester data");
+return;
+}
+
+const data = snapshot.val();
+let excelData = [];
+
+for(let sem in data){
+
+if(!data[sem].timetable) continue;
+
+for(let day in data[sem].timetable){
+
+for(let slot in data[sem].timetable[day]){
+
+const entry = data[sem].timetable[day][slot];
+
+excelData.push({
+Semester: sem,
+Day: day,
+Slot: slot,
+Subject: entry.subject || "",
+Faculty: entry.faculty || ""
+});
+
+}
+
+}
+
+}
+
+const ws = XLSX.utils.json_to_sheet(excelData);
+const wb = XLSX.utils.book_new();
+
+XLSX.utils.book_append_sheet(wb, ws, "Department");
+
+XLSX.writeFile(wb, "Department_Timetable.xlsx");
+
+}
+window.showDownloadOptions = function(){
+
+const div = document.getElementById("downloadOptions");
+
+if(div.style.display === "none"){
+div.style.display = "block";
+}else{
+div.style.display = "none";
+}
+
+}
+window.showUploadOptions = function(){
+
+const div = document.getElementById("uploadOptions");
+
+div.style.display = div.style.display === "none" ? "block" : "none";
+
+}
+
+function loadBookingRequests(){
+
+const table = document.getElementById("bookingTable");
+
+onValue(ref(database,"booking_requests"), (snapshot)=>{
+
+table.innerHTML="";
+
+if(!snapshot.exists()){
+table.innerHTML="<tr><td colspan='5'>No Requests</td></tr>";
+return;
+}
+
+snapshot.forEach(child=>{
+
+const data = child.val();
+
+table.innerHTML += `
+<tr>
+<td>${data.teacher}</td>
+<td>${data.purpose}</td>
+<td>${data.date}</td>
+<td>${data.slot}</td>
+<td>
+<button onclick="approveRequest('${child.key}')">Approve</button>
+<button onclick="rejectRequest('${child.key}')">Reject</button>
+</td>
+</tr>
+`;
+
+});
+
+});
+
+}
+
+window.approveRequest = function(id){
+
+set(ref(database,"booking_requests/"+id+"/status"),"approved");
+
+alert("Approved");
+
+}
+
+window.rejectRequest = function(id){
+
+set(ref(database,"booking_requests/"+id+"/status"),"rejected");
+
+alert("Rejected");
+
+}
+window.addTeacher = function(){
+
+const name = document.querySelectorAll("#teachers input")[0].value;
+const id = document.querySelectorAll("#teachers input")[1].value;
+const pass = document.querySelectorAll("#teachers input")[2].value;
+const rfid = document.querySelectorAll("#teachers input")[3].value;
+
+if(!id || !name){
+alert("Fill details");
+return;
+}
+
+set(ref(database,"teachers/"+id),{
+name:name,
+password:pass,
+rfid:rfid
+});
+
+alert("Teacher Added");
+
+}
+
+window.updateRFID = function(){
+
+const id = document.querySelector("#rfid input").value;
+const newUID = document.querySelectorAll("#rfid input")[1].value;
+
+set(ref(database,"teachers/"+id+"/rfid"), newUID);
+
+alert("RFID Updated");
+
+}
+
+window.suspendLecture = function(){
+
+set(ref(database,"classrooms/LAB31/status/status"),"Suspended");
+
+}
+
+window.resumeLecture = function(){
+
+set(ref(database,"classrooms/LAB31/status/status"),"Active");
+
+}
+
+window.cancelLecture = function(){
+
+set(ref(database,"classrooms/LAB31/status/status"),"Cancelled");
+
+}
+
+
 </script>
 
 

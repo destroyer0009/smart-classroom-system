@@ -165,7 +165,7 @@ Select a menu
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
 
 const firebaseConfig = {
 apiKey: "AIzaSyAFSLRyN4W5VRg4atDPq7Pae0Kl8-RVP30",
@@ -200,27 +200,135 @@ document.getElementById("teacherName").innerText =
 
 });
 
-window.showToday = function(){
+window.showToday = async function(){
 
-document.getElementById("content").innerHTML =
-"<h3>Today's lectures will appear here</h3>";
+const teacher = localStorage.getItem("teacherID");
+const day = new Date().toLocaleString('en-US',{weekday:'long'});
+
+const snapshot = await get(ref(database,"classrooms"));
+
+let html = "<h3>Today's Lectures</h3>";
+
+if(!snapshot.exists()){
+document.getElementById("content").innerHTML = "No data";
+return;
+}
+
+const data = snapshot.val();
+
+for(let room in data){
+
+if(!data[room].timetable) continue;
+
+const dayData = data[room].timetable[day];
+
+if(!dayData) continue;
+
+for(let slot in dayData){
+
+if(dayData[slot].faculty === teacher){
+
+html += `
+<div class="card">
+<b>Room:</b> ${room}<br>
+<b>Subject:</b> ${dayData[slot].subject}<br>
+<b>Slot:</b> ${slot}
+</div>
+`;
 
 }
 
-window.showWeekly = function(){
-
-document.getElementById("content").innerHTML =
-"<h3>Weekly timetable will appear here</h3>";
+}
 
 }
 
-window.showLogs = function(){
-
-document.getElementById("content").innerHTML =
-"<h3>RFID logs will appear here</h3>";
+document.getElementById("content").innerHTML = html;
 
 }
-window.showBooking = function(){
+
+window.showWeekly = async function(){
+
+const teacher = localStorage.getItem("teacherID");
+
+const snapshot = await get(ref(database,"classrooms"));
+
+let html = "<h3>Weekly Lectures</h3>";
+
+if(!snapshot.exists()){
+document.getElementById("content").innerHTML = "No data";
+return;
+}
+
+const data = snapshot.val();
+
+for(let room in data){
+
+if(!data[room].timetable) continue;
+
+for(let day in data[room].timetable){
+
+for(let slot in data[room].timetable[day]){
+
+const lec = data[room].timetable[day][slot];
+
+if(lec.faculty === teacher){
+
+html += `
+<div class="card">
+<b>Day:</b> ${day}<br>
+<b>Room:</b> ${room}<br>
+<b>Subject:</b> ${lec.subject}<br>
+<b>Slot:</b> ${slot}
+</div>
+`;
+
+}
+
+}
+
+}
+
+}
+
+document.getElementById("content").innerHTML = html;
+
+}
+
+window.showLogs = async function(){
+
+const teacher = localStorage.getItem("teacherID");
+
+const snapshot = await get(ref(database,"rfid_logs"));
+
+let html = "<h3>RFID Logs</h3>";
+
+if(!snapshot.exists()){
+document.getElementById("content").innerHTML = "No logs";
+return;
+}
+
+snapshot.forEach(child=>{
+
+const data = child.val();
+
+if(data.teacher === teacher){
+
+html += `
+<div class="card">
+<b>Room:</b> ${data.room}<br>
+<b>Time:</b> ${data.time}<br>
+<b>Status:</b> ${data.status}
+</div>
+`;
+
+}
+
+});
+
+document.getElementById("content").innerHTML = html;
+
+}
+window.showBooking = async function(){
 
 document.getElementById("content").innerHTML = `
 
@@ -239,13 +347,19 @@ document.getElementById("content").innerHTML = `
 <br><br>
 
 <select id="slot">
-<option>8:30-9:30</option>
-<option>9:30-10:30</option>
-<option>10:40-11:40</option>
-<option>11:40-12:40</option>
-<option>1:20-2:20</option>
-<option>2:20-3:20</option>
-<option>3:20-4:20</option>
+<option value="s1">8:30-9:30</option>
+<option value="s2">9:30-10:30</option>
+<option value="s3">10:40-11:40</option>
+<option value="s4">11:40-12:40</option>
+<option value="s5">1:20-2:20</option>
+<option value="s6">2:20-3:20</option>
+<option value="s7">3:20-4:20</option>
+</select>
+
+<br><br>
+
+<select id="subjectSelect">
+<option>Loading subjects...</option>
 </select>
 
 <br><br>
@@ -260,12 +374,57 @@ document.getElementById("content").innerHTML = `
 
 `;
 
+const teacher = localStorage.getItem("teacherID");
+
+
+const snapshot = await get(ref(database,"classrooms"));
+
+const select = document.getElementById("subjectSelect");
+
+select.innerHTML = "";
+
+let subjects = new Set();
+
+if(snapshot.exists()){
+
+const data = snapshot.val();
+
+for(let room in data){
+
+if(!data[room].timetable) continue;
+
+for(let day in data[room].timetable){
+
+for(let slot in data[room].timetable[day]){
+
+const lec = data[room].timetable[day][slot];
+
+if(lec.faculty === teacher){
+subjects.add(lec.subject);
+}
+
+}
+
+}
+
+}
+
+}
+
+if(subjects.size === 0){
+select.innerHTML = "<option>No subjects found</option>";
+}else{
+subjects.forEach(sub=>{
+select.innerHTML += `<option>${sub}</option>`;
+});
+}
 }
 window.submitBooking = async function(){
 
 const room = document.getElementById("room").value;
 const date = document.getElementById("date").value;
 const slot = document.getElementById("slot").value;
+const subject = document.getElementById("subjectSelect").value;
 const purpose = document.getElementById("purpose").value;
 
 const teacher = localStorage.getItem("teacherID");
@@ -278,6 +437,7 @@ teacher: teacher,
 room: room,
 date: date,
 slot: slot,
+subject: subject,
 purpose: purpose,
 status: "pending"
 
@@ -299,18 +459,14 @@ localStorage.removeItem("teacherID");
 window.location.href = "index.html";
 
 }
-window.showCancel = function(){
+window.showCancel = async function(){
 
 document.getElementById("content").innerHTML = `
 
 <h3>Cancel Lecture</h3>
 
 <select id="cancelSubject">
-
-<option>Web Technology</option>
-<option>Artificial Intelligence</option>
-<option>Database</option>
-
+<option>Loading subjects...</option>
 </select>
 
 <br><br>
@@ -319,17 +475,6 @@ document.getElementById("content").innerHTML = `
 
 <br><br>
 
-<select id="cancelSlot">
-
-<option>8:30-9:30</option>
-<option>9:30-10:30</option>
-<option>10:40-11:40</option>
-<option>11:40-12:40</option>
-<option>1:20-2:20</option>
-<option>2:20-3:20</option>
-<option>3:20-4:20</option>
-
-</select>
 
 <br><br>
 
@@ -339,26 +484,87 @@ document.getElementById("content").innerHTML = `
 
 `;
 
+const teacher = localStorage.getItem("teacherID");
+
+document.getElementById("cancelDate").addEventListener("change", async function(){
+
+const selectedDate = this.value;
+if(!selectedDate) return;
+
+const day = new Date(selectedDate).toLocaleString('en-US',{weekday:'long'});
+
+const teacher = localStorage.getItem("teacherID");
+
+const snapshot = await get(ref(database,"classrooms"));
+
+const select = document.getElementById("cancelSubject");
+
+select.innerHTML = "";
+
+let subjects = new Set();
+
+if(snapshot.exists()){
+
+const data = snapshot.val();
+
+for(let room in data){
+
+if(!data[room].timetable) continue;
+
+const dayData = data[room].timetable[day];
+
+if(!dayData) continue;
+
+for(let slot in dayData){
+
+const lec = dayData[slot];
+
+if(lec.faculty === teacher){
+subjects.add(lec.subject);
 }
 
-window.cancelLecture = function(){
+}
+
+}
+
+}
+
+if(subjects.size === 0){
+select.innerHTML = "<option>No lectures on this day</option>";
+}else{
+subjects.forEach(sub=>{
+select.innerHTML += `<option>${sub}</option>`;
+});
+}
+
+});
+
+}
+
+window.cancelLecture = async function(){
+
+const teacher = localStorage.getItem("teacherID");
+const date = document.getElementById("cancelDate").value;
+
+
+await set(ref(database,"cancel_requests/"+Date.now()),{
+teacher: teacher,
+date: date,
+status: "cancelled"
+});
 
 document.getElementById("cancelMsg").innerHTML =
-"Lecture Cancelled Successfully";
+"Lecture Cancel Request Sent";
 
 }
-window.showLate = function(){
+window.showLate = async function(){
 
 document.getElementById("content").innerHTML = `
 
 <h3>Teacher Late Notification</h3>
 
 <select id="lateSubject">
-
-<option>MIT</option>
-<option>ADE</option>
-<option>DSP</option>
-
+<option>Loading subjects...</option>
 </select>
 
 <br><br>
@@ -367,17 +573,6 @@ document.getElementById("content").innerHTML = `
 
 <br><br>
 
-<select id="lateSlot">
-
-<option>8:30-9:30</option>
-<option>9:30-10:30</option>
-<option>10:40-11:40</option>
-<option>11:40-12:40</option>
-<option>1:20-2:20</option>
-<option>2:20-3:20</option>
-<option>3:20-4:20</option>
-
-</select>
 
 <br><br>
 
@@ -391,13 +586,67 @@ document.getElementById("content").innerHTML = `
 
 `;
 
+const teacher = localStorage.getItem("teacherID");
+
+document.getElementById("lateDate").addEventListener("change", async function(){
+
+const selectedDate = this.value;
+if(!selectedDate) return;
+
+const day = new Date(selectedDate).toLocaleString('en-US',{weekday:'long'});
+
+const teacher = localStorage.getItem("teacherID");
+
+const snapshot = await get(ref(database,"classrooms"));
+
+const select = document.getElementById("lateSubject");
+
+select.innerHTML = "";
+
+let subjects = new Set();
+
+if(snapshot.exists()){
+
+const data = snapshot.val();
+
+for(let room in data){
+
+if(!data[room].timetable) continue;
+
+const dayData = data[room].timetable[day];
+
+if(!dayData) continue;
+
+for(let slot in dayData){
+
+const lec = dayData[slot];
+
+if(lec.faculty === teacher){
+subjects.add(lec.subject);
 }
+
+}
+
+}
+
+}
+
+if(subjects.size === 0){
+select.innerHTML = "<option>No lectures on this day</option>";
+}else{
+subjects.forEach(sub=>{
+select.innerHTML += `<option>${sub}</option>`;
+});
+}
+
+});
+}
+
 
 window.submitLate = async function(){
 
 const subject=document.getElementById("lateSubject").value;
 const date=document.getElementById("lateDate").value;
-const slot=document.getElementById("lateSlot").value;
 const minutes=document.getElementById("lateMinutes").value;
 
 const teacher=localStorage.getItem("teacherID");
@@ -407,7 +656,6 @@ await set(ref(database,"late_notifications/"+Date.now()),{
 teacher:teacher,
 subject:subject,
 date:date,
-slot:slot,
 minutes:minutes,
 status:"late"
 
