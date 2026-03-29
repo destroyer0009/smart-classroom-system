@@ -543,18 +543,49 @@ select.innerHTML += `<option>${sub}</option>`;
 
 window.cancelLecture = async function(){
 
-const teacher = localStorage.getItem("teacherID");
-const date = document.getElementById("cancelDate").value;
+  const teacherID = localStorage.getItem("teacherID");
+  const date = document.getElementById("cancelDate").value;
 
+  if(!date){
+    alert("Select date first");
+    return;
+  }
 
-await set(ref(database,"cancel_requests/"+Date.now()),{
-teacher: teacher,
-date: date,
-status: "cancelled"
-});
+  // Get teacher name from Firebase
+  const teacherSnap = await get(ref(database, "teachers/" + teacherID));
 
-document.getElementById("cancelMsg").innerHTML =
-"Lecture Cancel Request Sent";
+  if(!teacherSnap.exists()){
+    alert("Teacher not found");
+    return;
+  }
+
+  const fullName = teacherSnap.val().name;
+
+  // Get initials
+  function getInitials(name){
+    return name.split(" ").map(w => w[0]).join("").toUpperCase();
+  }
+
+  const initials = teacherID;
+  const correctCode = "MX3042" + initials;
+
+  // Ask user input
+  const enteredCode = prompt("Enter confirmation code:");
+
+  if(enteredCode !== correctCode){
+    alert("❌ Invalid Code");
+    return;
+  }
+
+  // ✅ Instead of request → DIRECT ACTION
+  await set(ref(database,"cancel_logs/"+Date.now()),{
+    teacher: teacherID,
+    date: date,
+    status: "cancelled"
+  });
+
+  document.getElementById("cancelMsg").innerHTML =
+  "✅ Lecture Cancelled Successfully";
 
 }
 window.showLate = async function(){
