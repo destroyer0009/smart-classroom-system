@@ -1,4 +1,23 @@
 {
+  "cancel_logs": {
+    "1774775962691": {
+      "date": "2026-03-30",
+      "status": "cancelled",
+      "teacher": "CRJ"
+    },
+    "1774814522716": {
+      "date": "2026-03-30",
+      "status": "cancelled",
+      "teacher": "CRJ"
+    }
+  },
+  "cancel_requests": {
+    "1774652981138": {
+      "date": "2026-03-28",
+      "status": "cancelled",
+      "teacher": "NAB"
+    }
+  },
   "classrooms": {
     "CR125": {
       "timetable": {
@@ -14,6 +33,12 @@
           "s5": {
             "faculty": "CRJ",
             "subject": "DME"
+          }
+        },
+        "Saturday": {
+          "s3": {
+            "faculty": "NAB",
+            "subject": "MT"
           }
         },
         "Tuesday": {
@@ -43,6 +68,9 @@
       }
     },
     "LAB31": {
+      "status": {
+        "status": "Cancelled"
+      },
       "timetable": {
         "Monday": {
           "s1": {
@@ -51,23 +79,46 @@
           },
           "s2": {
             "faculty": "CRJ",
-            "semester": "V",
             "subject": "MIT"
           }
         },
         "Tuesday": {
           "s1": {
             "faculty": "RKA",
-            "semester": "VII",
             "subject": "RAC"
           },
           "s2": {
             "faculty": "SSK",
-            "semester": "V",
             "subject": "DSP"
           }
         }
       }
+    }
+  },
+  "late_notifications": {
+    "1774650970790": {
+      "date": "2026-03-30",
+      "minutes": "15",
+      "slot": "8:30-9:30",
+      "status": "late",
+      "subject": "MIT",
+      "teacher": "CRJ"
+    },
+    "1774652923037": {
+      "date": "2026-03-30",
+      "minutes": "20",
+      "status": "late",
+      "subject": "DME",
+      "teacher": "CRJ"
+    },
+    "1774814549292": {
+      "date": "2026-03-30",
+      "minutes": "20",
+      "room": "LAB31",
+      "slot": "s2",
+      "status": "late",
+      "subject": "MIT",
+      "teacher": "CRJ"
     }
   },
   "notice": {
@@ -714,13 +765,13 @@
           }
         },
         "Wednesday": {
-          "s2": {
-            "faculty": "RKA",
-            "subject": "RAC"
-          },
           "s1": {
             "faculty": "CRJ",
             "subject": "MIT"
+          },
+          "s2": {
+            "faculty": "RKA",
+            "subject": "RAC"
           }
         }
       }

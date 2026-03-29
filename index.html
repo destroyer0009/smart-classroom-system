@@ -301,6 +301,25 @@ const currentSlot=getCurrentTimeSlot();
 
 const nextSlot=getNextSlot(currentSlot);
 
+// 🔴 GET LATE DATA
+const lateSnapshot = await get(ref(database,"late_notifications"));
+
+let lateData = [];
+
+if(lateSnapshot.exists()){
+  lateSnapshot.forEach(child=>{
+    const data = child.val();
+
+    const now = new Date();
+    const today = now.getFullYear() + "-" +
+    String(now.getMonth()+1).padStart(2,'0') + "-" +
+    String(now.getDate()).padStart(2,'0');
+
+    if(data.date === today){
+      lateData.push(data);
+    }
+  });
+}
 
 for(let room of rooms){
 
@@ -359,6 +378,13 @@ nextFaculty=snap2.val().faculty;
 
 }
 
+let lateMessage = "";
+
+for(let late of lateData){
+  if(late.room === room && late.slot === currentSlot){
+    lateMessage = `⚠ ${late.teacher} is late by ${late.minutes} mins`;
+  }
+}
 
 container.innerHTML+=`
 
@@ -377,7 +403,7 @@ font-weight:bold;
 ${status}
 </span>
 </p>
-
+${lateMessage ? `<p style="color:red;"><b>${lateMessage}</b></p>` : ""}
 <hr>
 
 <p><b>Current:</b> ${currentSubject}</p>
@@ -435,7 +461,7 @@ return;
 
 }
 
-if(snapshot.val().password===pass){
+if(snapshot.val().password.toString() === pass){
 
 localStorage.setItem("teacherID",id);
 

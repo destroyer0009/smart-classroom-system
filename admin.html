@@ -1110,9 +1110,9 @@ return;
 }
 
 set(ref(database,"teachers/"+id),{
-name:name,
-password:pass,
-rfid:rfid
+  name: name,
+  password: pass.toString(), // 🔥 FIX
+  rfid: rfid
 });
 
 alert("Teacher Added");

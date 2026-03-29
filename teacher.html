@@ -676,24 +676,63 @@ select.innerHTML += `<option>${sub}</option>`;
 
 window.submitLate = async function(){
 
-const subject=document.getElementById("lateSubject").value;
-const date=document.getElementById("lateDate").value;
-const minutes=document.getElementById("lateMinutes").value;
+  const subject = document.getElementById("lateSubject").value;
+  const date = document.getElementById("lateDate").value;
+  const minutes = document.getElementById("lateMinutes").value;
+  const teacher = localStorage.getItem("teacherID");
 
-const teacher=localStorage.getItem("teacherID");
+  if(!date || !minutes){
+    alert("Fill all fields");
+    return;
+  }
 
-await set(ref(database,"late_notifications/"+Date.now()),{
+  if(minutes > 60){
+    alert("Too much delay");
+    return;
+  }
 
-teacher:teacher,
-subject:subject,
-date:date,
-minutes:minutes,
-status:"late"
+  // Find lecture details
+  const day = new Date(date).toLocaleString('en-US',{weekday:'long'});
+  const snapshot = await get(ref(database,"classrooms"));
 
-});
+  let found = null;
 
-document.getElementById("lateMsg").innerHTML=
-"Late notification sent";
+  if(snapshot.exists()){
+    const data = snapshot.val();
+
+    for(let room in data){
+      const dayData = data[room].timetable?.[day];
+
+      if(!dayData) continue;
+
+      for(let slot in dayData){
+        const lec = dayData[slot];
+
+        if(lec.faculty === teacher && lec.subject === subject){
+          found = {room, slot};
+        }
+      }
+    }
+  }
+
+  if(!found){
+    alert("Lecture not found");
+    return;
+  }
+
+  // Save full data
+  await set(ref(database,"late_notifications/"+Date.now()),{
+    teacher: teacher,
+    subject: subject,
+    date: date,
+    minutes: minutes,
+    room: found.room,
+    slot: found.slot,
+    status: "late"
+  });
+
+  document.getElementById("lateMsg").innerHTML =
+  "✅ Late notification sent";
 
 }
 </script>
