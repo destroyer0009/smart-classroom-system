@@ -576,6 +576,9 @@ window.cancelLecture = async function(){
     alert("❌ Invalid Code");
     return;
   }
+  // Find lecture and remove it
+await set(ref(database,
+`classrooms/${found.room}/timetable/${day}/${found.slot}`), null);
 
   // ✅ Instead of request → DIRECT ACTION
   await set(ref(database,"cancel_logs/"+Date.now()),{

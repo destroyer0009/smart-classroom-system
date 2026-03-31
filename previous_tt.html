@@ -56,8 +56,22 @@ background:#002147;
 color:white;
 }
 
-</style>
+th:nth-child(4),
+th:nth-child(7){
+background:#ddd;
+font-style:italic;
+}
 
+.breakCell{
+writing-mode: vertical-rl;
+text-align:center;
+vertical-align:middle;
+font-weight:bold;
+background:#f0f0f0;
+}
+
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 
 <body>
@@ -65,43 +79,76 @@ color:white;
 <div class="header">
 <h1>Previous Year Timetable</h1>
 </div>
+<div style="margin-top:20px;">
 
+<button onclick="window.location.href='index.html'">Home</button>
 
-<div class="section">
+<button onclick="refreshData()">Refresh</button>
 
-<h2>Winter 2024</h2>
+<button onclick="toggleUpload()">Add New Previous TT</button>
 
-<button onclick="loadTT('winter2024','Sem3')">Sem 3</button>
-<button onclick="loadTT('winter2024','Sem5')">Sem 5</button>
-<button onclick="loadTT('winter2024','Sem7')">Sem 7</button>
-
-</div>
-
-
-<div class="section">
-
-<h2>Summer 2024</h2>
-
-<button onclick="loadTT('summer2024','Sem4')">Sem 4</button>
-<button onclick="loadTT('summer2024','Sem6')">Sem 6</button>
+<button onclick="downloadSample()">Download Sample File</button>
+<p style="font-size:12px;color:gray;">
+Note: Do not include s3 (BREAK) and s6 (LUNCH)
+</p>
 
 </div>
 
+<div class="section">
+<h2>Select Term & Semester</h2>
 
+<select id="termSelect" onchange="loadSemesters()">
+<option value="">Select Term</option>
+</select>
+
+<br><br>
+
+<select id="semSelect" onchange="loadTTDynamic()">
+<option value="">Select Semester</option>
+</select>
+
+</div>
+
+<div id="uploadSection" style="display:none; margin-top:30px;">
+
+<h2>Upload Previous Timetable</h2>
+
+<input type="file" id="prevExcelFile" accept=".xlsx,.xls">
+
+<br><br>
+
+<input id="prevTermInput" placeholder="Enter Term (winter2026 / summer2026)">
+
+<br><br>
+
+<select id="prevSemInput">
+<option value="">Select Semester</option>
+</select>
+
+<br><br>
+
+<button onclick="uploadPreviousExcel()">Upload</button>
+
+<p id="uploadMsg"></p>
+
+</div>
 <table>
 
 <tr>
 <th>Day</th>
 <th>8:30-9:30</th>
 <th>9:30-10:30</th>
-<th>10:30-10:40</th>
+
+<th>10:30-10:40</th> <!-- BREAK -->
+
 <th>10:40-11:40</th>
 <th>11:40-12:40</th>
-<th>12:40-1:20</th>
+
+<th>12:40-1:20</th> <!-- LUNCH -->
+
 <th>1:20-2:20</th>
 <th>2:20-3:20</th>
 <th>3:20-4:20</th>
-<th>4:20-5:20</th>
 </tr>
 
 <tbody id="ttBody"></tbody>
@@ -113,7 +160,7 @@ color:white;
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
 
 const firebaseConfig = {
 
@@ -129,58 +176,218 @@ const db = getDatabase(app);
 
 
 
-window.loadTT=function(term,sem){
+window.loadTTDynamic = function(){
 
-const table=document.getElementById("ttBody");
+const term = document.getElementById("termSelect").value;
+const sem = document.getElementById("semSelect").value;
 
-const refPath=ref(db,"previous_timetables/"+term+"/"+sem);
+const table = document.getElementById("ttBody");
 
-get(refPath).then(snapshot=>{
+if(!term || !sem){
+table.innerHTML="";
+return;
+}
+
+get(ref(db,`previous_timetables/${term}/${sem}`)).then(snapshot=>{
 
 table.innerHTML="";
 
 if(!snapshot.exists()){
-
 table.innerHTML="<tr><td colspan='11'>No timetable found</td></tr>";
 return;
-
 }
 
-const data=snapshot.val();
+const data = snapshot.val();
 
 const days=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
+let firstRow = true;
+
 days.forEach(day=>{
 
-const d=data[day] || {};
+const d = data[day] || {};
 
-table.innerHTML+=`
-
+table.innerHTML += `
 <tr>
 
 <td>${day}</td>
 
 <td>${d.s1||"-"}</td>
 <td>${d.s2||"-"}</td>
-<td>${d.s3||"-"}</td>
+
+${firstRow ? `<td rowspan="6" class="breakCell">BREAK</td>` : ""}
+
 <td>${d.s4||"-"}</td>
 <td>${d.s5||"-"}</td>
-<td>${d.s6||"-"}</td>
+
+${firstRow ? `<td rowspan="6" class="breakCell">LUNCH</td>` : ""}
+
 <td>${d.s7||"-"}</td>
 <td>${d.s8||"-"}</td>
 <td>${d.s9||"-"}</td>
-<td>${d.s10||"-"}</td>
 
 </tr>
-
 `;
+
+firstRow = false;
+
+});
+
+});
+}
+import { onValue } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+
+onValue(ref(db,"previous_timetables"), snapshot=>{
+
+const select = document.getElementById("termSelect");
+
+select.innerHTML = "<option value=''>Select Term</option>";
+
+if(!snapshot.exists()){
+  semSelect.innerHTML += `<option>No Data</option>`;
+  return;
+}
+
+snapshot.forEach(child=>{
+  select.innerHTML += `<option value="${child.key}">${child.key}</option>`;
+});
+
+});
+
+window.loadSemesters = function(){
+
+const term = document.getElementById("termSelect").value.toLowerCase();
+const semSelect = document.getElementById("semSelect");
+
+semSelect.innerHTML = "<option value=''>Select Semester</option>";
+document.getElementById("ttBody").innerHTML="";
+
+if(!term) return;
+
+let allowedSems = [];
+
+// 🔥 MAIN LOGIC
+if(term.includes("winter")){
+  allowedSems = ["Sem3","Sem5","Sem7"];
+}
+else if(term.includes("summer")){
+  allowedSems = ["Sem2","Sem4","Sem6"];
+}
+else{
+  return;
+}
+
+// 🔥 Now check DB and show only valid ones
+get(ref(db,"previous_timetables/"+term)).then(snapshot=>{
+
+if(!snapshot.exists()) return;
+
+snapshot.forEach(child=>{
+
+if(allowedSems.includes(child.key)){
+  semSelect.innerHTML += `<option value="${child.key}">${child.key}</option>`;
+}
 
 });
 
 });
 
 }
+window.refreshData = function(){
+location.reload();
+}
 
+// 👇 ADD HERE
+document.getElementById("prevTermInput").addEventListener("input", function(){
+
+const term = this.value.toLowerCase();
+const semSelect = document.getElementById("prevSemInput");
+
+semSelect.innerHTML = "<option value=''>Select Semester</option>";
+
+let sems = [];
+
+if(term.includes("winter")){
+  sems = ["Sem3","Sem5","Sem7"];
+}
+else if(term.includes("summer")){
+  sems = ["Sem2","Sem4","Sem6"];
+}
+
+sems.forEach(sem=>{
+  semSelect.innerHTML += `<option value="${sem}">${sem}</option>`;
+});
+
+});
+
+window.uploadPreviousExcel = async function(){
+
+const file = document.getElementById("prevExcelFile").files[0];
+const term = document.getElementById("prevTermInput").value;
+const sem = document.getElementById("prevSemInput").value;
+
+if(!file || !term || !sem){
+alert("Fill all fields");
+return;
+}
+
+const data = await file.arrayBuffer();
+const workbook = XLSX.read(data);
+
+const sheet = workbook.Sheets[workbook.SheetNames[0]];
+const json = XLSX.utils.sheet_to_json(sheet);
+
+for(let row of json){
+
+const {Day, Slot, Subject} = row;
+
+if(!Day || !Slot) continue;
+
+// skip break/lunch
+if(Slot === "s3" || Slot === "s6") continue;
+
+await set(ref(db,
+`previous_timetables/${term}/${sem}/${Day}/${Slot}`),
+Subject || "-"
+);
+
+}
+
+document.getElementById("uploadMsg").innerHTML =
+"✅ Uploaded successfully";
+
+}
+
+window.toggleUpload = function(){
+
+const section = document.getElementById("uploadSection");
+
+section.style.display = section.style.display === "none" ? "block" : "none";
+
+}
+
+window.downloadSample = function(){
+
+// Sample data
+const sample = [
+  { Day: "Monday", Slot: "s1", Subject: "ADE (NAB)" },
+  { Day: "Monday", Slot: "s2", Subject: "ADE (NAB)" },
+  { Day: "Monday", Slot: "s4", Subject: "OE (CCA)" },
+  { Day: "Tuesday", Slot: "s1", Subject: "MS (BTI)" },
+  { Day: "Wednesday", Slot: "s5", Subject: "MIT (CRJ)" }
+];
+
+// Create worksheet
+const ws = XLSX.utils.json_to_sheet(sample);
+
+// Create workbook
+const wb = XLSX.utils.book_new();
+XLSX.utils.book_append_sheet(wb, ws, "Sample");
+
+// Download file
+XLSX.writeFile(wb, "Sample_Timetable.xlsx");
+
+}
 </script>
 
 </body>

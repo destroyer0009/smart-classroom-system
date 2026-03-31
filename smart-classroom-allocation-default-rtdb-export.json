@@ -69,7 +69,7 @@
     },
     "LAB31": {
       "status": {
-        "status": "Cancelled"
+        "status": "Suspended"
       },
       "timetable": {
         "Monday": {
@@ -157,15 +157,14 @@
   },
   "previous_timetables": {
     "summer2024": {
-      "Sem5": {
+      "Sem2": {
         "Friday": {
           "s1": "-",
           "s10": "-",
           "s2": "-",
-          "s3": "BREAK",
           "s4": "OE-1 (RKA)",
           "s5": "EL-II-MEMS (EDP)",
-          "s6": "LUNCH",
+          
           "s7": "DAS-B4 (TUT)",
           "s8": "TUT",
           "s9": "-"
@@ -174,10 +173,10 @@
           "s1": "TUT",
           "s10": "LAB",
           "s2": "-",
-          "s3": "BREAK",
+          
           "s4": "DAS B1-(TUT)",
           "s5": "DAS (SGA)",
-          "s6": "LUNCH",
+          
           "s7": "MT (CRJ)",
           "s8": "MI (RKA)",
           "s9": "LAB"
@@ -186,10 +185,10 @@
           "s1": "-",
           "s10": "-",
           "s2": "-",
-          "s3": "BREAK",
+          
           "s4": "EL-II-MEMS (EDP)",
           "s5": "EL-II-MEMS (EDP)",
-          "s6": "LUNCH",
+          
           "s7": "-",
           "s8": "-",
           "s9": "-"
@@ -198,10 +197,10 @@
           "s1": "-",
           "s10": "PRC",
           "s2": "-",
-          "s3": "BREAK",
+          
           "s4": "-",
           "s5": "OE (RKA)",
-          "s6": "LUNCH",
+          
           "s7": "DAS-B2 (TUT)",
           "s8": "DAS-B3 (TUT)",
           "s9": "PRC"
@@ -210,10 +209,10 @@
           "s1": "TUT",
           "s10": "PRC",
           "s2": "-",
-          "s3": "BREAK",
+          
           "s4": "EL-II-MEMS (EDP)",
           "s5": "DAS (SGA)",
-          "s6": "LUNCH",
+          
           "s7": "MT (CRJ)",
           "s8": "MI (RKA)",
           "s9": "PRC"
@@ -222,24 +221,24 @@
           "s1": "TUT",
           "s10": "PRC",
           "s2": "-",
-          "s3": "BREAK",
+          
           "s4": "MI (RKA)",
           "s5": "DAS (SGA)",
-          "s6": "LUNCH",
+          
           "s7": "MT (CRJ)",
           "s8": "OE-1 (RKA)",
           "s9": "PRC"
         }
       },
-      "Sem7": {
+      "Sem4": {
         "Friday": {
           "s1": "-",
           "s10": "MP-II",
           "s2": "TUT",
-          "s3": "BREAK",
+          
           "s4": "PRC",
           "s5": "PRC",
-          "s6": "LUNCH",
+          
           "s7": "RBS (RRM)",
           "s8": "MP-II",
           "s9": "MP-II"
@@ -248,10 +247,10 @@
           "s1": "-",
           "s10": "-",
           "s2": "-",
-          "s3": "BREAK",
+          
           "s4": "-",
           "s5": "RBS (RRM)",
-          "s6": "LUNCH",
+          
           "s7": "DSP (SSK)",
           "s8": "OE-IV-EE (SPD)",
           "s9": "E-V-DIP (EDP)"
@@ -260,10 +259,10 @@
           "s1": "-",
           "s10": "MP-II",
           "s2": "-",
-          "s3": "BREAK",
+          
           "s4": "OE-IV-EE (SPD)",
           "s5": "OE-IV-EE (SPD)",
-          "s6": "LUNCH",
+          
           "s7": "MP-II",
           "s8": "MP-II",
           "s9": "MP-II"
@@ -272,10 +271,10 @@
           "s1": "-",
           "s10": "MP-II",
           "s2": "TUT",
-          "s3": "BREAK",
+          
           "s4": "PRC",
           "s5": "PRC",
-          "s6": "LUNCH",
+          
           "s7": "OE-IV-EE (SPD)",
           "s8": "OE-III-ED (CRJ)",
           "s9": "E-V-DIP (EDP)"
@@ -284,10 +283,10 @@
           "s1": "-",
           "s10": "-",
           "s2": "TUT",
-          "s3": "BREAK",
+          
           "s4": "PRC",
           "s5": "PRC",
-          "s6": "LUNCH",
+          
           "s7": "DSP (SSK)",
           "s8": "OE-III-ED (CRJ)",
           "s9": "E-V-DIP (EDP)"
@@ -296,10 +295,10 @@
           "s1": "-",
           "s10": "TUT",
           "s2": "TUT",
-          "s3": "BREAK",
+          
           "s4": "PRC",
           "s5": "PRC",
-          "s6": "LUNCH",
+          
           "s7": "DSP (SSK)",
           "s8": "OE-III-ED (CRJ)",
           "s9": "RBS (RRM)"
@@ -312,10 +311,10 @@
           "s1": "-",
           "s10": "TF B4(Tut)",
           "s2": "MIT (CRJ)",
-          "s3": "BREAK",
+          
           "s4": "EMD (UVP)",
           "s5": "M3 (JSP)",
-          "s6": "LUNCH",
+          
           "s7": "UP&UC",
           "s8": "BCM (RRM)",
           "s9": "TF (NAB)"
@@ -324,10 +323,10 @@
           "s1": "-",
           "s10": "-",
           "s2": "-",
-          "s3": "BREAK",
+          
           "s4": "BCM (RRM)",
           "s5": "UP&UC (NGP)",
-          "s6": "LUNCH",
+          
           "s7": "TUT",
           "s8": "TUT",
           "s9": "M3 (JSP)"
@@ -336,10 +335,10 @@
           "s1": "-",
           "s10": "-",
           "s2": "-",
-          "s3": "BREAK",
+          
           "s4": "-",
           "s5": "-",
-          "s6": "LUNCH",
+          
           "s7": "-",
           "s8": "-",
           "s9": "-"
@@ -348,10 +347,10 @@
           "s1": "-",
           "s10": "TUT",
           "s2": "EMD (UVP)",
-          "s3": "BREAK",
+          
           "s4": "EMD (UVP)",
           "s5": "M3 (JSP)",
-          "s6": "LUNCH",
+          
           "s7": "PRC",
           "s8": "PRC",
           "s9": "TF (NAB)"
@@ -360,10 +359,10 @@
           "s1": "-",
           "s10": "TUT",
           "s2": "TUT",
-          "s3": "BREAK",
+          
           "s4": "COL (VSJ)",
           "s5": "UP&UC (NGP)",
-          "s6": "LUNCH",
+          
           "s7": "PRC",
           "s8": "PRC",
           "s9": "TUT"
@@ -372,10 +371,10 @@
           "s1": "-",
           "s10": "TUT",
           "s2": "TUT",
-          "s3": "BREAK",
+          
           "s4": "COL (VSJ)",
           "s5": "UP&UC (NGP)",
-          "s6": "LUNCH",
+          
           "s7": "PRC",
           "s8": "PRC",
           "s9": "TF (NAB)"
@@ -386,10 +385,10 @@
           "s1": "-",
           "s10": "-",
           "s2": "-",
-          "s3": "BREAK",
+          
           "s4": "OE-1 (RKA)",
           "s5": "EL-II-MEMS (EDP)",
-          "s6": "LUNCH",
+          
           "s7": "DAS-B4 (TUT)",
           "s8": "TUT",
           "s9": "-"
@@ -398,10 +397,10 @@
           "s1": "TUT",
           "s10": "LAB",
           "s2": "-",
-          "s3": "BREAK",
+          
           "s4": "DAS B1-(TUT)",
           "s5": "DAS (SGA)",
-          "s6": "LUNCH",
+          
           "s7": "MT (CRJ)",
           "s8": "MI (RKA)",
           "s9": "LAB"
@@ -410,10 +409,10 @@
           "s1": "-",
           "s10": "-",
           "s2": "-",
-          "s3": "BREAK",
+          
           "s4": "EL-II-MEMS (EDP)",
           "s5": "EL-II-MEMS (EDP)",
-          "s6": "LUNCH",
+          
           "s7": "-",
           "s8": "-",
           "s9": "-"
@@ -422,10 +421,10 @@
           "s1": "-",
           "s10": "PRC",
           "s2": "-",
-          "s3": "BREAK",
+          
           "s4": "-",
           "s5": "OE (RKA)",
-          "s6": "LUNCH",
+          
           "s7": "DAS-B2 (TUT)",
           "s8": "DAS-B3 (TUT)",
           "s9": "PRC"
@@ -434,10 +433,10 @@
           "s1": "TUT",
           "s10": "PRC",
           "s2": "-",
-          "s3": "BREAK",
+          
           "s4": "EL-II-MEMS (EDP)",
           "s5": "DAS (SGA)",
-          "s6": "LUNCH",
+          
           "s7": "MT (CRJ)",
           "s8": "MI (RKA)",
           "s9": "PRC"
@@ -446,10 +445,10 @@
           "s1": "TUT",
           "s10": "PRC",
           "s2": "-",
-          "s3": "BREAK",
+          
           "s4": "MI (RKA)",
           "s5": "DAS (SGA)",
-          "s6": "LUNCH",
+          
           "s7": "MT (CRJ)",
           "s8": "OE-1 (RKA)",
           "s9": "PRC"
@@ -460,10 +459,10 @@
           "s1": "-",
           "s10": "MP-II",
           "s2": "TUT",
-          "s3": "BREAK",
+          
           "s4": "PRC",
           "s5": "PRC",
-          "s6": "LUNCH",
+          
           "s7": "RBS (RRM)",
           "s8": "MP-II",
           "s9": "MP-II"
@@ -472,10 +471,10 @@
           "s1": "-",
           "s10": "-",
           "s2": "-",
-          "s3": "BREAK",
+          
           "s4": "-",
           "s5": "RBS (RRM)",
-          "s6": "LUNCH",
+          
           "s7": "DSP (SSK)",
           "s8": "OE-IV-EE (SPD)",
           "s9": "E-V-DIP (EDP)"
@@ -484,10 +483,10 @@
           "s1": "-",
           "s10": "MP-II",
           "s2": "-",
-          "s3": "BREAK",
+          
           "s4": "OE-IV-EE (SPD)",
           "s5": "OE-IV-EE (SPD)",
-          "s6": "LUNCH",
+          
           "s7": "MP-II",
           "s8": "MP-II",
           "s9": "MP-II"
@@ -496,10 +495,10 @@
           "s1": "-",
           "s10": "MP-II",
           "s2": "TUT",
-          "s3": "BREAK",
+          
           "s4": "PRC",
           "s5": "PRC",
-          "s6": "LUNCH",
+          
           "s7": "OE-IV-EE (SPD)",
           "s8": "OE-III-ED (CRJ)",
           "s9": "E-V-DIP (EDP)"
@@ -508,10 +507,10 @@
           "s1": "-",
           "s10": "-",
           "s2": "TUT",
-          "s3": "BREAK",
+          
           "s4": "PRC",
           "s5": "PRC",
-          "s6": "LUNCH",
+          
           "s7": "DSP (SSK)",
           "s8": "OE-III-ED (CRJ)",
           "s9": "E-V-DIP (EDP)"
@@ -520,10 +519,10 @@
           "s1": "-",
           "s10": "TUT",
           "s2": "TUT",
-          "s3": "BREAK",
+          
           "s4": "PRC",
           "s5": "PRC",
-          "s6": "LUNCH",
+          
           "s7": "DSP (SSK)",
           "s8": "OE-III-ED (CRJ)",
           "s9": "RBS (RRM)"
@@ -778,6 +777,11 @@
     }
   },
   "teachers": {
+    "ALP": {
+      "name": "Alokh",
+      "password": 788624,
+      "rfid": ""
+    },
     "CKA": {
       "name": "Ms. C. K. Ambre"
     },
