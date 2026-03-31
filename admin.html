@@ -1119,17 +1119,44 @@ alert("Teacher Added");
 
 }
 
-window.updateRFID = function(){
+window.updateRFID = async function(){
 
 const id = document.querySelector("#rfid input").value;
 const newUID = document.querySelectorAll("#rfid input")[1].value;
 
-set(ref(database,"teachers/"+id+"/rfid"), newUID);
-
-alert("RFID Updated");
-
+if(!id || !newUID){
+  alert("Fill all fields");
+  return;
 }
 
+// 🔍 STEP 1: CHECK ALL TEACHERS
+const snapshot = await get(ref(database,"teachers"));
+
+if(snapshot.exists()){
+
+  let duplicate = false;
+
+  snapshot.forEach(child => {
+    const data = child.val();
+
+    if(data.rfid && data.rfid === newUID){
+      duplicate = true;
+    }
+  });
+
+  // ❌ IF DUPLICATE FOUND
+  if(duplicate){
+    alert("❌ RFID already assigned to another teacher!");
+    return;
+  }
+}
+
+// ✅ STEP 2: SAVE UID
+await set(ref(database,"teachers/"+id+"/rfid"), newUID);
+
+alert("✅ RFID Updated Successfully");
+
+}
 window.suspendLecture = function(){
 
 set(ref(database,"classrooms/LAB31/status/status"),"Suspended");

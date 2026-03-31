@@ -96,7 +96,41 @@ void logToFirebase(String room, String faculty, String result, String slot) {
   Firebase.RTDB.setString(&fbdo, path + "/faculty", faculty);
   Firebase.RTDB.setString(&fbdo, path + "/result", result);
 }
+// 🔥 PLACE HERE (outside)
 
+String findFacultyByUID(String uid){
+
+  FirebaseJson json;
+  Firebase.RTDB.getJSON(&fbdo, "teachers");
+
+  json = fbdo.jsonObject();
+
+  size_t count = json.iteratorBegin();
+
+  for (size_t i = 0; i < count; i++) {
+    String key, value;
+    int type;
+
+    json.iteratorGet(i, type, key, value);
+
+    if(type == FirebaseJson::JSON_OBJECT){
+
+      FirebaseJson subObj;
+      subObj.setJsonData(value);
+
+      FirebaseJsonData rfidData;
+      subObj.get(rfidData, "rfid");
+
+      if(rfidData.stringValue == uid){
+        return key;
+      }
+    }
+  }
+
+  json.iteratorEnd();
+
+  return "";
+}
 ///////////////////////
 void onDataReceive(const esp_now_recv_info *info, const uint8_t *data, int len) {
   if(adminMode) return;
@@ -131,13 +165,14 @@ void onDataReceive(const esp_now_recv_info *info, const uint8_t *data, int len) 
   String scheduledFaculty = fbdo.stringData();
 
   // Get faculty from UID
-  String facultyPath = "faculty/" + uid + "/name";
 
-  if (!Firebase.RTDB.getString(&fbdo, facultyPath)) {
+
+  String scannedFaculty = findFacultyByUID(uid);
+
+if(scannedFaculty == ""){
 
   Serial.println("UNKNOWN UID: " + uid);
 
-  // 🔥 LCD DISPLAY HERE
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print("Unknown Card");
@@ -147,10 +182,6 @@ void onDataReceive(const esp_now_recv_info *info, const uint8_t *data, int len) 
 
   delay(3000);
 
-  lcd.clear();
-  lcd.setCursor(0,0);
-  lcd.print("Waiting...");
-
   strcpy(response.status, "INVALID");
   esp_now_send(info->src_addr, (uint8_t *)&response, sizeof(response));
 
@@ -158,8 +189,6 @@ void onDataReceive(const esp_now_recv_info *info, const uint8_t *data, int len) 
 
   return;
 }
-
-  String scannedFaculty = fbdo.stringData();
 
   if (scannedFaculty == scheduledFaculty) {
 
@@ -259,6 +288,7 @@ void loop() {
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print("UID:");
+  delay(2000);
 
   lcd.setCursor(0,1);
   lcd.print(uid.substring(0,16));
