@@ -539,20 +539,26 @@ const data = snapshot.val();
 
 container.innerHTML="";
 
-const order = [
-"8:30-9:30","9:30-10:30","10:40-11:40",
-"11:40-12:40","1:20-2:20","2:20-3:20","3:20-4:20"
-];
+const slotOrder = ["s1","s2","s3","s4","s5","s6","s7","s8"];
 
-order.forEach(slot=>{
-if(data[slot]){
-container.innerHTML += `
-<p>
-<b>${slot}</b> — ${data[slot].subject} (${data[slot].faculty})
-</p>
-`;
+const currentSlot = getCurrentTimeSlot();
+
+container.innerHTML = "";
+
+for(let slot of slotOrder){
+
+  if(data[slot]){
+
+    let highlight = slot === currentSlot ? "background:#ffeeba;" : "";
+
+    container.innerHTML += `
+      <div style="padding:8px; margin:5px; border-radius:5px; ${highlight}">
+        <b>${slotMap[slot]}</b> — 
+        ${data[slot].subject} (${data[slot].faculty})
+      </div>
+    `;
+  }
 }
-});
 
 }
 

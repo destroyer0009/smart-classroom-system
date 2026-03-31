@@ -1,13 +1,23 @@
+#include <LiquidCrystal_I2C.h>
+#include <SPI.h>
+#include <MFRC522.h>
 
+LiquidCrystal_I2C lcd(0x27, 16, 2);
 #include <WiFi.h>
 #include <esp_now.h>
 #include <Firebase_ESP_Client.h>
 #include <time.h>
 
+#define SS_PIN 5
+#define RST_PIN 4   // avoid conflict with LCD
+#define BUTTON_PIN 12
 ///////////////////////
 // WIFI
-#define WIFI_SSID "realme 7 pro"
+#define WIFI_SSID "Shoheb"
 #define WIFI_PASSWORD "12345678"
+
+MFRC522 rfid(SS_PIN, RST_PIN);
+bool adminMode = true;
 
 ///////////////////////
 // FIREBASE
@@ -89,6 +99,7 @@ void logToFirebase(String room, String faculty, String result, String slot) {
 
 ///////////////////////
 void onDataReceive(const esp_now_recv_info *info, const uint8_t *data, int len) {
+  if(adminMode) return;
 
   memcpy(&incomingData, data, sizeof(incomingData));
 
@@ -123,11 +134,30 @@ void onDataReceive(const esp_now_recv_info *info, const uint8_t *data, int len) 
   String facultyPath = "faculty/" + uid + "/name";
 
   if (!Firebase.RTDB.getString(&fbdo, facultyPath)) {
-    strcpy(response.status, "INVALID");
-    esp_now_send(info->src_addr, (uint8_t *)&response, sizeof(response));
-    logToFirebase(room, "UNKNOWN", "INVALID", slot);
-    return;
-  }
+
+  Serial.println("UNKNOWN UID: " + uid);
+
+  // 🔥 LCD DISPLAY HERE
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Unknown Card");
+
+  lcd.setCursor(0,1);
+  lcd.print(uid.substring(0,8));
+
+  delay(3000);
+
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Waiting...");
+
+  strcpy(response.status, "INVALID");
+  esp_now_send(info->src_addr, (uint8_t *)&response, sizeof(response));
+
+  logToFirebase(room, "UNKNOWN", "INVALID", slot);
+
+  return;
+}
 
   String scannedFaculty = fbdo.stringData();
 
@@ -176,8 +206,65 @@ void setup() {
   addPeer(lab31MAC);
   addPeer(cr125MAC);
   addPeer(cr126MAC);
+lcd.init();
+lcd.backlight();
 
+lcd.setCursor(0,0);
+lcd.print("Master Ready");
   Serial.println("MASTER READY");
+
+  SPI.begin();
+rfid.PCD_Init();
+
+pinMode(BUTTON_PIN, INPUT_PULLUP);
+
+lcd.clear();
+lcd.setCursor(0,0);
+lcd.print("Scan Card...");
 }
 
-void loop() {}
+void loop() {
+
+  // 🔘 Button reset
+  if(digitalRead(BUTTON_PIN) == LOW){
+    delay(200);
+
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("Scan Card...");
+
+    adminMode = true;
+
+    while(digitalRead(BUTTON_PIN) == LOW);
+  }
+
+  // 🪪 RFID scan
+  if (!rfid.PICC_IsNewCardPresent() || !rfid.PICC_ReadCardSerial()) {
+    delay(10);
+    return;
+  }
+
+  adminMode = true;  // 🔥 correct place
+
+  String uid = "";
+
+  for (byte i = 0; i < rfid.uid.size; i++) {
+    uid += String(rfid.uid.uidByte[i], HEX);
+  }
+
+  uid.toUpperCase();
+
+  Serial.println("ADMIN UID: " + uid);
+
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("UID:");
+
+  lcd.setCursor(0,1);
+  lcd.print(uid.substring(0,16));
+
+  rfid.PICC_HaltA();
+  rfid.PCD_StopCrypto1();
+
+  delay(3000);
+}
