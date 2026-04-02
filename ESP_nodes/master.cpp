@@ -68,13 +68,13 @@ String getCurrentSlot() {
 
   int minutes = timeinfo->tm_hour * 60 + timeinfo->tm_min;
 
-  if (minutes >= 510 && minutes <= 570) return "s1";
-if (minutes >= 570 && minutes <= 630) return "s2";
-if (minutes >= 640 && minutes <= 700) return "s3";
-if (minutes >= 700 && minutes <= 760) return "s4";
-if (minutes >= 800 && minutes <= 860) return "s5";
-if (minutes >= 860 && minutes <= 920) return "s6";
-if (minutes >= 920 && minutes <= 980) return "s7";
+  if (minutes >= 510 && minutes <= 570) return "8:30-9:30";
+  if (minutes >= 570 && minutes <= 630) return "9:30-10:30";
+  if (minutes >= 640 && minutes <= 700) return "10:40-11:40";
+  if (minutes >= 700 && minutes <= 760) return "11:40-12:40";
+  if (minutes >= 800 && minutes <= 860) return "1:20-2:20";
+  if (minutes >= 860 && minutes <= 920) return "2:20-3:20";
+  if (minutes >= 920 && minutes <= 980) return "3:20-4:20";
 
   return "";
 }
