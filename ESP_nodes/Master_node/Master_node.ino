@@ -1,25 +1,17 @@
-#include <LiquidCrystal_I2C.h>
+#include <WiFi.h>
 #include <SPI.h>
 #include <MFRC522.h>
-
-LiquidCrystal_I2C lcd(0x27, 16, 2);
-#include <WiFi.h>
-#include <esp_now.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
 #include <Firebase_ESP_Client.h>
 #include <time.h>
 
-#define SS_PIN 5
-#define RST_PIN 4   // avoid conflict with LCD
-#define BUTTON_PIN 17
-///////////////////////
+#define ROOM_NAME "CR126"
+
 // WIFI
-#define WIFI_SSID "Shoheb"
+#define WIFI_SSID "group5"
 #define WIFI_PASSWORD "12345678"
 
-MFRC522 rfid(SS_PIN, RST_PIN);
-bool adminMode = true;
-
-///////////////////////
 // FIREBASE
 #define API_KEY "AIzaSyAXNrkME8ssbzJxfUrEpzSNDCa7MEpOgrY"
 #define DATABASE_URL "https://sample-final-proj-default-rtdb.asia-southeast1.firebasedatabase.app/"
@@ -28,29 +20,38 @@ FirebaseData fbdo;
 FirebaseAuth auth;
 FirebaseConfig config;
 
-///////////////////////
-// CLASSROOM MACs
-uint8_t lab31MAC[]  = {0x00,0x70,0x07,0xE1,0xFD,0x9C};
-uint8_t cr125MAC[]  = {0xD4,0xE9,0xF4,0xBC,0x56,0x68};
-uint8_t cr126MAC[]  = {0x28,0x05,0xA5,0x6E,0x6F,0x88};
+// RFID
+#define SS_PIN 5
+#define RST_PIN 4
 
-///////////////////////
-typedef struct {
-  char room[10];
-  char uid[20];
-} ScanData;
+// BUTTON + BUZZER
+#define BUTTON_PIN 17
+#define BUZZER_PIN 2
 
-typedef struct {
-  char status[15];
-  char faculty[20];
-  char subject[20];
-} ResponseData;
+MFRC522 mfrc522(SS_PIN, RST_PIN);
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+bool scanMode = false;
+bool isInside = false;
+String currentFaculty = "";
+String currentSubject = "";
 
-ScanData incomingData;
-ResponseData response;
+// 🔊 BUZZER
+void beepValid() {
+  digitalWrite(BUZZER_PIN, HIGH);
+  delay(200);
+  digitalWrite(BUZZER_PIN, LOW);
+}
 
-///////////////////////
-// GET CURRENT DAY
+void beepInvalid() {
+  for (int i = 0; i < 2; i++) {
+    digitalWrite(BUZZER_PIN, HIGH);
+    delay(150);
+    digitalWrite(BUZZER_PIN, LOW);
+    delay(150);
+  }
+}
+
+// 📅 DAY
 String getCurrentDay() {
   time_t now = time(nullptr);
   struct tm *timeinfo = localtime(&now);
@@ -59,8 +60,7 @@ String getCurrentDay() {
   return days[timeinfo->tm_wday];
 }
 
-///////////////////////
-// GET CURRENT SLOT
+// ⏰ SLOT (IMPORTANT: s1, s2...)
 String getCurrentSlot() {
   struct tm *timeinfo;
   time_t now = time(nullptr);
@@ -68,36 +68,18 @@ String getCurrentSlot() {
 
   int minutes = timeinfo->tm_hour * 60 + timeinfo->tm_min;
 
-  if (minutes >= 510 && minutes <= 570) return "s1";
-if (minutes >= 570 && minutes <= 630) return "s2";
-if (minutes >= 640 && minutes <= 700) return "s3";
-if (minutes >= 700 && minutes <= 760) return "s4";
-if (minutes >= 800 && minutes <= 860) return "s5";
-if (minutes >= 860 && minutes <= 920) return "s6";
-if (minutes >= 920 && minutes <= 980) return "s7";
+  if (minutes >= 510 && minutes < 570) return "s1";
+  if (minutes >= 570 && minutes < 630) return "s2";
+  if (minutes >= 630 && minutes < 690) return "s3";
+  if (minutes >= 690 && minutes < 750) return "s4";
+  if (minutes >= 750 && minutes < 810) return "s5";
+  if (minutes >= 810 && minutes < 870) return "s6";
+  if (minutes >= 870 && minutes < 930) return "s7";
 
   return "";
 }
 
-///////////////////////
-void addPeer(uint8_t *peerAddr) {
-  esp_now_peer_info_t peerInfo = {};
-  memcpy(peerInfo.peer_addr, peerAddr, 6);
-  peerInfo.channel = 0;
-  peerInfo.encrypt = false;
-  esp_now_add_peer(&peerInfo);
-}
-
-///////////////////////
-void logToFirebase(String room, String faculty, String result, String slot) {
-
-  String path = "logs/" + room + "/" + getCurrentDay() + "/" + slot;
-
-  Firebase.RTDB.setString(&fbdo, path + "/faculty", faculty);
-  Firebase.RTDB.setString(&fbdo, path + "/result", result);
-}
-// 🔥 PLACE HERE (outside)
-
+// 🔍 UID → FACULTY
 String findFacultyByUID(String uid){
 
   FirebaseJson json;
@@ -128,99 +110,33 @@ String findFacultyByUID(String uid){
   }
 
   json.iteratorEnd();
-
   return "";
 }
-///////////////////////
-void onDataReceive(const esp_now_recv_info *info, const uint8_t *data, int len) {
-  if(adminMode) return;
 
-  memcpy(&incomingData, data, sizeof(incomingData));
-
-  String room = String(incomingData.room);
-  String uid  = String(incomingData.uid);
-
-  Serial.println("Scan Received");
-  Serial.println(room);
-  Serial.println(uid);
-
-  String day  = getCurrentDay();
-  String slot = getCurrentSlot();
-
-  if (slot == "") {
-    strcpy(response.status, "NO_LECTURE");
-    esp_now_send(info->src_addr, (uint8_t *)&response, sizeof(response));
-    return;
-  }
-
-  // Get scheduled faculty
-  String timetablePath = "classrooms/" + room + "/timetable/" + day + "/" + slot + "/faculty";
-
-  if (!Firebase.RTDB.getString(&fbdo, timetablePath)) {
-  Serial.println("Firebase Error: " + fbdo.errorReason());
-  strcpy(response.status, "NO_LECTURE");
-  esp_now_send(info->src_addr, (uint8_t *)&response, sizeof(response));
-  return;
-}
-
-  String scheduledFaculty = fbdo.stringData();
-
-  // Get faculty from UID
-
-
-  String scannedFaculty = findFacultyByUID(uid);
-
-if(scannedFaculty == ""){
-
-  Serial.println("UNKNOWN UID: " + uid);
-
-  lcd.clear();
-  lcd.setCursor(0,0);
-  lcd.print("Unknown Card");
-
-  lcd.setCursor(0,1);
-  lcd.print(uid.substring(0,8));
-
-  delay(3000);
-
-  strcpy(response.status, "INVALID");
-  esp_now_send(info->src_addr, (uint8_t *)&response, sizeof(response));
-
-  logToFirebase(room, "UNKNOWN", "INVALID", slot);
-
-  return;
-}
-
-  if (scannedFaculty == scheduledFaculty) {
-
-    strcpy(response.status, "VALID");
-    scannedFaculty.toCharArray(response.faculty, 20);
-
-    // Update classroom status
-    Firebase.RTDB.setString(&fbdo, "classrooms/" + room + "/status", "Ongoing");
-    Firebase.RTDB.setString(&fbdo, "classrooms/" + room + "/current_faculty", scannedFaculty);
-
-    logToFirebase(room, scannedFaculty, "VALID", slot);
-  }
-  else {
-    strcpy(response.status, "INVALID");
-    logToFirebase(room, scannedFaculty, "INVALID", slot);
-  }
-
-  esp_now_send(info->src_addr, (uint8_t *)&response, sizeof(response));
-}
-
-///////////////////////
 void setup() {
 
   Serial.begin(115200);
 
-  WiFi.mode(WIFI_STA);
+  pinMode(BUZZER_PIN, OUTPUT);
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+
+  SPI.begin(18, 19, 23, 5);
+  mfrc522.PCD_Init();
+
+  Wire.begin(21, 22);
+  lcd.init();
+  lcd.backlight();
+
+  lcd.print("Connecting WiFi");
+
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
   }
+
+  lcd.clear();
+  lcd.print("WiFi Connected");
 
   config.api_key = API_KEY;
   config.database_url = DATABASE_URL;
@@ -230,72 +146,167 @@ void setup() {
 
   configTime(19800, 0, "pool.ntp.org");
 
-  esp_now_init();
-  esp_now_register_recv_cb(onDataReceive);
+  delay(2000);
 
-  addPeer(lab31MAC);
-  addPeer(cr125MAC);
-  addPeer(cr126MAC);
-lcd.init();
-lcd.backlight();
-
-lcd.setCursor(0,0);
-lcd.print("Master Ready");
-  Serial.println("MASTER READY");
-
-  SPI.begin();
-rfid.PCD_Init();
-
-pinMode(BUTTON_PIN, INPUT_PULLUP);
-
-lcd.clear();
-lcd.setCursor(0,0);
-lcd.print("Scan Card...");
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print(ROOM_NAME);
+  lcd.setCursor(0,1);
+  lcd.print("Scan Card...");
 }
 
 void loop() {
 
-  // 🔘 Button reset
-  if(digitalRead(BUTTON_PIN) == LOW){
-    delay(200);
+  // 🔘 BUTTON PRESS → ENABLE SCAN
+  if (digitalRead(BUTTON_PIN) == LOW) {
 
     lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print("Scan Card...");
+    lcd.print("Ready to Scan");
 
-    adminMode = true;
+    scanMode = true;
 
-    while(digitalRead(BUTTON_PIN) == LOW);
+    delay(300); // debounce
+
+    while(digitalRead(BUTTON_PIN) == LOW); // wait release
   }
 
-  // 🪪 RFID scan
-  if (!rfid.PICC_IsNewCardPresent() || !rfid.PICC_ReadCardSerial()) {
-    delay(10);
-    return;
-  }
+  // 🔍 ONLY SCAN WHEN BUTTON PRESSED
+  if (scanMode) {
 
-  adminMode = true;  // 🔥 correct place
+    if (!mfrc522.PICC_IsNewCardPresent()) {
+  delay(50);
+  return;
+}
 
-  String uid = "";
+if (!mfrc522.PICC_ReadCardSerial()) {
+  delay(50);
+  return;
+}
 
-  for (byte i = 0; i < rfid.uid.size; i++) {
-    uid += String(rfid.uid.uidByte[i], HEX);
-  }
+    String uid = "";
 
-  uid.toUpperCase();
+    for (byte i = 0; i < mfrc522.uid.size; i++) {
+      if (mfrc522.uid.uidByte[i] < 0x10) uid += "0";
+      uid += String(mfrc522.uid.uidByte[i], HEX);
+    }
 
-  Serial.println("ADMIN UID: " + uid);
+    uid.toUpperCase();
+
+    Serial.println("UID: " + uid);
+
+    lcd.clear();
+    lcd.print("Checking...");
+
+    String day = getCurrentDay();
+    String slot = getCurrentSlot();
+
+    if(slot == ""){
+      lcd.clear();
+      lcd.print("No Lecture");
+      delay(2000);
+      scanMode = false;
+      return;
+    }
+
+    String path = "classrooms/" + String(ROOM_NAME) + "/timetable/" + day + "/" + slot + "/faculty";
+
+    if(!Firebase.RTDB.getString(&fbdo, path)){
+      Serial.println("Firebase ERROR: " + fbdo.errorReason());
+      lcd.clear();
+      lcd.print("No Data");
+      delay(2000);
+      scanMode = false;
+      return;
+    }
+
+    String scheduledFaculty = fbdo.stringData();
+    String subjectPath = "classrooms/" + String(ROOM_NAME) + "/timetable/" + day + "/" + slot + "/subject";
+Firebase.RTDB.getString(&fbdo, subjectPath);
+String subject = fbdo.stringData();
+    String scannedFaculty = findFacultyByUID(uid);
+
+    // 🔥 DEBUG
+    Serial.println("----------");
+    Serial.println("Path: " + path);
+    Serial.println("Day: " + day);
+    Serial.println("Slot: " + slot);
+    Serial.println("Scheduled: " + scheduledFaculty);
+    Serial.println("Scanned: " + scannedFaculty);
+    Serial.println("----------");
+
+    lcd.clear();
+
+    lcd.clear();
+
+if(scannedFaculty == ""){
+  lcd.print("Unknown Card");
+  beepInvalid();
+}
+
+// ✅ ENTRY
+else if(!isInside && scannedFaculty == scheduledFaculty){
+
+  lcd.print("Lecture Started");
+  delay(1500);
 
   lcd.clear();
   lcd.setCursor(0,0);
-  lcd.print("UID:");
-  delay(2000);
-
+  lcd.print("Ongoing:");
   lcd.setCursor(0,1);
-  lcd.print(uid.substring(0,16));
+  lcd.print(subject);   // 🔥 SHOW SUBJECT
 
-  rfid.PICC_HaltA();
-  rfid.PCD_StopCrypto1();
+  beepValid();
 
-  delay(3000);
+  isInside = true;
+  currentFaculty = scannedFaculty;
+  currentSubject = subject;
+
+  // 🔥 Firebase update
+  Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/status", "Ongoing");
+
+Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/faculty", scannedFaculty);
+
+Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/subject", subject);
+  Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/current_faculty", scannedFaculty);
+}
+
+// ✅ EXIT (same teacher scans again)
+else if(isInside && scannedFaculty == currentFaculty){
+
+  lcd.clear();
+  lcd.print("Lecture Ended");
+  delay(1500);
+
+  lcd.clear();
+  lcd.print("Room Free");
+
+  beepValid();
+
+  isInside = false;
+  currentFaculty = "";
+  currentSubject = "";
+
+  // 🔥 Firebase update
+  Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/status", "Free");
+
+Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/faculty", "");
+
+Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/subject", "");
+  Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/current_faculty", "");
+}
+
+// ❌ WRONG PERSON
+else{
+  lcd.print("Access Denied");
+  beepInvalid();
+}
+
+    delay(3000);
+
+    
+
+    scanMode = false;  // 🔥 RESET
+
+    mfrc522.PICC_HaltA();
+  }
 }

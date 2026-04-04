@@ -50,6 +50,16 @@
             "faculty": "NAB",
             "subject": "MT"
           }
+        },
+        "Wednesday": {
+          "s1": {
+            "faculty": "NAB",
+            "subject": "MT"
+          },
+          "s4": {
+            "faculty": "CRJ",
+            "subject": "DME"
+          }
         }
       }
     },
@@ -64,13 +74,20 @@
             "faculty": "NAB",
             "subject": "ADE"
           }
+        },
+        "Thursday": {
+          "s6": {
+            "faculty": "CIM",
+            "subject": "NAB"
+          },
+          "s7": {
+            "faculty": "MT",
+            "subject": "CRJ"
+          }
         }
       }
     },
     "LAB31": {
-      "status": {
-        "status": "Suspended"
-      },
       "timetable": {
         "Monday": {
           "s1": {
@@ -88,6 +105,16 @@
             "subject": "RAC"
           },
           "s2": {
+            "faculty": "SSK",
+            "subject": "DSP"
+          }
+        },
+        "Wednesday": {
+          "s4": {
+            "faculty": "NAB",
+            "subject": "ADE"
+          },
+          "s6": {
             "faculty": "SSK",
             "subject": "DSP"
           }
@@ -164,7 +191,6 @@
           "s2": "-",
           "s4": "OE-1 (RKA)",
           "s5": "EL-II-MEMS (EDP)",
-          
           "s7": "DAS-B4 (TUT)",
           "s8": "TUT",
           "s9": "-"
@@ -173,10 +199,8 @@
           "s1": "TUT",
           "s10": "LAB",
           "s2": "-",
-          
           "s4": "DAS B1-(TUT)",
           "s5": "DAS (SGA)",
-          
           "s7": "MT (CRJ)",
           "s8": "MI (RKA)",
           "s9": "LAB"
@@ -185,10 +209,8 @@
           "s1": "-",
           "s10": "-",
           "s2": "-",
-          
           "s4": "EL-II-MEMS (EDP)",
           "s5": "EL-II-MEMS (EDP)",
-          
           "s7": "-",
           "s8": "-",
           "s9": "-"
@@ -197,10 +219,8 @@
           "s1": "-",
           "s10": "PRC",
           "s2": "-",
-          
           "s4": "-",
           "s5": "OE (RKA)",
-          
           "s7": "DAS-B2 (TUT)",
           "s8": "DAS-B3 (TUT)",
           "s9": "PRC"
@@ -209,10 +229,8 @@
           "s1": "TUT",
           "s10": "PRC",
           "s2": "-",
-          
           "s4": "EL-II-MEMS (EDP)",
           "s5": "DAS (SGA)",
-          
           "s7": "MT (CRJ)",
           "s8": "MI (RKA)",
           "s9": "PRC"
@@ -221,10 +239,8 @@
           "s1": "TUT",
           "s10": "PRC",
           "s2": "-",
-          
           "s4": "MI (RKA)",
           "s5": "DAS (SGA)",
-          
           "s7": "MT (CRJ)",
           "s8": "OE-1 (RKA)",
           "s9": "PRC"
@@ -235,10 +251,8 @@
           "s1": "-",
           "s10": "MP-II",
           "s2": "TUT",
-          
           "s4": "PRC",
           "s5": "PRC",
-          
           "s7": "RBS (RRM)",
           "s8": "MP-II",
           "s9": "MP-II"
@@ -247,10 +261,8 @@
           "s1": "-",
           "s10": "-",
           "s2": "-",
-          
           "s4": "-",
           "s5": "RBS (RRM)",
-          
           "s7": "DSP (SSK)",
           "s8": "OE-IV-EE (SPD)",
           "s9": "E-V-DIP (EDP)"
@@ -259,10 +271,8 @@
           "s1": "-",
           "s10": "MP-II",
           "s2": "-",
-          
           "s4": "OE-IV-EE (SPD)",
           "s5": "OE-IV-EE (SPD)",
-          
           "s7": "MP-II",
           "s8": "MP-II",
           "s9": "MP-II"
@@ -271,10 +281,8 @@
           "s1": "-",
           "s10": "MP-II",
           "s2": "TUT",
-          
           "s4": "PRC",
           "s5": "PRC",
-          
           "s7": "OE-IV-EE (SPD)",
           "s8": "OE-III-ED (CRJ)",
           "s9": "E-V-DIP (EDP)"
@@ -283,10 +291,8 @@
           "s1": "-",
           "s10": "-",
           "s2": "TUT",
-          
           "s4": "PRC",
           "s5": "PRC",
-          
           "s7": "DSP (SSK)",
           "s8": "OE-III-ED (CRJ)",
           "s9": "E-V-DIP (EDP)"
@@ -295,13 +301,29 @@
           "s1": "-",
           "s10": "TUT",
           "s2": "TUT",
-          
           "s4": "PRC",
           "s5": "PRC",
-          
           "s7": "DSP (SSK)",
           "s8": "OE-III-ED (CRJ)",
           "s9": "RBS (RRM)"
+        }
+      }
+    },
+    "summer2025": {
+      "Sem2": {
+        "Friday": {
+          "s9": "MUTTU"
+        },
+        "Monday": {
+          "s1": "ADE (NAB)",
+          "s2": "ADE (NAB)",
+          "s4": "OE (CCA)"
+        },
+        "Tuesday": {
+          "s1": "MS (BTI)"
+        },
+        "Wednesday": {
+          "s5": "MIT (CRJ)"
         }
       }
     },
@@ -311,10 +333,8 @@
           "s1": "-",
           "s10": "TF B4(Tut)",
           "s2": "MIT (CRJ)",
-          
           "s4": "EMD (UVP)",
           "s5": "M3 (JSP)",
-          
           "s7": "UP&UC",
           "s8": "BCM (RRM)",
           "s9": "TF (NAB)"
@@ -323,10 +343,8 @@
           "s1": "-",
           "s10": "-",
           "s2": "-",
-          
           "s4": "BCM (RRM)",
           "s5": "UP&UC (NGP)",
-          
           "s7": "TUT",
           "s8": "TUT",
           "s9": "M3 (JSP)"
@@ -335,10 +353,8 @@
           "s1": "-",
           "s10": "-",
           "s2": "-",
-          
           "s4": "-",
           "s5": "-",
-          
           "s7": "-",
           "s8": "-",
           "s9": "-"
@@ -347,10 +363,8 @@
           "s1": "-",
           "s10": "TUT",
           "s2": "EMD (UVP)",
-          
           "s4": "EMD (UVP)",
           "s5": "M3 (JSP)",
-          
           "s7": "PRC",
           "s8": "PRC",
           "s9": "TF (NAB)"
@@ -359,10 +373,8 @@
           "s1": "-",
           "s10": "TUT",
           "s2": "TUT",
-          
           "s4": "COL (VSJ)",
           "s5": "UP&UC (NGP)",
-          
           "s7": "PRC",
           "s8": "PRC",
           "s9": "TUT"
@@ -371,10 +383,8 @@
           "s1": "-",
           "s10": "TUT",
           "s2": "TUT",
-          
           "s4": "COL (VSJ)",
           "s5": "UP&UC (NGP)",
-          
           "s7": "PRC",
           "s8": "PRC",
           "s9": "TF (NAB)"
@@ -385,10 +395,8 @@
           "s1": "-",
           "s10": "-",
           "s2": "-",
-          
           "s4": "OE-1 (RKA)",
           "s5": "EL-II-MEMS (EDP)",
-          
           "s7": "DAS-B4 (TUT)",
           "s8": "TUT",
           "s9": "-"
@@ -397,10 +405,8 @@
           "s1": "TUT",
           "s10": "LAB",
           "s2": "-",
-          
           "s4": "DAS B1-(TUT)",
           "s5": "DAS (SGA)",
-          
           "s7": "MT (CRJ)",
           "s8": "MI (RKA)",
           "s9": "LAB"
@@ -409,10 +415,8 @@
           "s1": "-",
           "s10": "-",
           "s2": "-",
-          
           "s4": "EL-II-MEMS (EDP)",
           "s5": "EL-II-MEMS (EDP)",
-          
           "s7": "-",
           "s8": "-",
           "s9": "-"
@@ -421,10 +425,8 @@
           "s1": "-",
           "s10": "PRC",
           "s2": "-",
-          
           "s4": "-",
           "s5": "OE (RKA)",
-          
           "s7": "DAS-B2 (TUT)",
           "s8": "DAS-B3 (TUT)",
           "s9": "PRC"
@@ -433,10 +435,8 @@
           "s1": "TUT",
           "s10": "PRC",
           "s2": "-",
-          
           "s4": "EL-II-MEMS (EDP)",
           "s5": "DAS (SGA)",
-          
           "s7": "MT (CRJ)",
           "s8": "MI (RKA)",
           "s9": "PRC"
@@ -445,10 +445,8 @@
           "s1": "TUT",
           "s10": "PRC",
           "s2": "-",
-          
           "s4": "MI (RKA)",
           "s5": "DAS (SGA)",
-          
           "s7": "MT (CRJ)",
           "s8": "OE-1 (RKA)",
           "s9": "PRC"
@@ -459,10 +457,8 @@
           "s1": "-",
           "s10": "MP-II",
           "s2": "TUT",
-          
           "s4": "PRC",
           "s5": "PRC",
-          
           "s7": "RBS (RRM)",
           "s8": "MP-II",
           "s9": "MP-II"
@@ -471,10 +467,8 @@
           "s1": "-",
           "s10": "-",
           "s2": "-",
-          
           "s4": "-",
           "s5": "RBS (RRM)",
-          
           "s7": "DSP (SSK)",
           "s8": "OE-IV-EE (SPD)",
           "s9": "E-V-DIP (EDP)"
@@ -483,10 +477,8 @@
           "s1": "-",
           "s10": "MP-II",
           "s2": "-",
-          
           "s4": "OE-IV-EE (SPD)",
           "s5": "OE-IV-EE (SPD)",
-          
           "s7": "MP-II",
           "s8": "MP-II",
           "s9": "MP-II"
@@ -495,10 +487,8 @@
           "s1": "-",
           "s10": "MP-II",
           "s2": "TUT",
-          
           "s4": "PRC",
           "s5": "PRC",
-          
           "s7": "OE-IV-EE (SPD)",
           "s8": "OE-III-ED (CRJ)",
           "s9": "E-V-DIP (EDP)"
@@ -507,10 +497,8 @@
           "s1": "-",
           "s10": "-",
           "s2": "TUT",
-          
           "s4": "PRC",
           "s5": "PRC",
-          
           "s7": "DSP (SSK)",
           "s8": "OE-III-ED (CRJ)",
           "s9": "E-V-DIP (EDP)"
@@ -519,10 +507,8 @@
           "s1": "-",
           "s10": "TUT",
           "s2": "TUT",
-          
           "s4": "PRC",
           "s5": "PRC",
-          
           "s7": "DSP (SSK)",
           "s8": "OE-III-ED (CRJ)",
           "s9": "RBS (RRM)"
@@ -787,14 +773,16 @@
     },
     "CRJ": {
       "name": "Mr. C. R. Jadhav",
-      "password": "956236"
+      "password": "956236",
+      "rfid": "43843B6"
     },
     "EDP": {
       "name": "Mrs. E. Devi Priya"
     },
     "NAB": {
       "name": "Mr. N. A. Bhosale",
-      "password": "963741"
+      "password": "963741",
+      "rfid": "728D1D5C"
     },
     "NGP": {
       "name": "Prof. N. G. Pardeshi"
