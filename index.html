@@ -342,6 +342,22 @@ let nextFaculty="-";
 let status="Available";
 let color="#d4edda";
 
+// 🔥 GET LIVE STATUS FROM ESP
+const liveRef = ref(database,`classrooms/${room}/live`);
+const liveSnap = await get(liveRef);
+
+if(liveSnap.exists()){
+
+  const live = liveSnap.val();
+
+  if(live.status === "Ongoing"){
+    status = "Ongoing";
+    color = "#ffcccc";
+    currentSubject = live.subject || currentSubject;
+    currentFaculty = live.faculty || currentFaculty;
+  }
+}
+
 
 if(currentSlot){
 
