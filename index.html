@@ -58,17 +58,20 @@ transform:translateX(-100%);
 
 </div>
 
-<div style="position:absolute; right:20px; top:30px;">
+<div style="position:absolute; right:20px; top:30px; display:flex; gap:10px;">
 
 <button onclick="window.location.href='timetable.html'"
-style="padding:8px 15px; margin-right:10px;">
+style="padding:8px 15px;">
 Weekly Timetable
 </button>
 
-<button onclick="showStudentMarks()">View Result</button>
+<button onclick="showStudentMarks()"
+style="padding:8px 15px;">
+View Result
+</button>
 
 <button onclick="openLogin()"
-style="padding:8px 15px; margin-right:10px;">
+style="padding:8px 15px;">
 Teacher Login
 </button>
 
@@ -649,32 +652,55 @@ document.getElementById("currentTime").innerText =
 
 const test = await get(ref(database,"classrooms"));
 console.log(test.val());
+
 window.showStudentMarks = async function(){
 
-document.getElementById("content").innerHTML = `
+// 🔥 FULL PAGE REPLACE (new screen)
+document.body.innerHTML = `
 
-<h3>Check Your Marks</h3>
+<div style="background:#002147; color:white; padding:20px; text-align:center; position:relative;">
 
-<input id="studentID" placeholder="Enter Student ID">
+<h2>Check Your Marks</h2>
+
+<button onclick="goHome()" 
+style="position:absolute; right:20px; top:20px; padding:8px 15px;">
+Home
+</button>
+
+</div>
+
+<div style="padding:40px; text-align:center;">
+
+<select id="sem" style="padding:10px; width:250px;">
+<option>Select Semester</option>
+<option>SEM 3</option>
+<option>SEM 5</option>
+<option>SEM 7</option>
+</select>
 
 <br><br>
 
-<select id="subject">
+<select id="subject" style="padding:10px; width:250px;">
 <option>Select Subject</option>
 </select>
 
 <br><br>
 
-<button onclick="getStudentMarks()">Check</button>
+<button onclick="getStudentMarks()" style="padding:10px 20px;">
+Check Result
+</button>
 
-<p id="result"></p>
+<br><br>
 
+<div id="result" style="font-weight:bold;"></div>
+
+</div>
 `;
 
 const snapshot = await get(ref(database,"marks"));
-
 const select = document.getElementById("subject");
 
+// Load subjects
 if(snapshot.exists()){
 const data = snapshot.val();
 
@@ -686,26 +712,45 @@ select.innerHTML += `<option>${subject}</option>`;
 };
 window.getStudentMarks = async function(){
 
-const studentID = document.getElementById("studentID").value;
 const subject = document.getElementById("subject").value;
 
-if(!studentID || !subject){
-alert("Fill all fields");
+if(!subject){
+alert("Select subject");
 return;
 }
 
-const snap = await get(ref(database, "marks/" + subject + "/" + studentID));
+const snap = await get(ref(database, "marks/" + subject));
+
+let html = `
+<table border="1" style="margin:auto; border-collapse:collapse;">
+<tr style="background:#002147; color:white;">
+<th>Student ID</th>
+<th>Marks</th>
+</tr>
+`;
 
 if(snap.exists()){
-const data = snap.val();
+snap.forEach(child=>{
+const data = child.val();
 
-document.getElementById("result").innerHTML =
-`✅ Marks: ${data.midsem}`;
+html += `
+<tr>
+<td>${child.key}</td>
+<td>${data.midsem}</td>
+</tr>
+`;
+});
 }else{
-document.getElementById("result").innerHTML =
-"❌ No record found";
+html += `<tr><td colspan="2">No data</td></tr>`;
 }
 
+html += "</table>";
+
+document.getElementById("result").innerHTML = html;
+
+};
+window.goHome = function(){
+location.reload(); // reloads original home page
 };
 </script>
 
