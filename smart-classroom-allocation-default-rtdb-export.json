@@ -75,14 +75,28 @@
             "subject": "ADE"
           }
         },
+        "Saturday": {
+          "s3": {
+            "faculty": "CRJ",
+            "subject": "DME"
+          },
+          "s4": {
+            "faculty": "NAB",
+            "subject": "CIM"
+          },
+          "s5": {
+            "faculty": "CRJ",
+            "subject": "DME"
+          }
+        },
         "Thursday": {
           "s6": {
-            "faculty": "CIM",
-            "subject": "NAB"
+            "faculty": "NAB",
+            "subject": "CIM"
           },
           "s7": {
-            "faculty": "MT",
-            "subject": "CRJ"
+            "faculty": "CRJ",
+            "subject": "MT"
           }
         }
       }
@@ -177,6 +191,14 @@
       "-Ons9LxHQ8Hn0QV8M61l": {
         "expiry": "2026-03-17T13:09",
         "message": "ज्या विद्यार्थ्यानी शिष्यवृत्ती अर्ज विद्यार्थी विभागात जमा केलेला नाही त्यांनी लवकरात लवकर शिष्यवृत्ती अर्ज जमा करावा व यादीमधील आपल्या नावासमोर महाडीबीटी  यूजर आयडी व पाडवर्ड, शिष्यवृत्ती चे नाव, आणि भरलेली फी लिहून सही करावी"
+      },
+      "-OpM2brKZ9r4doVCwTtM": {
+        "expiry": "2026-04-04T11:26",
+        "message": "hello"
+      },
+      "-OpM2tqubrbXQG3H4ZD7": {
+        "expiry": "2026-04-04T11:28",
+        "message": "Those students are not yet fill above google form can fill the google form today before 02.00 PM. Otherwise, the students themselves will be responsible for further Process."
       },
       "expiry": "2026-03-16T14:25",
       "message": "gffgfghfghfghfghfghfgfhgfgfghfgf"
@@ -517,251 +539,251 @@
     }
   },
   "semesters": {
-    "SEM3": {
-      "timetable": {
-        "Friday": {
-          "s1": {
-            "faculty": "NAB",
-            "subject": "ADE"
-          },
-          "s2": {
-            "faculty": "CCA",
-            "subject": "OE"
-          },
-          "s3": {
-            "faculty": "BTI",
-            "subject": "MS"
-          }
+  "SEM3": {
+    "timetable": {
+      "Friday": {
+        "s1": {
+          "faculty": "NAB",
+          "subject": "ADE"
         },
-        "Monday": {
-          "s1": {
-            "faculty": "NAB",
-            "subject": "ADE"
-          },
-          "s2": {
-            "faculty": "NAB",
-            "subject": "ADE"
-          },
-          "s4": {
-            "faculty": "CCA",
-            "subject": "OE"
-          },
-          "s5": {
-            "faculty": "BTI",
-            "subject": "MS"
-          }
+        "s2": {
+          "faculty": "CCA",
+          "subject": "OE"
         },
-        "Saturday": {
-          "s1": {
-            "faculty": "NAB",
-            "subject": "ADE"
-          }
-        },
-        "Thursday": {
-          "s1": {
-            "faculty": "BTI",
-            "subject": "MS"
-          },
-          "s2": {
-            "faculty": "CCA",
-            "subject": "OE"
-          },
-          "s3": {
-            "faculty": "NAB",
-            "subject": "ADE"
-          }
-        },
-        "Tuesday": {
-          "s1": {
-            "faculty": "NAB",
-            "subject": "ADE"
-          },
-          "s2": {
-            "faculty": "NAB",
-            "subject": "ADE"
-          },
-          "s3": {
-            "faculty": "CCA",
-            "subject": "OE"
-          },
-          "s5": {
-            "faculty": "BTI",
-            "subject": "MS"
-          }
-        },
-        "Wednesday": {
-          "s1": {
-            "faculty": "CCA",
-            "subject": "OE"
-          },
-          "s2": {
-            "faculty": "BTI",
-            "subject": "MS"
-          },
-          "s3": {
-            "faculty": "NAB",
-            "subject": "ADE"
-          }
+        "s3": {
+          "faculty": "BTI",
+          "subject": "MS"
         }
-      }
-    },
-    "SEM5": {
-      "timetable": {
-        "Friday": {
-          "s1": {
-            "faculty": "CRJ",
-            "subject": "MIT"
-          },
-          "s2": {
-            "faculty": "NAB",
-            "subject": "ADE"
-          },
-          "s4": {
-            "faculty": "SSK",
-            "subject": "DSP"
-          }
+      },
+      "Monday": {
+        "s1": {
+          "faculty": "NAB",
+          "subject": "ADE"
         },
-        "Monday": {
-          "s1": {
-            "faculty": "CRJ",
-            "subject": "MIT"
-          },
-          "s2": {
-            "faculty": "SSK",
-            "subject": "DSP"
-          },
-          "s3": {
-            "faculty": "NAB",
-            "subject": "ADE"
-          },
-          "s4": {
-            "faculty": "NAB",
-            "subject": "MDACAD"
-          }
+        "s2": {
+          "faculty": "NAB",
+          "subject": "ADE"
         },
-        "Thursday": {
-          "s1": {
-            "faculty": "SSK",
-            "subject": "DSP"
-          },
-          "s2": {
-            "faculty": "NAB",
-            "subject": "ADE"
-          },
-          "s3": {
-            "faculty": "CRJ",
-            "subject": "MIT"
-          }
+        "s4": {
+          "faculty": "CCA",
+          "subject": "OE"
         },
-        "Tuesday": {
-          "s1": {
-            "faculty": "SSK",
-            "subject": "DSP"
-          },
-          "s2": {
-            "faculty": "CRJ",
-            "subject": "MIT"
-          },
-          "s3": {
-            "faculty": "NAB",
-            "subject": "ADE"
-          },
-          "s4": {
-            "faculty": "NAB",
-            "subject": "MDACAD"
-          },
-          "s5": {
-            "faculty": "CRJ",
-            "subject": "MT"
-          }
-        },
-        "Wednesday": {
-          "s1": {
-            "faculty": "NAB",
-            "subject": "ADE"
-          },
-          "s2": {
-            "faculty": "SSK",
-            "subject": "DSP"
-          },
-          "s3": {
-            "faculty": "CRJ",
-            "subject": "MIT"
-          },
-          "s4": {
-            "faculty": "CRJ",
-            "subject": "MT"
-          }
+        "s5": {
+          "faculty": "BTI",
+          "subject": "MS"
         }
-      }
-    },
-    "SEM7": {
-      "timetable": {
-        "Friday": {
-          "s1": {
-            "faculty": "GSP",
-            "subject": "MG"
-          },
-          "s2": {
-            "faculty": "CRJ",
-            "subject": "MIT"
-          }
+      },
+      "Saturday": {
+        "s1": {
+          "faculty": "NAB",
+          "subject": "ADE"
+        }
+      },
+      "Thursday": {
+        "s1": {
+          "faculty": "BTI",
+          "subject": "MS"
         },
-        "Monday": {
-          "s1": {
-            "faculty": "GSP",
-            "subject": "MG"
-          },
-          "s2": {
-            "faculty": "CRJ",
-            "subject": "MIT"
-          },
-          "s3": {
-            "faculty": "RKA",
-            "subject": "RAC"
-          }
+        "s2": {
+          "faculty": "CCA",
+          "subject": "OE"
         },
-        "Thursday": {
-          "s1": {
-            "faculty": "GSP",
-            "subject": "MG"
-          },
-          "s2": {
-            "faculty": "CRJ",
-            "subject": "MIT"
-          },
-          "s3": {
-            "faculty": "RKA",
-            "subject": "RAC"
-          }
+        "s3": {
+          "faculty": "NAB",
+          "subject": "ADE"
+        }
+      },
+      "Tuesday": {
+        "s1": {
+          "faculty": "NAB",
+          "subject": "ADE"
         },
-        "Tuesday": {
-          "s1": {
-            "faculty": "RKA",
-            "subject": "RAC"
-          },
-          "s2": {
-            "faculty": "CRJ",
-            "subject": "MIT"
-          },
-          "s4": {
-            "faculty": "GSP",
-            "subject": "MG"
-          }
+        "s2": {
+          "faculty": "NAB",
+          "subject": "ADE"
         },
-        "Wednesday": {
-          "s1": {
-            "faculty": "CRJ",
-            "subject": "MIT"
-          },
-          "s2": {
-            "faculty": "RKA",
-            "subject": "RAC"
-          }
+        "s3": {
+          "faculty": "CCA",
+          "subject": "OE"
+        },
+        "s5": {
+          "faculty": "BTI",
+          "subject": "MS"
+        }
+      },
+      "Wednesday": {
+        "s1": {
+          "faculty": "CCA",
+          "subject": "OE"
+        },
+        "s2": {
+          "faculty": "BTI",
+          "subject": "MS"
+        },
+        "s3": {
+          "faculty": "NAB",
+          "subject": "ADE"
         }
       }
     }
   },
+  "SEM5": {
+    "timetable": {
+      "Friday": {
+        "s1": {
+          "faculty": "CRJ",
+          "subject": "MIT"
+        },
+        "s2": {
+          "faculty": "NAB",
+          "subject": "ADE"
+        },
+        "s4": {
+          "faculty": "SSK",
+          "subject": "DSP"
+        }
+      },
+      "Monday": {
+        "s1": {
+          "faculty": "CRJ",
+          "subject": "MIT"
+        },
+        "s2": {
+          "faculty": "SSK",
+          "subject": "DSP"
+        },
+        "s3": {
+          "faculty": "NAB",
+          "subject": "ADE"
+        },
+        "s4": {
+          "faculty": "NAB",
+          "subject": "MDACAD"
+        }
+      },
+      "Thursday": {
+        "s1": {
+          "faculty": "SSK",
+          "subject": "DSP"
+        },
+        "s2": {
+          "faculty": "NAB",
+          "subject": "ADE"
+        },
+        "s3": {
+          "faculty": "CRJ",
+          "subject": "MIT"
+        }
+      },
+      "Tuesday": {
+        "s1": {
+          "faculty": "SSK",
+          "subject": "DSP"
+        },
+        "s2": {
+          "faculty": "CRJ",
+          "subject": "MIT"
+        },
+        "s3": {
+          "faculty": "NAB",
+          "subject": "ADE"
+        },
+        "s4": {
+          "faculty": "NAB",
+          "subject": "MDACAD"
+        },
+        "s5": {
+          "faculty": "CRJ",
+          "subject": "MT"
+        }
+      },
+      "Wednesday": {
+        "s1": {
+          "faculty": "NAB",
+          "subject": "ADE"
+        },
+        "s2": {
+          "faculty": "SSK",
+          "subject": "DSP"
+        },
+        "s3": {
+          "faculty": "CRJ",
+          "subject": "MIT"
+        },
+        "s4": {
+          "faculty": "CRJ",
+          "subject": "MT"
+        }
+      }
+    }
+  },
+  "SEM7": {
+    "timetable": {
+      "Friday": {
+        "s1": {
+          "faculty": "GSP",
+          "subject": "MG"
+        },
+        "s2": {
+          "faculty": "CRJ",
+          "subject": "MIT"
+        }
+      },
+      "Monday": {
+        "s1": {
+          "faculty": "GSP",
+          "subject": "MG"
+        },
+        "s2": {
+          "faculty": "CRJ",
+          "subject": "MIT"
+        },
+        "s3": {
+          "faculty": "RKA",
+          "subject": "RAC"
+        }
+      },
+      "Thursday": {
+        "s1": {
+          "faculty": "GSP",
+          "subject": "MG"
+        },
+        "s2": {
+          "faculty": "CRJ",
+          "subject": "MIT"
+        },
+        "s3": {
+          "faculty": "RKA",
+          "subject": "RAC"
+        }
+      },
+      "Tuesday": {
+        "s1": {
+          "faculty": "RKA",
+          "subject": "RAC"
+        },
+        "s2": {
+          "faculty": "CRJ",
+          "subject": "MIT"
+        },
+        "s4": {
+          "faculty": "GSP",
+          "subject": "MG"
+        }
+      },
+      "Wednesday": {
+        "s1": {
+          "faculty": "CRJ",
+          "subject": "MIT"
+        },
+        "s2": {
+          "faculty": "RKA",
+          "subject": "RAC"
+        }
+      }
+    }
+  }
+},
   "teachers": {
     "ALP": {
       "name": "Alokh",
@@ -774,7 +796,7 @@
     "CRJ": {
       "name": "Mr. C. R. Jadhav",
       "password": "956236",
-      "rfid": "43843B6"
+      "rfid": "43843B06"
     },
     "EDP": {
       "name": "Mrs. E. Devi Priya"

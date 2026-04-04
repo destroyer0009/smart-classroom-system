@@ -145,6 +145,17 @@ void setup() {
   Firebase.reconnectWiFi(true);
 
   configTime(19800, 0, "pool.ntp.org");
+  Serial.print("Syncing time");
+
+time_t now = time(nullptr);
+
+while (now < 100000) {
+  delay(500);
+  Serial.print(".");
+  now = time(nullptr);
+}
+
+Serial.println("\nTime synced!");
 
   delay(2000);
 
@@ -197,8 +208,11 @@ if (!mfrc522.PICC_ReadCardSerial()) {
     lcd.clear();
     lcd.print("Checking...");
 
-    String day = getCurrentDay();
-    String slot = getCurrentSlot();
+    // String day = getCurrentDay();
+    // String slot = getCurrentSlot();
+
+    String day = "Monday";
+    String slot = "s1";
 
     if(slot == ""){
       lcd.clear();
@@ -309,4 +323,6 @@ else{
 
     mfrc522.PICC_HaltA();
   }
+  time_t now = time(nullptr);
+Serial.println(ctime(&now));
 }
