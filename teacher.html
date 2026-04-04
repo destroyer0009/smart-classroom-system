@@ -103,7 +103,7 @@ color:white;
 }
 
 </style>
-
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 </head>
 
 <body>
@@ -151,6 +151,10 @@ color:white;
 <button onclick="showBooking()">Book Classroom</button>
 
 <button onclick="showLogs()">RFID Logs</button>
+
+<button onclick="showMarksheet()">Marksheet</button>
+
+<button onclick="viewMarks()">View Marks</button>
 
 
 
@@ -741,6 +745,253 @@ window.submitLate = async function(){
   "✅ Late notification sent";
 
 }
+window.showMarksheet = async function(){
+
+document.getElementById("content").innerHTML = `
+
+<h3>Upload Excel Marksheet</h3>
+
+<select id="subjectSelectMarks">
+<option>Loading subjects...</option>
+</select>
+
+<br><br>
+
+<input type="file" id="excelFile" accept=".xlsx, .xls">
+
+<br><br>
+
+<button onclick="uploadExcel()">Upload & Save</button>
+
+<p id="marksMsg"></p>
+
+`;
+
+const teacher = localStorage.getItem("teacherID");
+
+const snapshot = await get(ref(database,"classrooms"));
+const select = document.getElementById("subjectSelectMarks");
+
+select.innerHTML = "";
+
+let subjects = new Set();
+
+if(snapshot.exists()){
+const data = snapshot.val();
+
+for(let room in data){
+if(!data[room].timetable) continue;
+
+for(let day in data[room].timetable){
+for(let slot in data[room].timetable[day]){
+const lec = data[room].timetable[day][slot];
+
+if(lec.faculty === teacher){
+subjects.add(lec.subject);
+}
+}
+}
+}
+}
+
+subjects.forEach(sub=>{
+select.innerHTML += `<option>${sub}</option>`;
+});
+
+};
+window.addRow = function(){
+
+const table = document.getElementById("marksTable");
+
+const row = document.createElement("tr");
+
+row.innerHTML = `
+<td><input placeholder="Student ID"></td>
+<td><input type="number" placeholder="Marks"></td>
+`;
+
+table.appendChild(row);
+
+};
+window.submitMarks = async function(){
+
+const subject = document.getElementById("subjectSelectMarks").value;
+const teacher = localStorage.getItem("teacherID");
+
+const rows = document.querySelectorAll("#marksTable tr");
+
+let count = 0;
+
+for(let row of rows){
+
+const inputs = row.querySelectorAll("input");
+
+const studentID = inputs[0].value;
+const marks = inputs[1].value;
+
+if(!studentID || !marks) continue;
+
+// validation
+if(marks > 30){
+alert("Max marks is 30");
+return;
+}
+
+await set(ref(database, "marks/" + subject + "/" + studentID),{
+midsem: marks,
+teacher: teacher,
+date: new Date().toISOString().split("T")[0]
+});
+
+count++;
+
+}
+
+document.getElementById("marksMsg").innerHTML =
+"✅ Saved " + count + " students marks";
+
+};
+window.uploadExcel = async function(){
+
+const file = document.getElementById("excelFile").files[0];
+
+if(!file){
+alert("Select Excel file");
+return;
+}
+
+const subject = document.getElementById("subjectSelectMarks").value;
+const teacher = localStorage.getItem("teacherID");
+
+const reader = new FileReader();
+
+reader.onload = async function(e){
+
+const data = new Uint8Array(e.target.result);
+const workbook = XLSX.read(data, {type: "array"});
+
+const sheetName = workbook.SheetNames[0];
+const sheet = workbook.Sheets[sheetName];
+
+// convert to JSON
+const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+let count = 0;
+
+for(let row of jsonData){
+
+// Excel columns MUST be like this:
+// StudentID | Marks
+
+const studentID = row.StudentID;
+const marks = row.Marks;
+
+if(!studentID || !marks) continue;
+
+if(marks > 30){
+alert("Marks > 30 not allowed");
+return;
+}
+
+await set(ref(database, "marks/" + subject + "/" + studentID),{
+midsem: marks,
+teacher: teacher,
+date: new Date().toISOString().split("T")[0]
+});
+
+count++;
+}
+
+document.getElementById("marksMsg").innerHTML =
+"✅ Uploaded " + count + " students marks";
+
+};
+
+reader.readAsArrayBuffer(file);
+
+};
+window.viewMarks = async function(){
+
+document.getElementById("content").innerHTML = `
+<h3>View Marks</h3>
+
+<select id="viewSubject">
+<option>Select Subject</option>
+</select>
+
+<br><br>
+
+<div id="marksDisplay"></div>
+`;
+
+const teacher = localStorage.getItem("teacherID");
+
+// Load subjects
+const snapshot = await get(ref(database,"classrooms"));
+const select = document.getElementById("viewSubject");
+
+let subjects = new Set();
+
+if(snapshot.exists()){
+const data = snapshot.val();
+
+for(let room in data){
+if(!data[room].timetable) continue;
+
+for(let day in data[room].timetable){
+for(let slot in data[room].timetable[day]){
+
+const lec = data[room].timetable[day][slot];
+
+if(lec.faculty === teacher){
+subjects.add(lec.subject);
+}
+}
+}
+}
+}
+
+subjects.forEach(sub=>{
+select.innerHTML += `<option>${sub}</option>`;
+});
+
+// when subject selected
+select.addEventListener("change", async function(){
+
+const subject = this.value;
+
+const marksSnap = await get(ref(database,"marks/" + subject));
+
+let html = `
+<table border="1" style="margin:auto; border-collapse:collapse;">
+<tr style="background:#002147; color:white;">
+<th>Student ID</th>
+<th>Marks</th>
+</tr>
+`;
+
+if(marksSnap.exists()){
+marksSnap.forEach(child=>{
+const data = child.val();
+
+html += `
+<tr>
+<td>${child.key}</td>
+<td>${data.midsem}</td>
+</tr>
+`;
+});
+}else{
+html += `<tr><td colspan="2">No data</td></tr>`;
+}
+
+html += "</table>";
+
+document.getElementById("marksDisplay").innerHTML = html;
+
+});
+
+};
 </script>
 
 </body>

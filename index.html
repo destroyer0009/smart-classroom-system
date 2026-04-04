@@ -65,6 +65,8 @@ style="padding:8px 15px; margin-right:10px;">
 Weekly Timetable
 </button>
 
+<button onclick="showStudentMarks()">View Result</button>
+
 <button onclick="openLogin()"
 style="padding:8px 15px; margin-right:10px;">
 Teacher Login
@@ -631,6 +633,64 @@ document.getElementById("currentTime").innerText =
 
 const test = await get(ref(database,"classrooms"));
 console.log(test.val());
+window.showStudentMarks = async function(){
+
+document.getElementById("content").innerHTML = `
+
+<h3>Check Your Marks</h3>
+
+<input id="studentID" placeholder="Enter Student ID">
+
+<br><br>
+
+<select id="subject">
+<option>Select Subject</option>
+</select>
+
+<br><br>
+
+<button onclick="getStudentMarks()">Check</button>
+
+<p id="result"></p>
+
+`;
+
+const snapshot = await get(ref(database,"marks"));
+
+const select = document.getElementById("subject");
+
+if(snapshot.exists()){
+const data = snapshot.val();
+
+for(let subject in data){
+select.innerHTML += `<option>${subject}</option>`;
+}
+}
+
+};
+window.getStudentMarks = async function(){
+
+const studentID = document.getElementById("studentID").value;
+const subject = document.getElementById("subject").value;
+
+if(!studentID || !subject){
+alert("Fill all fields");
+return;
+}
+
+const snap = await get(ref(database, "marks/" + subject + "/" + studentID));
+
+if(snap.exists()){
+const data = snap.val();
+
+document.getElementById("result").innerHTML =
+`✅ Marks: ${data.midsem}`;
+}else{
+document.getElementById("result").innerHTML =
+"❌ No record found";
+}
+
+};
 </script>
 
 </body>
