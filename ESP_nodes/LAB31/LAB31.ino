@@ -6,7 +6,7 @@
 #include <Firebase_ESP_Client.h>
 #include <time.h>
 
-#define ROOM_NAME "CR126"
+#define ROOM_NAME "LAB31"
 
 // WIFI
 #define WIFI_SSID "group5"
@@ -83,7 +83,10 @@ String getCurrentSlot() {
 String findFacultyByUID(String uid){
 
   FirebaseJson json;
-  Firebase.RTDB.getJSON(&fbdo, "teachers");
+  if (!Firebase.RTDB.getJSON(&fbdo, "teachers")) {
+  Serial.println("Teacher fetch failed");
+  return "";
+}
 
   json = fbdo.jsonObject();
 
@@ -225,7 +228,7 @@ while (!mfrc522.PICC_ReadCardSerial()) {
     if(!Firebase.RTDB.getString(&fbdo, path)){
       Serial.println("Firebase ERROR: " + fbdo.errorReason());
       lcd.clear();
-      lcd.print("No Data");
+      lcd.print("No Lecture Now");
       delay(2000);
       scanMode = false;
       lcd.clear();
@@ -235,8 +238,11 @@ lcd.print("Press Button");
 
     String scheduledFaculty = fbdo.stringData();
     String subjectPath = "classrooms/" + String(ROOM_NAME) + "/timetable/" + day + "/" + slot + "/subject";
-Firebase.RTDB.getString(&fbdo, subjectPath);
-String subject = fbdo.stringData();
+String subject = "";
+
+if(Firebase.RTDB.getString(&fbdo, subjectPath)){
+  subject = fbdo.stringData();
+}
     String scannedFaculty = findFacultyByUID(uid);
 
     // 🔥 DEBUG
@@ -250,7 +256,6 @@ String subject = fbdo.stringData();
 
     lcd.clear();
 
-    lcd.clear();
 
 if(scannedFaculty == ""){
   lcd.print("Unknown Card");
@@ -320,6 +325,8 @@ else{
     
 
     scanMode = false;  // 🔥 RESET
+    lcd.clear();
+    lcd.print("Press Button");
 
     mfrc522.PICC_HaltA();
   }
