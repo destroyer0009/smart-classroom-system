@@ -1082,14 +1082,43 @@ table.innerHTML += `
 
 }
 
-window.approveRequest = function(id){
+window.approveRequest = async function(id){
 
-set(ref(database,"booking_requests/"+id+"/status"),"approved");
+// 1️⃣ GET REQUEST DATA
+const snapshot = await get(ref(database,"booking_requests/" + id));
 
-alert("Approved");
-
+if(!snapshot.exists()){
+  alert("Request not found");
+  return;
 }
 
+const data = snapshot.val();
+
+
+const dateKey = data.date; // e.g. 2026-04-07
+
+// 3️⃣ CHECK IF SLOT ALREADY BOOKED (✅ FIRST)
+const existing = await get(ref(database,
+`classrooms/${data.room}/specialBookings/${dateKey}/${data.slot}`));
+
+if(existing.exists()){
+  alert("❌ Slot already booked");
+  return;
+}
+
+// 4️⃣ ADD TO TIMETABLE
+await set(ref(database,
+`classrooms/${data.room}/specialBookings/${dateKey}/${data.slot}`),{
+  subject: data.subject,
+  faculty: data.teacher
+});
+
+// 5️⃣ UPDATE STATUS
+await set(ref(database,"booking_requests/"+id+"/status"),"approved");
+
+alert("✅ Approved & Scheduled");
+
+}
 window.rejectRequest = function(id){
 
 set(ref(database,"booking_requests/"+id+"/status"),"rejected");

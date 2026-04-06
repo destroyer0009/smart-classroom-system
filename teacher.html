@@ -583,9 +583,41 @@ window.cancelLecture = async function(){
     alert("❌ Invalid Code");
     return;
   }
+
+  // 🔍 FIND LECTURE FIRST
+const day = new Date(date).toLocaleString('en-US',{weekday:'long'});
+const snapshot = await get(ref(database,"classrooms"));
+
+let found = null;
+
+if(snapshot.exists()){
+  const data = snapshot.val();
+
+  for(let room in data){
+    const dayData = data[room].timetable?.[day];
+
+    if(!dayData) continue;
+
+    for(let slot in dayData){
+      const lec = dayData[slot];
+
+      if(lec.faculty === teacherID){
+        found = {room, slot, subject: lec.subject};
+      }
+    }
+  }
+}
+
+if(!found){
+  alert("Lecture not found");
+  return;
+}
   // Find lecture and remove it
 await set(ref(database,
-`classrooms/${found.room}/timetable/${day}/${found.slot}`), null);
+`cancelled_lectures/${date}/${found.room}/${found.slot}`),{
+  teacher: teacherID,
+  subject: found.subject
+});
 
   // ✅ Instead of request → DIRECT ACTION
   await set(ref(database,"cancel_logs/"+Date.now()),{

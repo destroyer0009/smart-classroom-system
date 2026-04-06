@@ -42,7 +42,7 @@ transform:translateX(-100%);
 
 <body style="margin:0; font-family: Arial; background-color:#f4f6f9;">
 
-<div style="background-color:#002147; color:white; padding:20px; text-align:center;">
+<div style="background-color:#002147; color:white; padding:40px; text-align:center;">
   <img src="logo.png" style="height:80px;">
   <h1>Loknete Shamrao Peje Govt. College of Engineering, Ratnagiri</h1>
   <h3>Smart Classroom Allocation & Booking System</h3>
@@ -58,25 +58,50 @@ transform:translateX(-100%);
 
 </div>
 
-<div style="position:absolute; right:20px; top:30px; display:flex; gap:10px;">
+<div style="position:absolute; right:20px; top:240px; display:flex; gap:10px;">
 
-<button onclick="window.location.href='timetable.html'"
-style="padding:8px 15px;">
+<button onclick="window.location.href='timetable.html'" style="
+padding:10px 20px;
+border:none;
+border-radius:8px;
+background:#007bff;
+color:white;
+font-weight:bold;
+cursor:pointer;
+">
 Weekly Timetable
 </button>
 
 <button onclick="showStudentMarks()"
-style="padding:8px 15px;">
+style="padding:10px 20px;
+border:none;
+border-radius:8px;
+background:#1ea3ef;
+color:white;
+font-weight:bold;
+cursor:pointer;">
 View Result
 </button>
 
 <button onclick="openLogin()"
-style="padding:8px 15px;">
+style="padding:10px 20px;
+border:none;
+border-radius:8px;
+background:#36a4e3;
+color:white;
+font-weight:bold;
+cursor:pointer;">
 Teacher Login
 </button>
 
 <button onclick="openAdminLogin()"
-style="padding:8px 15px; background:#c82333; color:white;">
+style="padding:10px 20px;
+border:none;
+border-radius:8px;
+background:#fd0101;
+color:white;
+font-weight:bold;
+cursor:pointer;">
 Admin Login
 </button>
 
@@ -336,52 +361,82 @@ if(lateSnapshot.exists()){
 
 for(let room of rooms){
 
+ 
+
 let currentSubject="No Lecture";
 let currentFaculty="-";
 
 let nextSubject="-";
 let nextFaculty="-";
 
-let status="Available";
-let color="#d4edda";
+let status = "Free";
+let color = "#d4edda"; // GREEN
 
-// 🔥 GET LIVE STATUS FROM ESP
-const liveRef = ref(database,`classrooms/${room}/live`);
-const liveSnap = await get(liveRef);
+let lecture = null;
+const todayDate = new Date().toISOString().split("T")[0];
 
-if(liveSnap.exists()){
+// 1️⃣ CANCEL CHECK
+const cancelSnap = await get(ref(database,
+`cancelled_lectures/${todayDate}/${room}/${currentSlot}`));
 
-  const live = liveSnap.val();
-
-  if(live.status === "Ongoing"){
-    status = "Ongoing";
-    color = "#ffcccc";
-    currentSubject = live.subject || currentSubject;
-    currentFaculty = live.faculty || currentFaculty;
-  }
-}
-
-
-if(currentSlot){
-
-const currentRef=ref(database,`classrooms/${room}/timetable/${day}/${currentSlot}`);
-
-const snap = await get(currentRef);
-
-if(snap.exists()){
-  currentSubject = snap.val().subject;
-  currentFaculty = snap.val().faculty;
-  status = "Ongoing";
-  color = "#ffcccc";
-}else{
-  currentSubject = "Free";
-  currentFaculty = "-";
-  status = "Available";
+if(cancelSnap.exists()){
+  status = "Free";
   color = "#d4edda";
 }
 
-}
+// 2️⃣ SPECIAL BOOKING
+else{
+  const specialSnap = await get(ref(database,
+  `classrooms/${room}/specialBookings/${todayDate}/${currentSlot}`));
 
+  if(specialSnap.exists()){
+    lecture = specialSnap.val();
+  }
+
+  // 3️⃣ NORMAL TIMETABLE
+  else{
+    const normalSnap = await get(ref(database,
+    `classrooms/${room}/timetable/${day}/${currentSlot}`));
+
+    if(normalSnap.exists()){
+      lecture = normalSnap.val();
+    }
+  }
+
+  // 4️⃣ STATUS DECISION
+  if(lecture){
+
+    const liveRef = ref(database,`classrooms/${room}/live`);
+    const liveSnap = await get(liveRef);
+
+    if(liveSnap.exists() && liveSnap.val().status === "Ongoing"){
+      status = "Ongoing";
+      color = "#dc3545";
+      currentSubject = liveSnap.val().subject;
+      currentFaculty = liveSnap.val().faculty;
+    }
+
+    else{
+      status = "Waiting";
+      color = "#ffc107";
+
+      // 🔔 CHECK LATE
+      for(let late of lateData){
+        if(late.room === room &&
+           late.slot === currentSlot){
+          status = "Late (" + late.minutes + "m)";
+        }
+      }
+
+      currentSubject = lecture.subject;
+      currentFaculty = lecture.faculty;
+    }
+
+  }else{
+    status = "Free";
+    color = "#d4edda";
+  }
+}
 
 if(nextSlot){
 
@@ -395,8 +450,9 @@ nextSubject=snap2.val().subject;
 
 nextFaculty=snap2.val().faculty;
 
-}
 
+
+}
 }
 
 let lateMessage = "";
@@ -410,15 +466,34 @@ for(let late of lateData){
 container.innerHTML+=`
 
 <div onclick="openRoom('${room}')" 
-style="display:inline-block;width:280px;margin:20px;
-padding:20px;border-radius:15px;background:${color};
-box-shadow:0 5px 15px rgba(0,0,0,0.2);cursor:pointer;">
+style="
+display:inline-block;
+width:280px;
+margin:20px;
+padding:20px;
+border-radius:15px;
+background:${color};
+box-shadow:0 5px 15px rgba(0,0,0,0.2);
+cursor:pointer;
+transition:0.3s;
+"
+onmouseover="this.style.transform='scale(1.05)'"
+onmouseout="this.style.transform='scale(1)'">
 
-<h2>${room}</h2>
+<h2 style="color:#002147;">${room}</h2>
 
-<p><b>Status:</b> 
+<p>
+<b>Status:</b> 
 <span style="
-color:${status==='Ongoing'?'red':'green'};
+padding:5px 10px;
+border-radius:10px;
+background:${
+  status==='Ongoing' ? '#dc3545' :
+  status.includes('Late') ? '#ffc107' :
+  status==='Waiting' ? '#ffc107' :
+  '#28a745'
+};
+color:white;
 font-weight:bold;
 ">
 ${status}
@@ -441,7 +516,12 @@ ${lateMessage ? `<p style="color:red;"><b>${lateMessage}</b></p>` : ""}
 
 `;
 
+
+
 }
+
+
+
 console.log("Rooms loading...");
 }
 window.addEventListener("DOMContentLoaded", () => {
