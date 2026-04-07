@@ -53,20 +53,19 @@ void beepInvalid() {
 
 // 📅 DAY
 String getCurrentDay() {
-  time_t now = time(nullptr);
-  struct tm *timeinfo = localtime(&now);
+  time_t currentTime = time(nullptr);
+  struct tm *t = localtime(&currentTime);
 
   String days[] = {"Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"};
-  return days[timeinfo->tm_wday];
+  return days[t->tm_wday];
 }
 
 // ⏰ SLOT (IMPORTANT: s1, s2...)
 String getCurrentSlot() {
-  struct tm *timeinfo;
-  time_t now = time(nullptr);
-  timeinfo = localtime(&now);
+  time_t currentTime = time(nullptr);
+struct tm *t = localtime(&currentTime);
 
-  int minutes = timeinfo->tm_hour * 60 + timeinfo->tm_min;
+int minutes = t->tm_hour * 60 + t->tm_min;
 
   if (minutes >= 510 && minutes < 570) return "s1";
   if (minutes >= 570 && minutes < 630) return "s2";
@@ -152,6 +151,9 @@ void setup() {
 
   configTime(19800, 0, "pool.ntp.org");
   Serial.print("Syncing time");
+
+time_t currentTime = time(nullptr);
+  struct tm *t = localtime(&currentTime);
 
 time_t now = time(nullptr);
 
@@ -340,6 +342,32 @@ if(Firebase.RTDB.getJSON(&fbdo, "late_notifications")){
 
 
 if(scannedFaculty == ""){
+
+FirebaseJson logJson;
+
+time_t time1 = time(nullptr);
+struct tm *t1 = localtime(&time1);
+
+String timeStr = String(t1->tm_hour) + ":" + String(t1->tm_min);
+
+logJson.set("teacher", "Unknown Card");
+logJson.set("room", ROOM_NAME);
+logJson.set("time", timeStr);
+logJson.set("status", "Invalid");
+
+// 📅 GET TODAY DATE
+time_t nowDate = time(nullptr);
+struct tm *tDate = localtime(&nowDate);
+
+String todayDate = String(tDate->tm_year + 1900) + "-";
+todayDate += (tDate->tm_mon + 1 < 10 ? "0" : "") + String(tDate->tm_mon + 1) + "-";
+todayDate += (tDate->tm_mday < 10 ? "0" : "") + String(tDate->tm_mday);
+
+// 🔥 DATE-WISE PATH
+String path = "/logs/" + todayDate;
+
+// ✅ PUSH
+Firebase.RTDB.pushJSON(&fbdo, path, &logJson);
   lcd.print("Unknown Card");
   beepInvalid();
 }
@@ -363,13 +391,45 @@ else if(!isInside && scannedFaculty == scheduledFaculty){
   currentSubject = subject;
 
   // 🔥 Firebase update
-  Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/status", "Ongoing");
+//   Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/status", "Ongoing");
 
-Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/faculty", scannedFaculty);
+// Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/faculty", scannedFaculty);
 
-Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/subject", subject);
+// Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/subject", subject);
+Firebase.RTDB.setString(&fbdo, "classrooms/" + ROOM_NAME + "/live/status", "Ongoing");
+
+Firebase.RTDB.setString(&fbdo, "classrooms/" + ROOM_NAME + "/live/subject", currentSubject);
+
+Firebase.RTDB.setString(&fbdo, "classrooms/" + ROOM_NAME + "/live/faculty", scannedFaculty);
+
   Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/current_faculty", scannedFaculty);
   Firebase.RTDB.setInt(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/startTime", time(nullptr));
+
+  FirebaseJson logJson;
+
+time_t time2 = time(nullptr);
+struct tm *t2 = localtime(&time2);
+
+String timeStr = String(t2->tm_hour) + ":" + String(t2->tm_min);
+
+logJson.set("teacher", scannedFaculty);
+logJson.set("room", ROOM_NAME);
+logJson.set("time", timeStr);
+logJson.set("status", "Entry");
+
+// 📅 GET TODAY DATE
+time_t nowDate = time(nullptr);
+struct tm *tDate = localtime(&nowDate);
+
+String todayDate = String(tDate->tm_year + 1900) + "-";
+todayDate += (tDate->tm_mon + 1 < 10 ? "0" : "") + String(tDate->tm_mon + 1) + "-";
+todayDate += (tDate->tm_mday < 10 ? "0" : "") + String(tDate->tm_mday);
+
+// 🔥 DATE-WISE PATH
+String path = "/logs/" + todayDate;
+
+// ✅ PUSH
+Firebase.RTDB.pushJSON(&fbdo, path, &logJson);
 }
 
 // ✅ EXIT (same teacher scans again)
@@ -385,14 +445,15 @@ else if(isInside && scannedFaculty == currentFaculty){
   beepValid();
 
   // ⏱️ CHECK TIME
-  time_t now = time(nullptr);
+  time_t currentTime = time(nullptr);
+  struct tm *t = localtime(&currentTime);
 
   Firebase.RTDB.getInt(&fbdo,
   "classrooms/" + String(ROOM_NAME) + "/live/startTime");
 
   int startTime = fbdo.intData();
 
-  if(now - startTime < 1800){
+  if(currentTime - startTime < 1800){
     Serial.println("Left Early");
   }
 
@@ -412,6 +473,32 @@ else if(isInside && scannedFaculty == currentFaculty){
 
   Firebase.RTDB.setString(&fbdo, 
   "classrooms/" + String(ROOM_NAME) + "/current_faculty", "");
+
+  FirebaseJson logJson;
+
+time_t time3 = time(nullptr);
+struct tm *t3 = localtime(&time3);
+
+String timeStr = String(t3->tm_hour) + ":" + String(t3->tm_min);
+
+logJson.set("teacher", scannedFaculty);
+logJson.set("room", ROOM_NAME);
+logJson.set("time", timeStr);
+logJson.set("status", "Exit");
+
+// 📅 GET TODAY DATE
+time_t nowDate = time(nullptr);
+struct tm *tDate = localtime(&nowDate);
+
+String todayDate = String(tDate->tm_year + 1900) + "-";
+todayDate += (tDate->tm_mon + 1 < 10 ? "0" : "") + String(tDate->tm_mon + 1) + "-";
+todayDate += (tDate->tm_mday < 10 ? "0" : "") + String(tDate->tm_mday);
+
+// 🔥 DATE-WISE PATH
+String path = "/logs/" + todayDate;
+
+// ✅ PUSH
+Firebase.RTDB.pushJSON(&fbdo, path, &logJson);
 }
 
 // ❌ WRONG PERSON
@@ -430,7 +517,8 @@ else{
 
     mfrc522.PICC_HaltA();
   }
-  time_t now = time(nullptr);
-Serial.println(ctime(&now));
+  
+time_t nowTime = time(nullptr);
+Serial.println(ctime(&nowTime));
 delay(500);
 }

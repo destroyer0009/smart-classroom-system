@@ -156,8 +156,6 @@ width:100%;
 
 <button onclick="showSection('teachers')">Manage Teachers</button>
 
-<button onclick="showSection('classrooms')">Classroom Control</button>
-
 <button onclick="showSection('logs')">System Logs</button>
 
 <button onclick="showSection('live')">Live Classrooms</button>
@@ -206,7 +204,7 @@ Previous Year Timetable
 
 <input placeholder="Teacher ID">
 
-<input placeholder="Password">
+<input placeholder="Password" type="number">
 
 <input placeholder="RFID UID">
 
@@ -236,49 +234,6 @@ Previous Year Timetable
 
 </div>
 
-
-
-<!-- CLASSROOM CONTROL -->
-
-<div id="classrooms" class="section">
-
-<div class="card">
-
-<h2>Modify Classroom Lecture</h2>
-
-<table>
-
-<tr>
-<th>Room</th>
-<th>Subject</th>
-<th>Teacher</th>
-<th>Status</th>
-<th>Action</th>
-</tr>
-
-<tr>
-<td>LAB31</td>
-<td>MIT</td>
-<td>CRJ</td>
-<td id="lecStatus">Active</td>
-
-<td>
-
-<button class="action" onclick="suspendLecture()">Suspend</button>
-
-<button class="action" onclick="resumeLecture()">Resume</button>
-
-<button class="action" onclick="cancelLecture()">Cancel Lecture</button>
-
-</td>
-
-</tr>
-
-</table>
-
-</div>
-
-</div>
 
 <div id="live" class="section">
 
@@ -475,29 +430,14 @@ Previous Year Timetable
 <div class="card">
 
 <h2>RFID Scan Logs</h2>
+<br>
+<label>Select Date:</label>
+<input type="date" id="logDate" onchange="loadLogsByDate()">
+<br><br>
 
 <table>
 
-<tr>
-<th>Teacher</th>
-<th>Room</th>
-<th>Time</th>
-<th>Status</th>
-</tr>
-
-<tr>
-<td>CRJ</td>
-<td>LAB31</td>
-<td>10:38</td>
-<td>Valid</td>
-</tr>
-
-<tr>
-<td>SSK</td>
-<td>CR125</td>
-<td>09:12</td>
-<td>Invalid</td>
-</tr>
+<tbody id="logTable"></tbody>
 
 </table>
 
@@ -529,7 +469,7 @@ width:350px;
 <input id="editID" placeholder="Teacher ID"><br><br>
 <input id="editName" placeholder="Name"><br><br>
 <input id="editRFID" placeholder="RFID"><br><br>
-<input id="editPass" placeholder="Password"><br><br>
+<input id="editPass" type="number" placeholder="Password"><br><br>
 
 <button onclick="saveTeacher()" class="primary">Save</button>
 <button onclick="closeEdit()">Cancel</button>
@@ -537,6 +477,37 @@ width:350px;
 </div>
 </div>
 
+<!-- DELETE CONFIRM MODAL -->
+<div id="deleteModal" style="
+display:none;
+position:fixed;
+top:0; left:0;
+width:100%; height:100%;
+background:rgba(0,0,0,0.5);
+justify-content:center;
+align-items:center;
+z-index:999;
+">
+
+<div style="
+background:white;
+padding:30px;
+border-radius:10px;
+width:350px;
+text-align:center;
+">
+
+<h2 style="color:#dc3545;">Confirm Delete</h2>
+
+<p id="deleteInfo"></p>
+
+<br>
+
+<button onclick="confirmDelete()" class="danger">Delete</button>
+<button onclick="closeDelete()">Cancel</button>
+
+</div>
+</div>
 
 <script type="module">
 
@@ -556,6 +527,7 @@ apiKey: "AIzaSyAXNrkME8ssbzJxfUrEpzSNDCa7MEpOgrY",
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
+loadTeachers();
 
 /* PAGE SECTION SWITCH */
 
@@ -569,6 +541,9 @@ document.getElementById(id).style.display="block";
 if(id === "requests"){
 loadBookingRequests();
 }
+if(id === "logs"){
+  loadLogs();
+}
 if(id==="prevTimetable"){
 document.getElementById("termSelect").value="";
 document.getElementById("semSelect").innerHTML="<option value=''>Select Semester</option>";
@@ -576,41 +551,8 @@ document.getElementById("archiveTTBody").innerHTML="";
 }
 
 }
-showSection("requests");
+showSection("teachers");
 
-
-
-/* SUSPEND LECTURE */
-
-window.suspendLecture=function(){
-
-document.getElementById("lecStatus").innerText="Suspended";
-
-alert("Lecture Temporarily Suspended");
-
-}
-
-
-/* RESUME LECTURE */
-
-window.resumeLecture=function(){
-
-document.getElementById("lecStatus").innerText="Active";
-
-alert("Lecture Resumed");
-
-}
-
-
-/* CANCEL LECTURE */
-
-window.cancelLecture=function(){
-
-document.getElementById("lecStatus").innerText="Cancelled";
-
-alert("Lecture Cancelled");
-
-}
 
 
 /* LIVE CLASSROOM STATUS */
@@ -641,19 +583,21 @@ table.innerHTML+=`
 
 `;
 
-const roomRef=ref(database,"classrooms/"+room+"/status");
+const roomRef=ref(database,"classrooms/"+room+"/live");
 
 onValue(roomRef,(snapshot)=>{
 
 if(snapshot.exists()){
 
-const data=snapshot.val();
+const data = snapshot.val();
 
-document.getElementById(room+"_sub").innerText=data.subject || "-";
+document.getElementById(room+"_sub").innerText = data.subject || "-";
 
-document.getElementById(room+"_fac").innerText=data.faculty || "-";
+// 🔥 faculty stored separately sometimes
+document.getElementById(room+"_fac").innerText =
+data.faculty || data.current_faculty || "-";
 
-document.getElementById(room+"_stat").innerText=data.status || "Available";
+document.getElementById(room+"_stat").innerText = data.status || "Free";
 
 }
 
@@ -1064,15 +1008,31 @@ snapshot.forEach(child=>{
 
 const data = child.val();
 
+// ❌ skip approved/rejected
+if(data.status !== "pending") return;
+
+
+const slotMap = {
+  s1:"8:30-9:30",
+  s2:"9:30-10:30",
+  s3:"10:40-11:40",
+  s4:"11:40-12:40",
+  s5:"1:20-2:20",
+  s6:"2:20-3:20",
+  s7:"3:20-4:20"
+};
+
 table.innerHTML += `
-<tr>
+<tr onclick="viewRequest('${child.key}')" style="cursor:pointer;">
 <td>${data.teacher}</td>
-<td>${data.purpose}</td>
+<td>${data.room}</td>
+<td>${data.subject}</td>
 <td>${data.date}</td>
-<td>${data.slot}</td>
+<td>${slotMap[data.slot] || data.slot}</td>
+<td>${data.purpose}</td>
 <td>
-<button onclick="approveRequest('${child.key}')">Approve</button>
-<button onclick="rejectRequest('${child.key}')">Reject</button>
+<button onclick="event.stopPropagation(); approveRequest('${child.key}')">Approve</button>
+<button onclick="event.stopPropagation(); rejectRequest('${child.key}')">Reject</button>
 </td>
 </tr>
 `;
@@ -1085,54 +1045,50 @@ table.innerHTML += `
 
 window.approveRequest = async function(id){
 
-// 1️⃣ GET REQUEST DATA
 const snapshot = await get(ref(database,"booking_requests/" + id));
-
-if(!snapshot.exists()){
-  alert("Request not found");
-  return;
-}
+if(!snapshot.exists()) return;
 
 const data = snapshot.val();
 
+const dateKey = data.date;
 
-const dateKey = data.date; // e.g. 2026-04-07
-
-// 3️⃣ CHECK IF SLOT ALREADY BOOKED (✅ FIRST)
-const existing = await get(ref(database,
-`classrooms/${data.room}/specialBookings/${dateKey}/${data.slot}`));
-
-if(existing.exists()){
-  alert("❌ Slot already booked");
-  return;
-}
-
-// 4️⃣ ADD TO TIMETABLE
+// booking
 await set(ref(database,
 `classrooms/${data.room}/specialBookings/${dateKey}/${data.slot}`),{
   subject: data.subject,
   faculty: data.teacher
 });
 
-// 5️⃣ UPDATE STATUS
-await set(ref(database,"booking_requests/"+id+"/status"),"approved");
+// ✅ DELETE REQUEST (IMPORTANT)
+await set(ref(database,"booking_requests/"+id), null);
 
-alert("✅ Approved & Scheduled");
+alert("✅ Approved & Removed");
 
+// reload
+loadBookingRequests();
 }
-window.rejectRequest = function(id){
 
-set(ref(database,"booking_requests/"+id+"/status"),"rejected");
+window.rejectRequest = async function(id){
 
-alert("Rejected");
+// ✅ DELETE REQUEST
+await set(ref(database,"booking_requests/"+id), null);
 
+alert("❌ Rejected & Removed");
+
+loadBookingRequests();
 }
+
 window.addTeacher = function(){
 
 const name = document.querySelectorAll("#teachers input")[0].value;
 const id = document.querySelectorAll("#teachers input")[1].value;
 const pass = document.querySelectorAll("#teachers input")[2].value;
 const rfid = document.querySelectorAll("#teachers input")[3].value;
+
+if(!/^\d+$/.test(pass)){
+  alert("Password must be numeric only");
+  return;
+}
 
 if(!id || !name){
 alert("Fill details");
@@ -1236,7 +1192,7 @@ function loadTeachers(){
         <td>${data.rfid || "-"}</td>
         <td id="pass_${id}">${maskPassword(data.password)}</td>
         <td>
-          <button onclick="editTeacher('${id}')">Edit</button>
+          <button onclick="editTeacher(this.dataset.id)" data-id="${id}">Edit</button>
           <button onclick="deleteTeacher('${id}')">Delete</button>
         </td>
       </tr>
@@ -1251,6 +1207,49 @@ let currentEditID = null;
 
 window.editTeacher = async function(id){
 
+  if(!id){
+    alert("Invalid Teacher ID");
+    return;
+  }
+
+  const snap = await get(ref(database,"teachers/" + id));
+
+  if(!snap.exists()){
+    alert("Teacher not found");
+    return;
+  }
+
+  const data = snap.val() || {};
+
+  currentEditID = id;
+
+  document.getElementById("editID").value = id || "";
+  document.getElementById("editName").value = data.name || "";
+  document.getElementById("editRFID").value = data.rfid || "";
+
+  let pass = "";
+
+  if(data.password){
+    try{
+      if(/^[A-Za-z0-9+/=]+$/.test(data.password)){
+        pass = atob(data.password);
+      }else{
+        pass = data.password;
+      }
+    }catch(e){}
+  }
+
+  pass = pass.replace(/\D/g,'');
+
+  document.getElementById("editPass").value = pass;
+
+  document.getElementById("editModal").style.display = "flex";
+}
+
+let deleteID = null;
+
+window.deleteTeacher = async function(id){
+
   const snap = await get(ref(database,"teachers/" + id));
 
   if(!snap.exists()){
@@ -1260,34 +1259,204 @@ window.editTeacher = async function(id){
 
   const data = snap.val();
 
-  currentEditID = id;
+  deleteID = id;
 
-  document.getElementById("editID").value = id;
-  document.getElementById("editName").value = data.name || "";
-  document.getElementById("editRFID").value = data.rfid || "";
+  document.getElementById("deleteInfo").innerHTML = `
+    <b>ID:</b> ${id} <br>
+    <b>Name:</b> ${data.name || "-"} <br>
+    <b>RFID:</b> ${data.rfid || "-"}
+  `;
 
-  let pass = data.password;
-  try{
-    pass = atob(pass);
-  }catch(e){}
-
-  document.getElementById("editPass").value = pass;
-
-  document.getElementById("editModal").style.display = "flex";
+  document.getElementById("deleteModal").style.display = "flex";
 }
 
-window.deleteTeacher = async function(id){
 
-  if(!confirm("Delete teacher?")) return;
+window.saveTeacher = async function(){
 
-  await set(ref(database,"teachers/" + id), null);
+  const newID = document.getElementById("editID").value;
+  const name = document.getElementById("editName").value;
+  const rfid = document.getElementById("editRFID").value;
+  const pass = document.getElementById("editPass").value;
 
-  alert("Deleted");
+if(!/^\d+$/.test(pass)){
+  alert("Password must be numeric only");
+  return;
+}
+
+  if(!newID || !name){
+    alert("Fill all fields");
+    return;
+  }
+
+  const encrypted = btoa(pass);
+
+  // 🔥 IF ID CHANGED → delete old + create new
+  if(newID !== currentEditID){
+
+    const oldData = await get(ref(database,"teachers/" + currentEditID));
+
+    if(oldData.exists()){
+      await set(ref(database,"teachers/" + currentEditID), null);
+    }
+
+  }
+  // 🔒 CHECK IF NEW ID ALREADY EXISTS<input type="date" id="logDate" onchange="loadLogsByDate()">
+if(newID !== currentEditID){
+  const check = await get(ref(database,"teachers/" + newID));
+
+  if(check.exists()){
+    alert("❌ ID already exists!");
+    return;
+  }
+}
+
+  await set(ref(database,"teachers/" + newID),{
+    name: name,
+    rfid: rfid,
+    password: encrypted
+  });
+
+  alert("Updated Successfully");
+
+  closeEdit();
+  loadTeachers();
+}
+
+window.closeEdit = function(){
+  document.getElementById("editModal").style.display = "none";
+}
+
+window.confirmDelete = async function(){
+
+  if(!deleteID) return;
+
+  await set(ref(database,"teachers/" + deleteID), null);
+
+  alert("Teacher Deleted Successfully");
+
+  closeDelete();
+  loadTeachers();
+}
+
+window.closeDelete = function(){
+  document.getElementById("deleteModal").style.display = "none";
+}
+
+window.onclick = function(e){
+  if(e.target.id === "editModal"){
+    closeEdit();
+  }
+  if(e.target.id === "deleteModal"){
+    closeDelete();
+  }
+}
+
+window.viewRequest = async function(id){
+
+const snap = await get(ref(database,"booking_requests/" + id));
+
+if(!snap.exists()){
+  alert("Request not found");
+  return;
+}
+
+const data = snap.val();
+
+const slotMap = {
+  s1:"8:30-9:30",
+  s2:"9:30-10:30",
+  s3:"10:40-11:40",
+  s4:"11:40-12:40",
+  s5:"1:20-2:20",
+  s6:"2:20-3:20",
+  s7:"3:20-4:20"
+};
+
+alert(
+`📌 Booking Details
+
+👨 Teacher: ${data.teacher}
+🏫 Room: ${data.room}
+📚 Subject: ${data.subject}
+📅 Date: ${data.date}
+⏰ Time: ${slotMap[data.slot] || data.slot}
+📝 Purpose: ${data.purpose}
+`
+);
 
 }
 
-loadTeachers();
+function loadLogs(){
 
+const table = document.getElementById("logTable");
+
+// 📅 get today date
+const today = new Date().toISOString().split("T")[0];
+
+onValue(ref(database,"logs/" + today), (snapshot)=>{
+
+table.innerHTML="";
+
+if(!snapshot.exists()){
+table.innerHTML="<tr><td colspan='4'>No Logs Today</td></tr>";
+return;
+}
+
+snapshot.forEach(child=>{
+
+const data = child.val();
+
+table.innerHTML += `
+<tr>
+<td>${data.teacher || "-"}</td>
+<td>${data.room || "-"}</td>
+<td>${data.time || "-"}</td>
+<td>${data.status || "-"}</td>
+</tr>
+`;
+
+});
+
+});
+}
+
+window.loadLogsByDate = function(){
+
+const table = document.getElementById("logTable");
+const selectedDate = document.getElementById("logDate").value;
+
+if(!selectedDate){
+  alert("Select a date first");
+  return;
+}
+
+onValue(ref(database,"logs/" + selectedDate), (snapshot)=>{
+
+table.innerHTML="";
+
+if(!snapshot.exists()){
+table.innerHTML="<tr><td colspan='4'>No Logs</td></tr>";
+return;
+}
+
+snapshot.forEach(child=>{
+
+const data = child.val();
+
+table.innerHTML += `
+<tr>
+<td>${data.teacher || "-"}</td>
+<td>${data.room || "-"}</td>
+<td>${data.time || "-"}</td>
+<td>${data.status || "-"}</td>
+</tr>
+`;
+
+});
+
+});
+
+}
 </script>
 
 
