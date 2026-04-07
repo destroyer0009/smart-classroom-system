@@ -543,40 +543,34 @@ document.getElementById("loginModal").style.display="none";
 
 }
 
-window.login=async function(){
+window.login = async function(){
 
-const id=document.getElementById("teacherID").value;
+  const id = document.getElementById("teacherID").value;
+  const pass = document.getElementById("teacherPass").value;
 
-const pass=document.getElementById("teacherPass").value;
+  const snapshot = await get(ref(database,"teachers/" + id));
 
-const teacherRef=ref(database,`teachers/${id}`);
+  if(!snapshot.exists()){
+    document.getElementById("loginMsg").innerHTML = "Invalid ID";
+    return;
+  }
 
-const snapshot=await get(teacherRef);
+  let dbPass = snapshot.val().password;
 
-if(!snapshot.exists()){
+  try{
+    dbPass = atob(dbPass); // decode if encrypted
+  }catch(e){
+    // old password (not encoded)
+  }
 
-document.getElementById("loginMsg").innerHTML="Invalid ID";
-
-return;
-
-}
-
-if(snapshot.val().password.toString() === pass){
-
-localStorage.setItem("teacherID",id);
-
-window.location.href="teacher.html";
-
-}
-
-else{
-
-document.getElementById("loginMsg").innerHTML="Wrong Password";
+  if(dbPass === pass){
+    localStorage.setItem("teacherID", id);
+    window.location.href = "teacher.html";
+  }else{
+    document.getElementById("loginMsg").innerHTML = "Wrong Password";
+  }
 
 }
-
-}
-
 
 /* ADMIN LOGIN */
 

@@ -1245,6 +1245,18 @@ window.editTeacher = async function(id){
 
 }
 
+window.deleteTeacher = async function(id){
+
+  if(!confirm("Delete teacher?")) return;
+
+  await set(ref(database,"teachers/" + id), null);
+
+  alert("Deleted");
+
+}
+
+loadTeachers();
+
 </script>
 
 
