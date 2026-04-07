@@ -156,8 +156,6 @@ width:100%;
 
 <button onclick="showSection('teachers')">Manage Teachers</button>
 
-<button onclick="showSection('rfid')">RFID Management</button>
-
 <button onclick="showSection('classrooms')">Classroom Control</button>
 
 <button onclick="showSection('logs')">System Logs</button>
@@ -226,22 +224,11 @@ Previous Year Timetable
 <th>ID</th>
 <th>Name</th>
 <th>RFID</th>
+<th>Password</th>
 <th>Action</th>
 </tr>
 
-<tr>
-<td>CRJ</td>
-<td>Mr. C.R. Jadhav</td>
-<td>A1B2C3</td>
-
-<td>
-
-<button class="action">Edit</button>
-<button class="action">Delete</button>
-
-</td>
-
-</tr>
+<tbody id="teacherTable"></tbody>
 
 </table>
 
@@ -249,24 +236,6 @@ Previous Year Timetable
 
 </div>
 
-
-<!-- RFID MANAGEMENT -->
-
-<div id="rfid" class="section">
-
-<div class="card">
-
-<h2>Update RFID Card</h2>
-
-<input placeholder="Teacher ID">
-
-<input placeholder="New RFID UID">
-
-<button onclick="updateRFID()">Update RFID</button>
-
-</div>
-
-</div>
 
 
 <!-- CLASSROOM CONTROL -->
@@ -1138,9 +1107,11 @@ alert("Fill details");
 return;
 }
 
+const encrypted = btoa(pass); // base64 encryption
+
 set(ref(database,"teachers/"+id),{
   name: name,
-  password: pass.toString(), // 🔥 FIX
+  password: encrypted,
   rfid: rfid
 });
 
@@ -1204,6 +1175,75 @@ set(ref(database,"classrooms/LAB31/status/status"),"Cancelled");
 
 }
 
+function maskPassword(pass){
+  return "••••••"; // hidden by default
+}
+
+function loadTeachers(){
+
+  const table = document.getElementById("teacherTable");
+
+  onValue(ref(database,"teachers"), (snapshot)=>{
+
+    table.innerHTML = "";
+
+    if(!snapshot.exists()){
+      table.innerHTML = "<tr><td colspan='5'>No Data</td></tr>";
+      return;
+    }
+
+    snapshot.forEach(child=>{
+
+      const id = child.key;
+      const data = child.val();
+
+      table.innerHTML += `
+      <tr>
+        <td>${id}</td>
+        <td>${data.name || "-"}</td>
+        <td>${data.rfid || "-"}</td>
+        <td id="pass_${id}">${maskPassword(data.password)}</td>
+        <td>
+          <button onclick="editTeacher('${id}')">Edit</button>
+          <button onclick="deleteTeacher('${id}')">Delete</button>
+        </td>
+      </tr>
+      `;
+    });
+
+  });
+
+}
+
+window.editTeacher = async function(id){
+
+  const snap = await get(ref(database,"teachers/" + id));
+
+  if(!snap.exists()){
+    alert("Teacher not found");
+    return;
+  }
+
+  const data = snap.val();
+
+  // 🔥 SHOW PASSWORD TEMPORARILY
+  document.getElementById("pass_" + id).innerText = data.password;
+
+  // OPTIONAL: prompt edit
+  const newPass = prompt("Enter new password", data.password);
+
+  if(newPass !== null){
+
+    const encrypted = btoa(newPass); // simple encryption
+
+    await set(ref(database,"teachers/"+id+"/password"), encrypted);
+
+    alert("Updated");
+
+    loadTeachers(); // reload
+  }
+
+}
 
 </script>
 
