@@ -505,6 +505,38 @@ Previous Year Timetable
 
 </div>
 
+<!-- EDIT TEACHER MODAL -->
+<div id="editModal" style="
+display:none;
+position:fixed;
+top:0; left:0;
+width:100%; height:100%;
+background:rgba(0,0,0,0.5);
+justify-content:center;
+align-items:center;
+z-index:999;
+">
+
+<div style="
+background:white;
+padding:30px;
+border-radius:10px;
+width:350px;
+">
+
+<h2>Edit Teacher</h2>
+
+<input id="editID" placeholder="Teacher ID"><br><br>
+<input id="editName" placeholder="Name"><br><br>
+<input id="editRFID" placeholder="RFID"><br><br>
+<input id="editPass" placeholder="Password"><br><br>
+
+<button onclick="saveTeacher()" class="primary">Save</button>
+<button onclick="closeEdit()">Cancel</button>
+
+</div>
+</div>
+
 
 <script type="module">
 
@@ -1215,6 +1247,8 @@ function loadTeachers(){
 
 }
 
+let currentEditID = null;
+
 window.editTeacher = async function(id){
 
   const snap = await get(ref(database,"teachers/" + id));
@@ -1226,23 +1260,20 @@ window.editTeacher = async function(id){
 
   const data = snap.val();
 
-  // 🔥 SHOW PASSWORD TEMPORARILY
-  document.getElementById("pass_" + id).innerText = data.password;
+  currentEditID = id;
 
-  // OPTIONAL: prompt edit
-  const newPass = prompt("Enter new password", data.password);
+  document.getElementById("editID").value = id;
+  document.getElementById("editName").value = data.name || "";
+  document.getElementById("editRFID").value = data.rfid || "";
 
-  if(newPass !== null){
+  let pass = data.password;
+  try{
+    pass = atob(pass);
+  }catch(e){}
 
-    const encrypted = btoa(newPass); // simple encryption
+  document.getElementById("editPass").value = pass;
 
-    await set(ref(database,"teachers/"+id+"/password"), encrypted);
-
-    alert("Updated");
-
-    loadTeachers(); // reload
-  }
-
+  document.getElementById("editModal").style.display = "flex";
 }
 
 window.deleteTeacher = async function(id){
