@@ -8,7 +8,7 @@
 
 #define ROOM_NAME "LAB31"
 
-// WIFI
+// WIFI 
 #define WIFI_SSID "group5"
 #define WIFI_PASSWORD "12345678"
 
