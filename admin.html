@@ -166,6 +166,21 @@ color:white;
 textarea{
 width:100%;
 }
+
+#logTable td{
+font-size:14px;
+}
+
+#logTable tr td{
+padding:12px;
+}
+
+#logTable tr td[colspan]{
+text-align:center;
+color:#888;
+font-style:italic;
+padding:20px;
+}
 </style>
 
 </head>
@@ -512,19 +527,58 @@ Add Teacher
 
 <div id="logs" class="section">
 
-<div class="card">
+<div class="card" style="
+border-radius:15px;
+padding:25px;
+box-shadow:0 8px 25px rgba(0,0,0,0.15);
+">
 
-<h2>RFID Scan Logs</h2>
-<br>
-<label>Select Date:</label>
-<input type="date" id="logDate" onchange="loadLogsByDate()">
-<br><br>
+<h2 style="color:#002147; margin-bottom:20px;">
+📡 RFID Scan Logs
+</h2>
+
+<!-- DATE FILTER -->
+<div style="
+display:flex;
+align-items:center;
+gap:15px;
+margin-bottom:20px;
+flex-wrap:wrap;
+">
+
+<label style="font-weight:bold; color:#333;">Select Date:</label>
+
+<input type="date" id="logDate" onchange="loadLogsByDate()" style="
+padding:10px 14px;
+border-radius:8px;
+border:1px solid #ccc;
+font-size:14px;
+">
+
+</div>
+
+<!-- TABLE -->
+<div style="
+overflow:auto;
+border-radius:12px;
+">
 
 <table>
+
+<thead>
+<tr>
+<th>Teacher</th>
+<th>Room</th>
+<th>Time</th>
+<th>Status</th>
+</tr>
+</thead>
 
 <tbody id="logTable"></tbody>
 
 </table>
+
+</div>
 
 </div>
 
