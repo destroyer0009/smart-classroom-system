@@ -576,16 +576,22 @@ else{
     const liveRef = ref(database,`classrooms/${room}/live`);
     const liveSnap = await get(liveRef);
 
-    if(liveSnap.exists() && liveSnap.val().status === "Ongoing"){
-      status = "Ongoing";
-      color = "#dc3545";
-      currentSubject = liveSnap.val().subject;
-      currentFaculty = liveSnap.val().faculty;
-    }
+    if(liveSnap.exists()){
 
-    else{
-      status = "Waiting";
-      color = "#ffc107";
+  const live = liveSnap.val();
+
+  if(live.status === "Ongoing"){
+    status = "Ongoing";
+    color = "#dc3545";
+    currentSubject = live.subject;
+    currentFaculty = live.faculty;
+  }else{
+    status = "Free";
+    color = "#d4edda";
+    lecture = null;
+  }
+
+}
 
       // 🔔 CHECK LATE
       for(let late of lateData){
