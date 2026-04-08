@@ -58,7 +58,7 @@ transform:translateX(-100%);
 
 </div>
 
-<div style="position:absolute; right:20px; top:240px; display:flex; gap:10px;">
+<div id="loginSection" style="position:absolute; right:20px; top:240px; display:flex; gap:10px;">
 
 <button onclick="window.location.href='timetable.html'" style="
 padding:10px 20px;
@@ -98,7 +98,7 @@ Teacher Login
 style="padding:10px 20px;
 border:none;
 border-radius:8px;
-background:#fd0101;
+background:#4053fc;
 color:white;
 font-weight:bold;
 cursor:pointer;">
@@ -197,6 +197,16 @@ width:500px; max-height:400px; overflow:auto;">
 
 </div>
 
+<div id="userSection" style="display:none;">
+  <button onclick="window.location.href='teacher.html'">Dashboard</button>
+  
+</div>
+
+<div id="adminSection" style="display:none;">
+  <button onclick="window.location.href='admin.html'">Admin Panel</button>
+</div>
+
+
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
@@ -224,6 +234,61 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 /* LIVE NOTICE FROM FIREBASE */
+
+const teacher = localStorage.getItem("teacherID");
+const admin = localStorage.getItem("adminLoggedIn");
+
+// if(admin === "true"){
+
+//   // Hide ONLY Admin Login button (not whole section)
+//   document.querySelectorAll("#loginSection button")[3].style.display = "none";
+
+//   // Add Admin Panel + Logout
+//   document.getElementById("loginSection").innerHTML += `
+//     <button onclick="window.location.href='admin.html'" style="padding:10px 20px;
+// border:none;
+// border-radius:8px;
+// background:#fd0101;
+// color:white;
+// font-weight:bold;
+// cursor:pointer;">Admin Panel</button>
+//   `;
+// }
+
+
+// TEACHER
+if(teacher){
+
+  document.querySelectorAll("#loginSection button")[2].style.display = "none"; // Teacher Login
+
+
+  document.getElementById("loginSection").innerHTML += `
+    <button onclick="window.location.href='teacher.html'"style="padding:10px 20px;
+border:none;
+border-radius:8px;
+background:#fd0101;
+color:white;
+font-weight:bold;
+cursor:pointer;">Dashboard</button>
+    
+  `;
+}
+
+// ADMIN
+if(admin === "true"){
+
+  document.querySelectorAll("#loginSection button")[3].style.display = "none";
+
+  document.getElementById("loginSection").innerHTML += `
+    <button onclick="window.location.href='admin.html'"style="padding:10px 20px;
+border:none;
+border-radius:8px;
+background:#fd0101;
+color:white;
+font-weight:bold;
+cursor:pointer;">Admin Panel</button>
+  `;
+}
 
 const noticeRef = ref(database,"notice/current");
 
@@ -528,9 +593,15 @@ window.addEventListener("DOMContentLoaded", () => {
 
 /* TEACHER LOGIN */
 
-window.openLogin=function(){
+window.openLogin = function(){
 
-document.getElementById("loginModal").style.display="flex";
+  const teacher = localStorage.getItem("teacherID");
+
+  if(teacher){
+    window.location.href = "teacher.html";
+  }else{
+    document.getElementById("loginModal").style.display="flex";
+  }
 
 }
 
@@ -571,9 +642,17 @@ window.login = async function(){
 
 /* ADMIN LOGIN */
 
-window.openAdminLogin=function(){
+window.openAdminLogin = function(){
 
-document.getElementById("adminLoginModal").style.display="flex";
+  const admin = localStorage.getItem("adminLoggedIn");
+
+  if(admin === "true"){
+    // already logged in → go directly
+    window.location.href = "admin.html";
+  }else{
+    // not logged in → show popup
+    document.getElementById("adminLoginModal").style.display="flex";
+  }
 
 }
 
@@ -590,9 +669,8 @@ const id=document.getElementById("adminID").value;
 const pass=document.getElementById("adminPass").value;
 
 if(id==="admin" && pass==="admin123"){
-
-window.location.href="admin.html";
-
+  localStorage.setItem("adminLoggedIn", "true");
+  window.location.href="admin.html";
 }
 
 else{
@@ -864,6 +942,10 @@ document.getElementById("result").innerHTML = html;
 window.goHome = function(){
 location.reload(); // reloads original home page
 };
+window.logoutAdmin = function(){
+  localStorage.removeItem("adminLoggedIn");
+  location.reload();
+}
 </script>
 
 </body>

@@ -185,6 +185,10 @@ const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
 const teacherID = localStorage.getItem("teacherID");
+if(!teacherID){
+  alert("Please login first");
+  window.location.replace("index.html");
+}
 
 const teacherRef = ref(database, "teachers/" + teacherID);
 
@@ -206,6 +210,7 @@ document.getElementById("teacherName").innerText =
 }
 
 });
+
 
 window.showToday = function(){
 
@@ -1267,6 +1272,15 @@ document.getElementById("marksDisplay").innerHTML = html;
 
 });
 
+};
+
+window.logout = function(){
+  localStorage.removeItem("teacherID");
+  window.location.href = "index.html";
+}
+window.history.pushState(null, null, window.location.href);
+window.onpopstate = function () {
+  window.location.href = "index.html";
 };
 </script>
 

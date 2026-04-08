@@ -220,6 +220,7 @@ padding:20px;
 <button onclick="showSection('notice')">Admin Notice</button>
 
 <button onclick="showSection('uploadTT')">Upload Timetable</button>
+<button onclick="logoutAdmin()">Logout</button>
 
 
 
@@ -818,6 +819,13 @@ const database = getDatabase(app);
 
 loadTeachers();
 
+
+const isAdmin = localStorage.getItem("adminLoggedIn");
+
+if(isAdmin !== "true"){
+  alert("Unauthorized Access");
+  window.location.href = "index.html";
+}
 /* PAGE SECTION SWITCH */
 
 window.showSection=function(id){
@@ -1017,32 +1025,28 @@ document.getElementById("noticeText").value="";
 
 window.uploadTimetable = function(){
 
-const term=document.getElementById("ttTerm").value;
-const sem=document.getElementById("ttSem").value;
-const day=document.getElementById("ttDay").value;
-const slot=document.getElementById("ttSlot").value;
+const term = document.getElementById("ttTerm").value;
+const sem = document.getElementById("ttSem").value;
+const day = document.getElementById("ttDay").value;
+const slot = document.getElementById("ttSlot").value;
 
-const subject=document.getElementById("ttSubject").value;
-const faculty=document.getElementById("ttFaculty").value;
+const subject = document.getElementById("ttSubject").value;
+const faculty = document.getElementById("ttFaculty").value;
+const room = document.getElementById("ttRoom")?.value;
 
-if(term==="" || subject===""){
-alert("Fill all details");
-return;
+if(subject === "" || !room){
+  alert("Fill all details");
+  return;
 }
 
-const room = document.getElementById("ttRoom").value;
-
 set(ref(database,
-`classrooms/${room}/timetable/${day}/${slot}`),
-{
-subject:subject,
-faculty:faculty
+`classrooms/${room}/timetable/${day}/${slot}`),{
+  subject: subject,
+  faculty: faculty
 });
-subject:subject,
-faculty;faculty
-};
 
 alert("Lecture Added to Timetable");
+}
 
 
 
@@ -1804,6 +1808,14 @@ table.innerHTML += `
 });
 
 }
+window.logoutAdmin = function(){
+  localStorage.removeItem("adminLoggedIn");
+  window.location.replace("index.html");
+}
+window.history.pushState(null, null, window.location.href);
+window.onpopstate = function () {
+  window.location.replace("index.html");
+};
 </script>
 
 
