@@ -8,6 +8,15 @@
       "status": "approved",
       "subject": "DME",
       "teacher": "CRJ"
+    },
+    "1775640595744": {
+      "date": "2026-04-09",
+      "purpose": "i need it urgently\n",
+      "room": "CR126",
+      "slot": "s6",
+      "status": "pending",
+      "subject": "DME",
+      "teacher": "CRJ"
     }
   },
   "cancel_logs": {
@@ -31,13 +40,6 @@
   },
   "classrooms": {
     "CR125": {
-      "current_faculty": "NAB",
-      "live": {
-        "faculty": "NAB",
-        "startTime": 1775552363,
-        "status": "Free",
-        "subject": "MT"
-      },
       "timetable": {
         "Monday": {
           "s1": {
@@ -128,6 +130,14 @@
       }
     },
     "LAB31": {
+      "specialBookings": {
+        "2026-04-10": {
+          "s4": {
+            "faculty": "CRJ",
+            "subject": "DME"
+          }
+        }
+      },
       "timetable": {
         "Monday": {
           "s1": {
@@ -186,6 +196,42 @@
       "status": "late",
       "subject": "MIT",
       "teacher": "CRJ"
+    },
+    "1775635844906": {
+      "date": "2026-04-08",
+      "minutes": "15",
+      "room": "CR125",
+      "slot": "s4",
+      "status": "late",
+      "subject": "DME",
+      "teacher": "CRJ"
+    },
+    "1775640359916": {
+      "date": "2026-04-08",
+      "minutes": "40 min late",
+      "room": "LAB31",
+      "slot": "s6",
+      "status": "late",
+      "subject": "DSP",
+      "teacher": "SSK"
+    },
+    "1775640395300": {
+      "date": "2026-04-08",
+      "minutes": "40 min ",
+      "room": "LAB31",
+      "slot": "s6",
+      "status": "late",
+      "subject": "DSP",
+      "teacher": "SSK"
+    },
+    "1775640411957": {
+      "date": "2026-04-08",
+      "minutes": "40",
+      "room": "LAB31",
+      "slot": "s6",
+      "status": "late",
+      "subject": "DSP",
+      "teacher": "SSK"
     }
   },
   "notice": {
@@ -811,29 +857,26 @@
     }
   },
   "teachers": {
-    "ALP": {
-      "name": "Alokh",
-      "password": 788624,
-      "rfid": ""
-    },
     "CKA": {
       "name": "Ms. C. K. Ambre"
     },
     "CRJ": {
       "name": "Mr. C. R. Jadhav",
-      "password": "956236",
+      "password": "OTU2MjM2",
       "rfid": "43843B06"
     },
     "EDP": {
-      "name": "Mrs. E. Devi Priya"
+      "name": "Mrs. E. Devi Priya",
+      "password": "TlRZME1qTTE="
     },
     "NAB": {
       "name": "Mr. N. A. Bhosale",
-      "password": "963741",
+      "password": "OTYzNzQx",
       "rfid": "728D1D5C"
     },
     "NGP": {
-      "name": "Prof. N. G. Pardeshi"
+      "name": "Prof. N. G. Pardeshi",
+      "password": "Nzg2NTIz"
     },
     "RKA": {
       "name": "Mr. R. K. Ambekar",
@@ -847,11 +890,14 @@
       "password": "852369"
     },
     "SGA": {
-      "name": "Dr. S. G. Akojwar"
+      "name": "Dr. S. G. Akojwar",
+      "password": "NTk3NjIz",
+      "rfid": ""
     },
     "SSK": {
       "name": "Mrs. S. S. Kulkarni",
-      "password": "874512"
+      "password": "OTY1",
+      "rfid": ""
     },
     "SVB": {
       "name": "Mrs. S. V. Bundile"
