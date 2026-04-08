@@ -67,9 +67,34 @@ writing-mode: vertical-rl;
 text-align:center;
 vertical-align:middle;
 font-weight:bold;
-background:#f0f0f0;
+background:#ffeeba;
+color:#856404;
+letter-spacing:2px;
+}
+table{
+margin:auto;
+margin-top:30px;
+border-collapse:collapse;
+width:90%;
+background:white;
+border-radius:15px;
+overflow:hidden;
+box-shadow:0 10px 25px rgba(0,0,0,0.2);
 }
 
+td{
+padding:12px;
+}
+
+tr:hover{
+background:#eef5ff;
+transition:0.2s;
+}
+
+th{
+background:linear-gradient(135deg,#002147,#1b3a6b);
+color:white;
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -79,57 +104,230 @@ background:#f0f0f0;
 <div class="header">
 <h1>Previous Year Timetable</h1>
 </div>
-<div style="margin-top:20px;">
+<div style="
+display:flex;
+flex-direction:column;
+align-items:center;
+margin-top:25px;
+">
 
-<button onclick="window.location.href='index.html'">Home</button>
+<!-- BUTTON ROW -->
+<div style="
+display:flex;
+gap:15px;
+flex-wrap:wrap;
+justify-content:center;
+margin-bottom:10px;
+">
 
-<button onclick="refreshData()">Refresh</button>
+<button onclick="window.location.href='index.html'" style="
+padding:10px 22px;
+background:#6c757d;
+color:white;
+border:none;
+border-radius:10px;
+font-weight:bold;
+cursor:pointer;
+box-shadow:0 4px 10px rgba(0,0,0,0.2);
+transition:0.3s;
+"
+onmouseover="this.style.transform='scale(1.05)'"
+onmouseout="this.style.transform='scale(1)'"
+>
+⬅ Back
+</button>
 
-<button onclick="toggleUpload()">Add New Previous TT</button>
+<button onclick="refreshData()" style="
+padding:10px 22px;
+background:#007bff;
+color:white;
+border:none;
+border-radius:10px;
+font-weight:bold;
+cursor:pointer;
+box-shadow:0 4px 10px rgba(0,0,0,0.2);
+"
+>
+🔄 Refresh
+</button>
 
-<button onclick="downloadSample()">Download Sample File</button>
-<p style="font-size:12px;color:gray;">
-Note: Do not include s3 (BREAK) and s6 (LUNCH)
+<button onclick="toggleUpload()" style="
+padding:10px 22px;
+background:#28a745;
+color:white;
+border:none;
+border-radius:10px;
+font-weight:bold;
+cursor:pointer;
+box-shadow:0 4px 10px rgba(0,0,0,0.2);
+"
+>
+➕ Add TT
+</button>
+
+<button onclick="downloadSample()" style="
+padding:10px 22px;
+background:#17a2b8;
+color:white;
+border:none;
+border-radius:10px;
+font-weight:bold;
+cursor:pointer;
+box-shadow:0 4px 10px rgba(0,0,0,0.2);
+"
+>
+⬇ Sample
+</button>
+
+</div>
+
+<!-- NOTE -->
+<p style="
+font-size:13px;
+color:#777;
+background:#fff3cd;
+padding:8px 15px;
+border-radius:8px;
+">
+⚠ Do not include s3 (BREAK) and s6 (LUNCH)
 </p>
+
+</div>
 
 </div>
 
 <div class="section">
 <h2>Select Term & Semester</h2>
+<div style="
+text-align:center;
+margin-top:40px;
+">
 
-<select id="termSelect" onchange="loadSemesters()">
+<h2 style="
+font-size:30px;
+color:#002147;
+margin-bottom:20px;
+">
+📅 Select Term & Semester
+</h2>
+
+<div style="
+display:flex;
+justify-content:center;
+gap:20px;
+flex-wrap:wrap;
+">
+
+<select id="termSelect" onchange="loadSemesters()" style="
+padding:12px 20px;
+border-radius:10px;
+border:1px solid #ccc;
+min-width:200px;
+font-size:15px;
+">
+
 <option value="">Select Term</option>
+
 </select>
 
-<br><br>
+<select id="semSelect" onchange="loadTTDynamic()" style="
+padding:12px 20px;
+border-radius:10px;
+border:1px solid #ccc;
+min-width:200px;
+font-size:15px;
+">
 
-<select id="semSelect" onchange="loadTTDynamic()">
 <option value="">Select Semester</option>
+
 </select>
+
+</div>
+
+
+</div>
+
 
 </div>
 
 <div id="uploadSection" style="display:none; margin-top:30px;">
 
-<h2>Upload Previous Timetable</h2>
+<div style="
+max-width:350px;
+margin:auto;
+background:white;
+padding:25px;
+border-radius:15px;
+box-shadow:0 8px 25px rgba(0,0,0,0.15);
+">
 
-<input type="file" id="prevExcelFile" accept=".xlsx,.xls">
+<h2 style="
+color:#002147;
+margin-bottom:20px;
+">
+📂 Upload Previous Timetable
+</h2>
 
-<br><br>
+<!-- FILE INPUT -->
+<input type="file" id="prevExcelFile" accept=".xlsx,.xls" style="
+width:100%;
+padding:10px;
+border-radius:8px;
+border:1px solid #ccc;
+margin-bottom:15px;
+background:#f9f9f9;
+">
 
-<input id="prevTermInput" placeholder="Enter Term (winter2026 / summer2026)">
+<!-- TERM INPUT -->
+<input id="prevTermInput" placeholder="Enter Term (winter2026 / summer2026)" style="
+width:100%;
+padding:12px;
+border-radius:8px;
+border:1px solid #ccc;
+margin-bottom:15px;
+">
 
-<br><br>
+<!-- SEM SELECT -->
+<select id="prevSemInput" style="
+width:100%;
+padding:12px;
+border-radius:8px;
+border:1px solid #ccc;
+margin-bottom:20px;
+">
 
-<select id="prevSemInput">
 <option value="">Select Semester</option>
+
 </select>
 
-<br><br>
+<!-- BUTTON -->
+<button onclick="uploadPreviousExcel()" style="
+width:100%;
+padding:12px;
+background:linear-gradient(135deg,#007bff,#0056b3);
+color:white;
+border:none;
+border-radius:10px;
+font-weight:bold;
+cursor:pointer;
+box-shadow:0 5px 15px rgba(0,0,0,0.2);
+transition:0.3s;
+"
+onmouseover="this.style.transform='scale(1.03)'"
+onmouseout="this.style.transform='scale(1)'"
+>
+🚀 Upload Timetable
+</button>
 
-<button onclick="uploadPreviousExcel()">Upload</button>
+<!-- MESSAGE -->
+<p id="uploadMsg" style="
+margin-top:15px;
+font-weight:bold;
+color:green;
+text-align:center;
+"></p>
 
-<p id="uploadMsg"></p>
+</div>
 
 </div>
 <table>
