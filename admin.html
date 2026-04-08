@@ -361,42 +361,133 @@ Add Teacher
 </div>
 
 <div id="uploadTT" class="section">
-<hr>
 
-<h3>Upload Excel Timetable</h3>
+<div class="card" style="
+border-radius:15px;
+padding:25px;
+box-shadow:0 8px 25px rgba(0,0,0,0.15);
+margin-bottom:25px;
+">
 
-<input type="file" id="excelFile" accept=".xlsx,.xls">
+<h2 style="color:#002147; margin-bottom:20px;">
+📂 Upload Excel Timetable
+</h2>
 
-<br><br>
-<button onclick="showUploadOptions()">Upload Timetable</button>
+<div style="
+display:flex;
+gap:15px;
+flex-wrap:wrap;
+align-items:center;
+">
 
-<div id="uploadOptions" style="display:none; margin-top:10px;">
+<input type="file" id="excelFile" accept=".xlsx,.xls" style="
+padding:10px;
+border-radius:8px;
+border:1px solid #ccc;
+background:#f9f9f9;
+">
 
-  <button onclick="uploadClassroomExcel()">Upload Classroom Timetable</button>
+<button onclick="showUploadOptions()" style="
+padding:10px 18px;
+background:#007bff;
+color:white;
+border-radius:8px;
+font-weight:bold;
+">
+Upload
+</button>
 
-  <button onclick="uploadDepartmentExcel()">Upload Department Timetable</button>
+<button onclick="showDownloadOptions()" style="
+padding:10px 18px;
+background:#6c757d;
+color:white;
+border-radius:8px;
+font-weight:bold;
+">
+Download
+</button>
 
 </div>
-<button onclick="showDownloadOptions()">Download Timetable</button>
 
-<div id="downloadOptions" style="display:none; margin-top:10px;">
-  
-  <button onclick="exportClassroomExcel()">Download Classroom Timetable</button>
-  
-  <button onclick="exportDepartmentExcel()">Download Department Timetable</button>
+<!-- OPTIONS -->
+<div id="uploadOptions" style="
+display:none;
+margin-top:15px;
+">
+
+<button onclick="uploadClassroomExcel()" style="
+margin:5px;
+background:#28a745;
+color:white;
+padding:8px 14px;
+border-radius:8px;
+">
+📘 Classroom Timetable
+</button>
+
+<button onclick="uploadDepartmentExcel()" style="
+margin:5px;
+background:#17a2b8;
+color:white;
+padding:8px 14px;
+border-radius:8px;
+">
+🏫 Department Timetable
+</button>
 
 </div>
-<div class="card">
 
-<h2>Upload New Term Timetable</h2>
+<div id="downloadOptions" style="
+display:none;
+margin-top:15px;
+">
 
-<label>Term:</label>
-<input id="ttTerm" placeholder="Example: winter2026">
+<button onclick="exportClassroomExcel()" style="
+margin:5px;
+background:#28a745;
+color:white;
+padding:8px 14px;
+border-radius:8px;
+">
+⬇ Classroom
+</button>
 
-<br><br>
+<button onclick="exportDepartmentExcel()" style="
+margin:5px;
+background:#17a2b8;
+color:white;
+padding:8px 14px;
+border-radius:8px;
+">
+⬇ Department
+</button>
 
-<label>Semester:</label>
-<select id="ttSem">
+</div>
+
+</div>
+<div class="card" style="
+border-radius:15px;
+padding:25px;
+box-shadow:0 8px 25px rgba(0,0,0,0.15);
+">
+
+<h2 style="color:#002147; margin-bottom:20px;">
+🗂 Upload New Term Timetable
+</h2>
+
+<div style="
+display:grid;
+grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+gap:15px;
+">
+
+<input id="ttTerm" placeholder="Term (e.g. winter2026)" style="
+padding:12px;
+border-radius:8px;
+border:1px solid #ccc;
+">
+
+<select id="ttSem" style="padding:12px; border-radius:8px;">
 <option value="Sem1">Sem1</option>
 <option value="Sem2">Sem2</option>
 <option value="Sem3">Sem3</option>
@@ -407,10 +498,7 @@ Add Teacher
 <option value="Sem8">Sem8</option>
 </select>
 
-<br><br>
-
-<label>Day:</label>
-<select id="ttDay">
+<select id="ttDay" style="padding:12px; border-radius:8px;">
 <option>Monday</option>
 <option>Tuesday</option>
 <option>Wednesday</option>
@@ -419,10 +507,7 @@ Add Teacher
 <option>Saturday</option>
 </select>
 
-<br><br>
-
-<label>Time Slot:</label>
-<select id="ttSlot">
+<select id="ttSlot" style="padding:12px; border-radius:8px;">
 <option value="s1">8:30-9:30</option>
 <option value="s2">9:30-10:30</option>
 <option value="s3">10:30-10:40</option>
@@ -435,19 +520,34 @@ Add Teacher
 <option value="s10">4:20-5:20</option>
 </select>
 
-<br><br>
+<input id="ttSubject" placeholder="Subject" style="
+padding:12px;
+border-radius:8px;
+border:1px solid #ccc;
+">
 
-<input id="ttSubject" placeholder="Subject">
-
-<input id="ttFaculty" placeholder="Faculty ID">
-
-<br><br>
-
-<button onclick="uploadTimetable()">Add Lecture</button>
+<input id="ttFaculty" placeholder="Faculty ID" style="
+padding:12px;
+border-radius:8px;
+border:1px solid #ccc;
+">
 
 </div>
 
+<button onclick="uploadTimetable()" style="
+margin-top:20px;
+padding:12px;
+width:100%;
+background:linear-gradient(135deg,#007bff,#0056b3);
+color:white;
+border-radius:10px;
+font-weight:bold;
+">
+➕ Add Lecture
+</button>
+
 </div>
+
 
 
 <div id="prevTimetable" class="section">
