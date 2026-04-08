@@ -43,7 +43,7 @@ text-align:center;
 /* NAVBAR */
 
 .navbar{
-background:#1b3a6b;
+background:#002147;
 padding:10px;
 text-align:center;
 }
@@ -52,10 +52,17 @@ text-align:center;
 padding:10px 20px;
 margin:5px;
 border:none;
-background:white;
+background:rgb(255, 255, 255);
 cursor:pointer;
 border-radius:5px;
 }
+.navbar button:hover {
+  transform: translateY(-4px);
+  background: #2a58a5;
+  box-shadow: 0 8px 15px rgba(42,88,165,0.4);
+} 
+
+
 
 /* CONTENT */
 
@@ -193,6 +200,16 @@ padding:20px;
 
 <h1>Loknete Shamrao Peje Govt. College of Engineering, Ratnagiri</h1>
 
+<div style="position:absolute; width: 50; right:20px; top:40px; display:flex; gap:10px;">
+<button class="logoutBtn" onclick="logoutAdmin()"style="padding:10px 20px;
+border:none;
+border-radius:8px;
+background:#fd0101;
+color:white;
+font-weight:bold;
+cursor:pointer;">Logout</button>
+</div>
+
 </div>
 
 <!-- HEADER -->
@@ -209,26 +226,83 @@ padding:20px;
 
 <div class="navbar">
 
-<button onclick="showSection('requests')">Booking Requests</button>
+<button onclick="showSection('requests')"style="
+padding:10px 20px;
+border:none;
+border-radius:8px;
+background:#007bff;
+color:white;
+font-weight:bold;
+cursor:pointer;
+">  Booking Requests</button>
 
-<button onclick="showSection('teachers')">Manage Teachers</button>
+<button onclick="showSection('teachers')"style="padding:10px 20px;
+border:none;
+border-radius:8px;
+background:#0c79ed;
+color:white;
+font-weight:bold;
+cursor:pointer;
+">Manage Teachers</button>
 
-<button onclick="showSection('logs')">System Logs</button>
+<button onclick="showSection('logs')"style="padding:10px 20px;
+border:none;
+border-radius:8px;
+background:#1068c6;
+color:white;
+font-weight:bold;
+cursor:pointer;
+">System Logs</button>
 
-<button onclick="showSection('live')">Live Classrooms</button>
+<button onclick="showSection('live')"style="padding:10px 20px;
+border:none;
+border-radius:8px;
+background:#155eab;
+color:white;
+font-weight:bold;
+cursor:pointer;
+">Live Classrooms</button>
 
-<button onclick="showSection('notice')">Admin Notice</button>
+<button onclick="showSection('notice')"style="padding:10px 20px;
+border:none;
+border-radius:8px;
+background:#1d5b9d;
+color:white;
+font-weight:bold;
+cursor:pointer;
+">Admin Notice</button>
 
-<button onclick="showSection('uploadTT')">Upload Timetable</button>
-<button onclick="logoutAdmin()">Logout</button>
+<button onclick="showSection('uploadTT')"style="padding:10px 20px;
+border:none;
+border-radius:8px;
+background:#1c4b7c;
+color:white;
+font-weight:bold;
+cursor:pointer;
+">Upload Timetable</button>
 
 
 
-<button onclick="window.location.href='previous_tt.html'">
+
+<button onclick="window.location.href='previous_tt.html'"style="padding:10px 20px;
+border:none;
+border-radius:8px;
+background:#0e3763;
+color:white;
+font-weight:bold;
+cursor:pointer;
+">
 Previous Year Timetable
 </button>
 
-<button onclick="window.location.href='index.html'">Home</button>
+<button onclick="window.location.href='index.html'"style="padding:10px 20px;
+border:none;
+border-radius:8px;
+background:#07ba22;
+color:white;
+font-weight:bold;
+cursor:pointer;
+">Home</button>
 
 </div>
 
