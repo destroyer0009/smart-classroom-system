@@ -87,21 +87,46 @@ padding:10px;
 text-align:center;
 }
 
+.navbar{
+background:#1b3a6b;
+padding:12px;
+display:flex;
+justify-content:center;
+flex-wrap:wrap;
+gap:12px;
+}
+
 .navbar button{
-padding:10px 20px;
-margin:5px;
+padding:10px 18px;
 border:none;
-background:white;
-cursor:pointer;
-border-radius:5px;
+border-radius:10px; /* pill shape 🔥 */
+background:rgba(255,255,255,0.9);
+color:#002147;
 font-size:14px;
+font-weight:600;
+cursor:pointer;
+
+box-shadow:0 4px 10px rgba(0,0,0,0.15);
+transition:0.25s;
 }
 
+/* HOVER EFFECT */
 .navbar button:hover{
-background:#002147;
+background:#007bff;
 color:white;
+transform:translateY(-2px);
+box-shadow:0 6px 15px rgba(0,0,0,0.25);
 }
 
+/* CLICK EFFECT */
+.navbar button:active{
+transform:scale(0.95);
+}
+
+@keyframes fadeIn{
+from{opacity:0; transform:scale(0.9);}
+to{opacity:1; transform:scale(1);}
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 </head>
@@ -116,7 +141,7 @@ color:white;
 
 <h3 id="teacherName"></h3>
 
-<button class="logoutBtn" onclick="logout()">Logout</button>
+<button class="logoutBtn" onclick="openLogoutModal()">Logout</button>
 
 </header>
 
@@ -165,7 +190,65 @@ color:white;
 Select a menu
 
 </div>
+<div id="logoutModal" style="
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.5);
+justify-content:center;
+align-items:center;
+z-index:999;
+">
 
+<div style="
+background:white;
+padding:25px;
+border-radius:12px;
+width:320px;
+text-align:center;
+box-shadow:0 10px 25px rgba(0,0,0,0.3);
+animation:fadeIn 0.3s;
+">
+
+<h3 style="margin-bottom:15px;color:#002147;">
+⚠ Confirm Logout
+</h3>
+
+<p style="margin-bottom:20px;color:#555;">
+Are you sure you want to logout?
+</p>
+
+<div style="display:flex; justify-content:center; gap:15px;">
+
+<button onclick="confirmLogout()" style="
+padding:8px 18px;
+background:#dc3545;
+color:white;
+border:none;
+border-radius:6px;
+cursor:pointer;
+">
+Yes
+</button>
+
+<button onclick="closeLogoutModal()" style="
+padding:8px 18px;
+background:#6c757d;
+color:white;
+border:none;
+border-radius:6px;
+cursor:pointer;
+">
+Cancel
+</button>
+
+</div>
+
+</div>
+</div>
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
@@ -1275,13 +1358,40 @@ document.getElementById("marksDisplay").innerHTML = html;
 };
 
 window.logout = function(){
+
+  // 🔥 LOGIN MODAL HIDE
+  const modal = document.getElementById("loginModal");
+  if(modal){
+    modal.style.display = "none";
+  }
+
   localStorage.removeItem("teacherID");
   window.location.href = "index.html";
 }
+
 window.history.pushState(null, null, window.location.href);
 window.onpopstate = function () {
   window.location.href = "index.html";
 };
+
+window.openLogoutModal = function(){
+document.getElementById("logoutModal").style.display = "flex";
+}
+
+window.closeLogoutModal = function(){
+document.getElementById("logoutModal").style.display = "none";
+}
+
+window.confirmLogout = function(){
+localStorage.removeItem("teacherID");
+window.location.href = "index.html";
+}
+window.onload = function(){
+  const modal = document.getElementById("loginModal");
+  if(modal){
+    modal.style.display = "none";
+  }
+}
 </script>
 
 </body>
