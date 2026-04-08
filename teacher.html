@@ -340,21 +340,55 @@ window.showBooking = async function(){
 
 document.getElementById("content").innerHTML = `
 
-<h3>Classroom Booking</h3>
+<h3 style="
+color:#002147;
+margin-bottom:20px;
+font-size:22px;
+">
+🏫 Classroom Booking
+</h3>
 
-<select id="room">
+<div style="
+display:flex;
+justify-content:center;
+">
+
+<div style="
+background:white;
+padding:30px;
+border-radius:15px;
+box-shadow:0 8px 20px rgba(0,0,0,0.1);
+width:330px;
+text-align:center;
+">
+
+<select id="room" style="
+width:100%;
+padding:12px;
+margin-bottom:15px;
+border-radius:8px;
+border:1px solid #ccc;
+">
 <option>LAB31</option>
 <option>CR125</option>
 <option>CR126</option>
 </select>
 
-<br><br>
+<input type="date" id="date" style="
+width:100%;
+padding:12px;
+margin-bottom:15px;
+border-radius:8px;
+border:1px solid #ccc;
+">
 
-<input type="date" id="date">
-
-<br><br>
-
-<select id="slot">
+<select id="slot" style="
+width:100%;
+padding:12px;
+margin-bottom:15px;
+border-radius:8px;
+border:1px solid #ccc;
+">
 <option value="s1">8:30-9:30</option>
 <option value="s2">9:30-10:30</option>
 <option value="s3">10:40-11:40</option>
@@ -364,21 +398,52 @@ document.getElementById("content").innerHTML = `
 <option value="s7">3:20-4:20</option>
 </select>
 
-<br><br>
-
-<select id="subjectSelect">
+<select id="subjectSelect" style="
+width:100%;
+padding:12px;
+margin-bottom:15px;
+border-radius:8px;
+border:1px solid #ccc;
+">
 <option>Loading subjects...</option>
 </select>
 
-<br><br>
+<textarea id="purpose" placeholder="Purpose" style="
+width:100%;
+padding:12px;
+margin-bottom:15px;
+border-radius:8px;
+border:1px solid #ccc;
+height:70px;
+resize:none;
+"></textarea>
 
-<input id="purpose" placeholder="Purpose">
+<button onclick="submitBooking()" style="
+width:100%;
+padding:12px;
+border:none;
+border-radius:10px;
+background:#28a745;
+color:white;
+font-size:16px;
+font-weight:bold;
+cursor:pointer;
+"
+onmouseover="this.style.background='#218838'"
+onmouseout="this.style.background='#28a745'"
+>
+Request Booking
+</button>
 
-<br><br>
+<p id="bookingMsg" style="
+margin-top:15px;
+font-weight:bold;
+color:#28a745;
+"></p>
 
-<button onclick="submitBooking()">Request Booking</button>
+</div>
 
-<p id="bookingMsg"></p>
+</div>
 
 `;
 
@@ -471,24 +536,72 @@ window.showCancel = async function(){
 
 document.getElementById("content").innerHTML = `
 
-<h3>Cancel Lecture</h3>
+<h3 style="
+color:#002147;
+margin-bottom:20px;
+font-size:22px;
+">
+❌ Cancel Lecture
+</h3>
 
-<select id="cancelSubject">
+<div style="
+display:flex;
+justify-content:center;
+">
+
+<div style="
+background:white;
+padding:30px;
+border-radius:15px;
+box-shadow:0 8px 20px rgba(0,0,0,0.1);
+width:330px;
+text-align:center;
+">
+
+<select id="cancelSubject" style="
+width:100%;
+padding:12px;
+margin-bottom:15px;
+border-radius:8px;
+border:1px solid #ccc;
+">
 <option>Loading subjects...</option>
 </select>
 
-<br><br>
+<input type="date" id="cancelDate" style="
+width:100%;
+padding:12px;
+margin-bottom:20px;
+border-radius:8px;
+border:1px solid #ccc;
+">
 
-<input type="date" id="cancelDate">
+<button onclick="cancelLecture()" style="
+width:100%;
+padding:12px;
+border:none;
+border-radius:10px;
+background:#dc3545;
+color:white;
+font-size:16px;
+font-weight:bold;
+cursor:pointer;
+"
+onmouseover="this.style.background='#c82333'"
+onmouseout="this.style.background='#dc3545'"
+>
+Cancel Lecture
+</button>
 
-<br><br>
+<p id="cancelMsg" style="
+margin-top:15px;
+font-weight:bold;
+color:#28a745;
+"></p>
 
+</div>
 
-<br><br>
-
-<button onclick="cancelLecture()">Cancel Lecture</button>
-
-<p id="cancelMsg"></p>
+</div>
 
 `;
 
@@ -635,28 +748,80 @@ window.showLate = async function(){
 
 document.getElementById("content").innerHTML = `
 
-<h3>Teacher Late Notification</h3>
+<h3 style="
+color:#002147;
+margin-bottom:20px;
+font-size:22px;
+">
+⏰ Teacher Late Notification
+</h3>
 
-<select id="lateSubject">
+<div style="
+display:flex;
+justify-content:center;
+">
+
+<div style="
+background:white;
+padding:30px;
+border-radius:15px;
+box-shadow:0 8px 20px rgba(0,0,0,0.1);
+width:330px;
+text-align:center;
+">
+
+<select id="lateSubject" style="
+width:100%;
+padding:12px;
+margin-bottom:15px;
+border-radius:8px;
+border:1px solid #ccc;
+">
 <option>Loading subjects...</option>
 </select>
 
-<br><br>
+<input type="date" id="lateDate" style="
+width:100%;
+padding:12px;
+margin-bottom:15px;
+border-radius:8px;
+border:1px solid #ccc;
+">
 
-<input type="date" id="lateDate">
+<input id="lateMinutes" placeholder="Late minutes" style="
+width:100%;
+padding:12px;
+margin-bottom:15px;
+border-radius:8px;
+border:1px solid #ccc;
+">
 
-<br><br>
+<button onclick="submitLate()" style="
+width:100%;
+padding:12px;
+border:none;
+border-radius:10px;
+background:#ffc107;
+color:black;
+font-size:16px;
+font-weight:bold;
+cursor:pointer;
+"
+onmouseover="this.style.background='#e0a800'"
+onmouseout="this.style.background='#ffc107'"
+>
+Submit Late
+</button>
 
+<p id="lateMsg" style="
+margin-top:15px;
+font-weight:bold;
+color:#28a745;
+"></p>
 
-<br><br>
+</div>
 
-<input id="lateMinutes" placeholder="Late minutes">
-
-<br><br>
-
-<button onclick="submitLate()">Submit Late</button>
-
-<p id="lateMsg"></p>
+</div>
 
 `;
 
