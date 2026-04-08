@@ -741,16 +741,21 @@ alert("Fill all details");
 return;
 }
 
-const path=`classrooms/LAB31/timetable/${day}/${slot}`;
+const room = document.getElementById("ttRoom").value;
 
-set(ref(database,`classrooms/${room}/timetable/${day}/${slot}`),{
+set(ref(database,
+`classrooms/${room}/timetable/${day}/${slot}`),
+{
 subject:subject,
 faculty:faculty
 });
+subject:subject,
+faculty;faculty
+};
 
 alert("Lecture Added to Timetable");
 
-}
+
 
 window.saveAcademicTT = function(){
 

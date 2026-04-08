@@ -207,12 +207,12 @@ document.getElementById("teacherName").innerText =
 
 });
 
-window.showToday = async function(){
+window.showToday = function(){
 
 const teacher = localStorage.getItem("teacherID");
 const day = new Date().toLocaleString('en-US',{weekday:'long'});
 
-const snapshot = await get(ref(database,"classrooms"));
+onValue(ref(database,"classrooms"), (snapshot)=>{
 
 let html = "<h3>Today's Lectures</h3>";
 
@@ -251,8 +251,9 @@ html += `
 
 document.getElementById("content").innerHTML = html;
 
-}
+});
 
+}
 window.showWeekly = async function(){
 
 const teacher = localStorage.getItem("teacherID");
@@ -781,21 +782,64 @@ window.showMarksheet = async function(){
 
 document.getElementById("content").innerHTML = `
 
-<h3>Upload Excel Marksheet</h3>
+<h3 style="color:#002147; margin-bottom:20px;">
+📄 Upload Excel Marksheet
+</h3>
 
-<select id="subjectSelectMarks">
+<div style="
+display:inline-block;
+background:white;
+padding:30px;
+border-radius:15px;
+box-shadow:0 8px 20px rgba(0,0,0,0.1);
+text-align:center;
+width:320px;
+">
+
+<select id="subjectSelectMarks" style="
+width:100%;
+padding:12px;
+margin-bottom:15px;
+border-radius:8px;
+border:1px solid #ccc;
+font-size:14px;
+">
 <option>Loading subjects...</option>
 </select>
 
-<br><br>
+<input type="file" id="excelFile" accept=".xlsx, .xls" style="
+width:100%;
+padding:10px;
+margin-bottom:15px;
+border-radius:8px;
+border:1px solid #ccc;
+background:#f9f9f9;
+">
 
-<input type="file" id="excelFile" accept=".xlsx, .xls">
+<button onclick="uploadExcel()" style="
+width:100%;
+padding:12px;
+border:none;
+border-radius:10px;
+background:#007bff;
+color:white;
+font-size:16px;
+font-weight:bold;
+cursor:pointer;
+"
+onmouseover="this.style.background='#0056b3'"
+onmouseout="this.style.background='#007bff'"
+>
+Upload & Save
+</button>
 
-<br><br>
+<p id="marksMsg" style="
+margin-top:15px;
+font-weight:bold;
+color:green;
+"></p>
 
-<button onclick="uploadExcel()">Upload & Save</button>
-
-<p id="marksMsg"></p>
+</div>
 
 `;
 
@@ -945,15 +989,40 @@ reader.readAsArrayBuffer(file);
 window.viewMarks = async function(){
 
 document.getElementById("content").innerHTML = `
-<h3>View Marks</h3>
+<h3 style="color:#002147; margin-bottom:20px;">
+📊 View Marks
+</h3>
 
-<select id="viewSubject">
+<div style="
+display:flex;
+justify-content:center;
+">
+
+<div style="
+background:white;
+padding:30px;
+border-radius:15px;
+box-shadow:0 8px 20px rgba(0,0,0,0.1);
+width:350px;
+text-align:center;
+">
+
+<select id="viewSubject" style="
+width:100%;
+padding:12px;
+margin-bottom:20px;
+border-radius:8px;
+border:1px solid #ccc;
+font-size:14px;
+">
 <option>Select Subject</option>
 </select>
 
-<br><br>
-
 <div id="marksDisplay"></div>
+
+</div>
+
+</div>
 `;
 
 const teacher = localStorage.getItem("teacherID");
@@ -995,10 +1064,18 @@ const subject = this.value;
 const marksSnap = await get(ref(database,"marks/" + subject));
 
 let html = `
-<table border="1" style="margin:auto; border-collapse:collapse;">
-<tr style="background:#002147; color:white;">
-<th>Student ID</th>
-<th>Marks</th>
+<table style="
+width:100%;
+border-collapse:collapse;
+margin-top:10px;
+">
+
+<tr style="
+background:#002147;
+color:white;
+">
+<th style="padding:10px;">Student ID</th>
+<th style="padding:10px;">Marks</th>
 </tr>
 `;
 
@@ -1007,14 +1084,16 @@ marksSnap.forEach(child=>{
 const data = child.val();
 
 html += `
-<tr>
-<td>${child.key}</td>
-<td>${data.midsem}</td>
+<tr style="border-bottom:1px solid #ddd;">
+<td style="padding:10px;">${child.key}</td>
+<td style="padding:10px;">${data.midsem}</td>
 </tr>
 `;
 });
 }else{
-html += `<tr><td colspan="2">No data</td></tr>`;
+html += `<tr>
+<td colspan="2" style="padding:10px;">No data</td>
+</tr>`;
 }
 
 html += "</table>";
