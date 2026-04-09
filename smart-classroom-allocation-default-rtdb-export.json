@@ -8,15 +8,6 @@
       "status": "approved",
       "subject": "DME",
       "teacher": "CRJ"
-    },
-    "1775640595744": {
-      "date": "2026-04-09",
-      "purpose": "i need it urgently\n",
-      "room": "CR126",
-      "slot": "s6",
-      "status": "pending",
-      "subject": "DME",
-      "teacher": "CRJ"
     }
   },
   "cancel_logs": {
@@ -88,6 +79,14 @@
       }
     },
     "CR126": {
+      "specialBookings": {
+        "2026-04-09": {
+          "s6": {
+            "faculty": "CRJ",
+            "subject": "DME"
+          }
+        }
+      },
       "timetable": {
         "Monday": {
           "s1": {
@@ -131,10 +130,22 @@
     },
     "LAB31": {
       "specialBookings": {
+        "2026-04-09": {
+          "s5": {
+            "faculty": "CRJ",
+            "subject": "DME"
+          }
+        },
         "2026-04-10": {
           "s4": {
             "faculty": "CRJ",
             "subject": "DME"
+          }
+        },
+        "2026-05-08": {
+          "s1": {
+            "faculty": "CRJ",
+            "subject": "MIT"
           }
         }
       },
@@ -173,14 +184,6 @@
     }
   },
   "late_notifications": {
-    "1774650970790": {
-      "date": "2026-03-30",
-      "minutes": "15",
-      "slot": "8:30-9:30",
-      "status": "late",
-      "subject": "MIT",
-      "teacher": "CRJ"
-    },
     "1774652923037": {
       "date": "2026-03-30",
       "minutes": "20",
@@ -209,24 +212,6 @@
     "1775640359916": {
       "date": "2026-04-08",
       "minutes": "40 min late",
-      "room": "LAB31",
-      "slot": "s6",
-      "status": "late",
-      "subject": "DSP",
-      "teacher": "SSK"
-    },
-    "1775640395300": {
-      "date": "2026-04-08",
-      "minutes": "40 min ",
-      "room": "LAB31",
-      "slot": "s6",
-      "status": "late",
-      "subject": "DSP",
-      "teacher": "SSK"
-    },
-    "1775640411957": {
-      "date": "2026-04-08",
-      "minutes": "40",
       "room": "LAB31",
       "slot": "s6",
       "status": "late",
@@ -274,6 +259,21 @@
       },
       "expiry": "2026-03-16T14:25",
       "message": "gffgfghfghfghfghfghfgfhgfgfghfgf"
+    }
+  },
+  "notifications": {
+    "1775718554230": {
+      "message": "✅ Your booking for LAB31 (MIT) is APPROVED",
+      "status": "approved",
+      "teacher": "CRJ",
+      "time": "2026-04-09T07:09:14.230Z"
+    },
+    "1775719835060": {
+      "expiry": "2026-04-11T07:30:35.060Z",
+      "message": "✅ Your booking for LAB31 (DME) is APPROVED",
+      "status": "approved",
+      "teacher": "CRJ",
+      "time": "2026-04-09T07:30:35.060Z"
     }
   },
   "previous_timetables": {

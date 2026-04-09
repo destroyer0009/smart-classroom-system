@@ -303,12 +303,13 @@ document.getElementById("teacherName").innerText =
 });
 
 
-window.showToday = function(){
+window.showToday = async function(){
 
 const teacher = localStorage.getItem("teacherID");
 const day = new Date().toLocaleString('en-US',{weekday:'long'});
+const todayDate = new Date().toISOString().split("T")[0];
 
-onValue(ref(database,"classrooms"), (snapshot)=>{
+const snapshot = await get(ref(database,"classrooms"));
 
 let html = "<h3>Today's Lectures</h3>";
 
@@ -324,17 +325,24 @@ for(let room in data){
 if(!data[room].timetable) continue;
 
 const dayData = data[room].timetable[day];
-
 if(!dayData) continue;
 
 for(let slot in dayData){
 
-if(dayData[slot].faculty === teacher){
+const lec = dayData[slot];
+
+// ✅ CANCEL CHECK
+const cancelSnap = await get(ref(database,
+`cancelled_lectures/${todayDate}/${room}/${slot}`));
+
+if(cancelSnap.exists()) continue;
+
+if(lec.faculty === teacher){
 
 html += `
 <div class="card">
 <b>Room:</b> ${room}<br>
-<b>Subject:</b> ${dayData[slot].subject}<br>
+<b>Subject:</b> ${lec.subject}<br>
 <b>Slot:</b> ${slot}
 </div>
 `;
@@ -346,8 +354,6 @@ html += `
 }
 
 document.getElementById("content").innerHTML = html;
-
-});
 
 }
 window.showWeekly = async function(){
