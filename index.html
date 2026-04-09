@@ -553,25 +553,37 @@ if(cancelSnap.exists()){
 
 // 2️⃣ SPECIAL BOOKING
 else{
-  const specialSnap = await get(ref(database,
-  `classrooms/${room}/specialBookings/${todayDate}/${currentSlot}`));
+lecture = null;
 
-  if(specialSnap.exists()){
-    lecture = specialSnap.val();
+const specialDaySnap = await get(ref(database,
+`classrooms/${room}/specialBookings/${todayDate}`));
+
+if(specialDaySnap.exists()){
+
+  const data = specialDaySnap.val();
+
+  if(currentSlot && data[currentSlot]){
+  lecture = data[currentSlot];
+}
+
+}
+
+// 3️⃣ NORMAL TIMETABLE
+if(!lecture){
+  const normalSnap = await get(ref(database,`classrooms/${room}/timetable/${day}/${currentSlot}`));
+
+  if(normalSnap.exists()){
+    lecture = normalSnap.val();
   }
-
-  // 3️⃣ NORMAL TIMETABLE
-  else{
-    const normalSnap = await get(ref(database,
-    `classrooms/${room}/timetable/${day}/${currentSlot}`));
-
-    if(normalSnap.exists()){
-      lecture = normalSnap.val();
-    }
-  }
+}
 
   // 4️⃣ STATUS DECISION
 if(lecture){
+
+  // 🔥 DEFAULT → BOOKED
+  status = "Booked";
+  currentSubject = lecture.subject;
+  currentFaculty = lecture.faculty;
 
   const liveRef = ref(database,`classrooms/${room}/live`);
   const liveSnap = await get(liveRef);
@@ -582,22 +594,31 @@ if(lecture){
 
     if(live.status === "Ongoing"){
       status = "Ongoing";
-      color = "#dc3545";
       currentSubject = live.subject;
       currentFaculty = live.faculty;
     }else{
-      status = "Free";
-      color = "#d4edda";
-      lecture = null;
+      status = "Waiting";
     }
   }
 
-  // 🔔 CHECK LATE
-for(let late of lateData){
-  if(late.room === room && late.slot === currentSlot){
-    status = "Late (" + late.minutes + "m)";
+  // 🔔 LATE CHECK
+  for(let late of lateData){
+    if(late.room === room && late.slot === currentSlot){
+      status = "Late (" + late.minutes + "m)";
+    }
   }
 }
+if(status === "Ongoing"){
+  color = "#f8d7da"; // red
+}
+else if(status === "Waiting" || status === "Booked"){
+  color = "#fff3cd"; // yellow
+}
+else if(status.includes("Late")){
+  color = "#ffeeba";
+}
+else{
+  color = "#d4edda"; // green
 }
 // ✅ move this OUTSIDE loop
 
@@ -793,7 +814,18 @@ container.innerHTML = "Loading...";
 
 const day = getCurrentDay();
 
-const snapshot = await get(ref(database,`classrooms/${room}/timetable/${day}`));
+const todayDate = new Date().toISOString().split("T")[0];
+
+// 🔹 Get timetable
+const timetableSnap = await get(ref(database,
+`classrooms/${room}/timetable/${day}`));
+
+// 🔹 Get special bookings
+const specialSnap = await get(ref(database,
+`classrooms/${room}/specialBookings/${todayDate}`));
+
+let timetableData = timetableSnap.exists() ? timetableSnap.val() : {};
+let specialData = specialSnap.exists() ? specialSnap.val() : {};
 
 if(!snapshot.exists()){
 
@@ -815,14 +847,27 @@ container.innerHTML = "";
 
 for(let slot of slotOrder){
 
-  if(data[slot]){
+  let lecture = null;
+
+  // 🔥 PRIORITY 1 → special booking
+  if(specialData[slot]){
+    lecture = specialData[slot];
+  }
+  // 🔥 PRIORITY 2 → timetable
+  else if(timetableData[slot]){
+    lecture = timetableData[slot];
+  }
+
+  if(lecture){
 
     let highlight = slot === currentSlot ? "background:#ffeeba;" : "";
+    let highlightColor = specialData[slot] ? "#d1ecf1" : "#fff";
+    let tag = specialData[slot] ? " (Booked)" : "";
 
     container.innerHTML += `
       <div style="padding:8px; margin:5px; border-radius:5px; ${highlight}">
         <b>${slotMap[slot]}</b> — 
-        ${data[slot].subject} (${data[slot].faculty})
+        ${lecture.subject} (${lecture.faculty}) ${tag}
       </div>
     `;
   }
