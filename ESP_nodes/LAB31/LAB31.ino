@@ -77,6 +77,16 @@ int minutes = t->tm_hour * 60 + t->tm_min;
 
   return "";
 }
+int getSlotStartMinutes(String slot) {
+  if (slot == "s1") return 510;
+  if (slot == "s2") return 570;
+  if (slot == "s3") return 630;
+  if (slot == "s4") return 690;
+  if (slot == "s5") return 750;
+  if (slot == "s6") return 810;
+  if (slot == "s7") return 870;
+  return -1;
+}
 
 // 🔍 UID → FACULTY
 String findFacultyByUID(String uid){
@@ -216,7 +226,11 @@ while (!mfrc522.PICC_ReadCardSerial()) {
 
     String day = getCurrentDay();
     String slot = getCurrentSlot();
+time_t nowTime = time(nullptr);
+struct tm *tNow = localtime(&nowTime);
 
+int currentMinutes = tNow->tm_hour * 60 + tNow->tm_min;
+int slotStart = getSlotStartMinutes(slot);
     // 📅 GET TODAY DATE
 String todayDate = "";
 time_t nowDate = time(nullptr);
@@ -241,6 +255,21 @@ if(Firebase.RTDB.getString(&fbdo, cancelPath)){
   lcd.clear();
   lcd.print("Cancelled");
   delay(2000);
+  scanMode = false;
+  return;
+}
+// ⏰ AUTO CANCEL AFTER 30 MIN (ONLY TODAY)
+
+if(currentMinutes > slotStart + 30){
+
+  String cancelPath = "cancelled_lectures/" + todayDate + "/" + String(ROOM_NAME) + "/" + slot;
+
+  Firebase.RTDB.setString(&fbdo, cancelPath, "Auto Cancelled");
+
+  lcd.clear();
+  lcd.print("Auto Cancelled");
+  delay(2000);
+
   scanMode = false;
   return;
 }
@@ -282,6 +311,7 @@ else{
     subject = fbdo.stringData();
   }
 }
+String scannedFaculty = findFacultyByUID(uid);
     // 🔔 SHOW WAITING STATE
 lcd.clear();
 lcd.setCursor(0,0);
@@ -291,7 +321,11 @@ lcd.print("Waiting...");
 delay(1000);
 
 
-    String scannedFaculty = findFacultyByUID(uid);
+    
+
+
+// ❌ Too Early
+
     // 🔔 CHECK LATE
 FirebaseJson lateJson;
 
@@ -371,10 +405,42 @@ Firebase.RTDB.pushJSON(&fbdo, path, &logJson);
   lcd.print("Unknown Card");
   beepInvalid();
 }
-
+    // ⏰ TIMING CONTROL
+int earlyAllow = 10;   // 10 min before allowed
+int lateAllow = 30;    // 10 min after allowed
 // ✅ ENTRY
 else if(!isInside && scannedFaculty == scheduledFaculty){
 
+  // ⏰ 30 MIN WINDOW LOGIC
+
+  if(currentMinutes < slotStart){
+    lcd.clear();
+    lcd.print("Too Early");
+    beepInvalid();
+    scanMode = false;
+    return;
+  }
+
+  if(currentMinutes >= slotStart && currentMinutes <= slotStart + 30){
+    lcd.clear();
+    lcd.print("Entry Allowed");
+    delay(1000);
+  }
+
+  if(currentMinutes > slotStart + 30){
+    lcd.clear();
+    lcd.print("Room Free");
+
+    Firebase.RTDB.setString(&fbdo, 
+      "classrooms/" + String(ROOM_NAME) + "/live/status", "Free");
+
+    beepInvalid();
+    scanMode = false;
+    return;
+  }
+
+  // ✅ ORIGINAL ENTRY CODE CONTINUES
+  lcd.clear();
   lcd.print("Lecture Started");
   delay(1500);
 
@@ -382,13 +448,15 @@ else if(!isInside && scannedFaculty == scheduledFaculty){
   lcd.setCursor(0,0);
   lcd.print("Ongoing:");
   lcd.setCursor(0,1);
-  lcd.print(subject);   // 🔥 SHOW SUBJECT
+  lcd.print(subject);
 
   beepValid();
 
   isInside = true;
   currentFaculty = scannedFaculty;
   currentSubject = subject;
+  
+
 
   // 🔥 Firebase update
 //   Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/status", "Ongoing");
