@@ -187,6 +187,8 @@ cursor:pointer;">Logout</button>
 
 <button onclick="viewMarks()">View Marks</button>
 
+<button onclick="showNotifications()">Notifications</button>
+
 
 
 </div>
@@ -1397,6 +1399,41 @@ window.onload = function(){
   if(modal){
     modal.style.display = "none";
   }
+}
+
+import { onValue } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+
+window.showNotifications = function(){
+
+const teacher = localStorage.getItem("teacherID");
+
+onValue(ref(database,"notifications"), (snapshot)=>{
+
+let html = "<h3>🔔 Notifications</h3>";
+
+if(!snapshot.exists()){
+  document.getElementById("content").innerHTML = "No notifications";
+  return;
+}
+
+snapshot.forEach(child=>{
+  const data = child.val();
+
+  if(data.teacher === teacher){
+
+    html += `
+    <div class="card">
+      <b>${data.message}</b><br>
+      <small>${new Date(data.time).toLocaleString()}</small>
+    </div>
+    `;
+  }
+
+});
+
+document.getElementById("content").innerHTML = html;
+
+});
 }
 </script>
 

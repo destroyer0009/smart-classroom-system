@@ -1474,35 +1474,48 @@ const snapshot = await get(ref(database,"booking_requests/" + id));
 if(!snapshot.exists()) return;
 
 const data = snapshot.val();
-
 const dateKey = data.date;
 
-// booking
+// SAVE BOOKING
 await set(ref(database,
 `classrooms/${data.room}/specialBookings/${dateKey}/${data.slot}`),{
   subject: data.subject,
   faculty: data.teacher
 });
 
-// ✅ DELETE REQUEST (IMPORTANT)
+// 🔔 ADD NOTIFICATION
+await set(ref(database, "notifications/" + Date.now()), {
+  teacher: data.teacher,
+  message: `✅ Your booking for ${data.room} (${data.subject}) is APPROVED`,
+  status: "approved",
+  time: new Date().toISOString()
+});
+
+// DELETE REQUEST
 await set(ref(database,"booking_requests/"+id), null);
 
-alert("✅ Approved & Removed");
-
-// reload
-loadBookingRequests();
+alert("Approved & Notified");
 }
-
 window.rejectRequest = async function(id){
 
-// ✅ DELETE REQUEST
+const snapshot = await get(ref(database,"booking_requests/" + id));
+if(!snapshot.exists()) return;
+
+const data = snapshot.val();
+
+// 🔔 ADD NOTIFICATION
+await set(ref(database, "notifications/" + Date.now()), {
+  teacher: data.teacher,
+  message: `❌ Your booking for ${data.room} is REJECTED`,
+  status: "rejected",
+  time: new Date().toISOString()
+});
+
+// DELETE REQUEST
 await set(ref(database,"booking_requests/"+id), null);
 
-alert("❌ Rejected & Removed");
-
-loadBookingRequests();
+alert("Rejected & Notified");
 }
-
 window.addTeacher = function(){
 
 const name = document.querySelectorAll("#teachers input")[0].value;
