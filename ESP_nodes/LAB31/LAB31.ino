@@ -545,7 +545,9 @@ Firebase.RTDB.setString(&fbdo, basePath + "faculty", scannedFaculty);
 time_t time2 = time(nullptr);
 struct tm *t2 = localtime(&time2);
 
-String timeStr = String(t2->tm_hour) + ":" + String(t2->tm_min);
+char buffer[6];
+sprintf(buffer, "%02d:%02d", t2->tm_hour, t2->tm_min);
+String timeStr = String(buffer);
 
 logJson.set("teacher", scannedFaculty);
 logJson.set("room", ROOM_NAME);

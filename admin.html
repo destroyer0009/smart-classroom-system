@@ -1872,7 +1872,13 @@ table.innerHTML += `
 window.loadLogsByDate = function(){
 
 const table = document.getElementById("logTable");
-const selectedDate = document.getElementById("logDate").value;
+let selectedDate = document.getElementById("logDate").value;
+
+// convert DD-MM-YYYY → YYYY-MM-DD if needed
+if(selectedDate.includes("-") && selectedDate.split("-")[0].length !== 4){
+  const parts = selectedDate.split("-");
+  selectedDate = parts[2] + "-" + parts[1] + "-" + parts[0];
+}
 
 if(!selectedDate){
   alert("Select a date first");

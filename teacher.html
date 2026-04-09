@@ -413,7 +413,9 @@ window.showLogs = async function(){
 
 const teacher = localStorage.getItem("teacherID");
 
-const snapshot = await get(ref(database,"rfid_logs"));
+const todayDate = new Date().toISOString().split("T")[0];
+
+const snapshot = await get(ref(database,"logs/" + todayDate));
 
 let html = "<h3>RFID Logs</h3>";
 
