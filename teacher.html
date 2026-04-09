@@ -1416,10 +1416,17 @@ if(!snapshot.exists()){
   return;
 }
 
+const now = new Date();
+
 snapshot.forEach(child=>{
   const data = child.val();
 
+  // ✅ FILTER: only for this teacher + not expired
   if(data.teacher === teacher){
+
+    if(data.expiry && new Date(data.expiry) < now){
+      return; // skip expired
+    }
 
     html += `
     <div class="card">
