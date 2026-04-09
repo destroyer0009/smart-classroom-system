@@ -186,6 +186,62 @@ Serial.println("\nTime synced!");
 
 void loop() {
 
+  // 🔥 ALWAYS SHOW CURRENT LECTURE (NO BUTTON NEEDED)
+
+String day = getCurrentDay();
+String slot = getCurrentSlot();
+
+// 📅 DATE
+time_t nowDate = time(nullptr);
+struct tm *t = localtime(&nowDate);
+
+String todayDate = String(t->tm_year + 1900) + "-";
+todayDate += (t->tm_mon + 1 < 10 ? "0" : "") + String(t->tm_mon + 1) + "-";
+todayDate += (t->tm_mday < 10 ? "0" : "") + String(t->tm_mday);
+
+String scheduledFaculty = "";
+String subject = "";
+
+// 🔥 CHECK SPECIAL BOOKING
+String specialPath = "classrooms/" + String(ROOM_NAME) + "/specialBookings/" + todayDate + "/" + slot + "/faculty";
+
+if(Firebase.RTDB.getString(&fbdo, specialPath) && fbdo.stringData() != ""){
+  scheduledFaculty = fbdo.stringData();
+
+  String subPath = "classrooms/" + String(ROOM_NAME) + "/specialBookings/" + todayDate + "/" + slot + "/subject";
+  if(Firebase.RTDB.getString(&fbdo, subPath)){
+    subject = fbdo.stringData();
+  }
+}
+else{
+  // 🔁 TIMETABLE
+  String path = "classrooms/" + String(ROOM_NAME) + "/timetable/" + day + "/" + slot + "/faculty";
+
+  if(Firebase.RTDB.getString(&fbdo, path) && fbdo.stringData() != "-"){
+    scheduledFaculty = fbdo.stringData();
+
+    String subjectPath = "classrooms/" + String(ROOM_NAME) + "/timetable/" + day + "/" + slot + "/subject";
+    if(Firebase.RTDB.getString(&fbdo, subjectPath)){
+      subject = fbdo.stringData();
+    }
+  }
+}
+
+// 📺 DISPLAY
+lcd.clear();
+
+if(scheduledFaculty != ""){
+  lcd.setCursor(0,0);
+  lcd.print("Lecture:");
+  lcd.setCursor(0,1);
+  lcd.print(subject);
+}
+else{
+  lcd.setCursor(0,0);
+  lcd.print("No Lecture");
+}
+time_t nowTime;
+
   // 🔘 BUTTON PRESS → ENABLE SCAN
   if (digitalRead(BUTTON_PIN) == LOW) {
 
@@ -252,8 +308,15 @@ todayDate += (t->tm_mday < 10 ? "0" : "") + String(t->tm_mday);
 String cancelPath = "cancelled_lectures/" + todayDate + "/" + String(ROOM_NAME) + "/" + slot;
 
 if(Firebase.RTDB.getString(&fbdo, cancelPath)){
+
+  // 🔥 REMOVE LIVE CLASS (CARD DISAPPEARS)
+  Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/status", "Free");
+  Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/faculty", "");
+  Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/subject", "");
+
   lcd.clear();
   lcd.print("Cancelled");
+
   delay(2000);
   scanMode = false;
   return;
@@ -312,6 +375,8 @@ else{
   }
 }
 String scannedFaculty = findFacultyByUID(uid);
+
+
     // 🔔 SHOW WAITING STATE
 lcd.clear();
 lcd.setCursor(0,0);
@@ -374,6 +439,9 @@ if(Firebase.RTDB.getJSON(&fbdo, "late_notifications")){
 
     lcd.clear();
 
+    // ⏰ TIMING CONTROL
+int earlyAllow = 10;   // 10 min before allowed
+int lateAllow = 30;    // 10 min after allowed
 
 if(scannedFaculty == ""){
 
@@ -405,10 +473,9 @@ Firebase.RTDB.pushJSON(&fbdo, path, &logJson);
   lcd.print("Unknown Card");
   beepInvalid();
 }
-    // ⏰ TIMING CONTROL
-int earlyAllow = 10;   // 10 min before allowed
-int lateAllow = 30;    // 10 min after allowed
+
 // ✅ ENTRY
+
 else if(!isInside && scannedFaculty == scheduledFaculty){
 
   // ⏰ 30 MIN WINDOW LOGIC
@@ -584,9 +651,19 @@ else{
     lcd.print("Press Button");
 
     mfrc522.PICC_HaltA();
-  }
-  
-time_t nowTime = time(nullptr);
+
+    nowTime = time(nullptr);
 Serial.println(ctime(&nowTime));
 delay(500);
+
+
+
+lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print(ROOM_NAME);
+  lcd.setCursor(0,1);
+  lcd.print("Press Button");
+  }
+  
+
 }
