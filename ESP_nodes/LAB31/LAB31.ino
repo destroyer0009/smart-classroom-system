@@ -396,11 +396,11 @@ else if(!isInside && scannedFaculty == scheduledFaculty){
 // Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/faculty", scannedFaculty);
 
 // Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/subject", subject);
-Firebase.RTDB.setString(&fbdo, "classrooms/" + ROOM_NAME + "/live/status", "Ongoing");
+String basePath = String("classrooms/") + ROOM_NAME + "/live/";
 
-Firebase.RTDB.setString(&fbdo, "classrooms/" + ROOM_NAME + "/live/subject", currentSubject);
-
-Firebase.RTDB.setString(&fbdo, "classrooms/" + ROOM_NAME + "/live/faculty", scannedFaculty);
+Firebase.RTDB.setString(&fbdo, basePath + "status", "Ongoing");
+Firebase.RTDB.setString(&fbdo, basePath + "subject", currentSubject);
+Firebase.RTDB.setString(&fbdo, basePath + "faculty", scannedFaculty);
 
   Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/current_faculty", scannedFaculty);
   Firebase.RTDB.setInt(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/startTime", time(nullptr));
