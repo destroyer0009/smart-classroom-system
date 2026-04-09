@@ -827,15 +827,13 @@ const specialSnap = await get(ref(database,
 let timetableData = timetableSnap.exists() ? timetableSnap.val() : {};
 let specialData = specialSnap.exists() ? specialSnap.val() : {};
 
-if(!snapshot.exists()){
-
-container.innerHTML = "No lectures scheduled today";
-
-return;
-
+if(
+  Object.keys(timetableData).length === 0 &&
+  Object.keys(specialData).length === 0
+){
+  container.innerHTML = "No lectures scheduled today";
+  return;
 }
-
-const data = snapshot.val();
 
 container.innerHTML="";
 
@@ -849,30 +847,39 @@ for(let slot of slotOrder){
 
   let lecture = null;
 
-  // 🔥 PRIORITY 1 → special booking
   if(specialData[slot]){
     lecture = specialData[slot];
   }
-  // 🔥 PRIORITY 2 → timetable
   else if(timetableData[slot]){
     lecture = timetableData[slot];
   }
 
   if(lecture){
 
-    let highlight = slot === currentSlot ? "background:#ffeeba;" : "";
-    let highlightColor = specialData[slot] ? "#d1ecf1" : "#fff";
+    let bgColor = "#fff";
+
+    if(slot === currentSlot){
+      bgColor = "#ffeeba"; // current slot
+    }
+    else if(specialData[slot]){
+      bgColor = "#d1ecf1"; // booked slot
+    }
+
     let tag = specialData[slot] ? " (Booked)" : "";
 
     container.innerHTML += `
-      <div style="padding:8px; margin:5px; border-radius:5px; ${highlight}">
+      <div style="
+        padding:8px;
+        margin:5px;
+        border-radius:5px;
+        background:${bgColor};
+      ">
         <b>${slotMap[slot]}</b> — 
         ${lecture.subject} (${lecture.faculty}) ${tag}
       </div>
     `;
   }
 }
-
 }
 
 
