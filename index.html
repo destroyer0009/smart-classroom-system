@@ -571,45 +571,35 @@ else{
   }
 
   // 4️⃣ STATUS DECISION
-  if(lecture){
+if(lecture){
 
-    const liveRef = ref(database,`classrooms/${room}/live`);
-    const liveSnap = await get(liveRef);
+  const liveRef = ref(database,`classrooms/${room}/live`);
+  const liveSnap = await get(liveRef);
 
-    if(liveSnap.exists()){
+  if(liveSnap.exists()){
 
-  const live = liveSnap.val();
+    const live = liveSnap.val();
 
-  if(live.status === "Ongoing"){
-    status = "Ongoing";
-    color = "#dc3545";
-    currentSubject = live.subject;
-    currentFaculty = live.faculty;
-  }else{
-    status = "Free";
-    color = "#d4edda";
-    lecture = null;
-  }
-
-}
-
-      // 🔔 CHECK LATE
-      for(let late of lateData){
-        if(late.room === room &&
-           late.slot === currentSlot){
-          status = "Late (" + late.minutes + "m)";
-        }
-      }
-
-      currentSubject = lecture.subject;
-      currentFaculty = lecture.faculty;
+    if(live.status === "Ongoing"){
+      status = "Ongoing";
+      color = "#dc3545";
+      currentSubject = live.subject;
+      currentFaculty = live.faculty;
+    }else{
+      status = "Free";
+      color = "#d4edda";
+      lecture = null;
     }
+  }
 
-  }else{
-    status = "Free";
-    color = "#d4edda";
+  // 🔔 CHECK LATE
+for(let late of lateData){
+  if(late.room === room && late.slot === currentSlot){
+    status = "Late (" + late.minutes + "m)";
   }
 }
+}
+// ✅ move this OUTSIDE loop
 
 if(nextSlot){
 
@@ -689,11 +679,12 @@ ${lateMessage ? `<p style="color:red;"><b>${lateMessage}</b></p>` : ""}
 
 
 }
-
+}
 
 
 console.log("Rooms loading...");
 }
+
 window.addEventListener("DOMContentLoaded", () => {
   loadRooms();
   setInterval(loadRooms,60000);
