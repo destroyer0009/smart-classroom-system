@@ -29,9 +29,37 @@
       "teacher": "NAB"
     }
   },
+  "cancelled_lectures": {
+    "2026-04-10": {
+      "CR125": {
+        "s3": "Auto Cancelled"
+      },
+      "LAB31": {
+        "s3": "Auto Cancelled",
+        "s4": "Auto Cancelled"
+      }
+    }
+  },
   "classrooms": {
     "CR125": {
+      "live": {
+        "status": "Free"
+      },
+      "specialBookings": {
+        "2026-04-10": {
+          "s5": {
+            "faculty": "CRJ",
+            "subject": "MIT"
+          }
+        }
+      },
       "timetable": {
+        "Friday": {
+          "s6": {
+            "faculty": "SSK",
+            "subject": "DSP"
+          }
+        },
         "Monday": {
           "s1": {
             "faculty": "CRJ",
@@ -79,14 +107,6 @@
       }
     },
     "CR126": {
-      "specialBookings": {
-        "2026-04-09": {
-          "s6": {
-            "faculty": "CRJ",
-            "subject": "DME"
-          }
-        }
-      },
       "timetable": {
         "Monday": {
           "s1": {
@@ -129,21 +149,24 @@
       }
     },
     "LAB31": {
+      "current_faculty": "NAB",
+      "live": {
+        "faculty": "NAB",
+        "startTime": 1775802409,
+        "status": "Ongoing",
+        "subject": "MDACAD"
+      },
       "specialBookings": {
-        "2026-04-09": {
-          "s5": {
-            "faculty": "CRJ",
-            "subject": "DME"
-          }
-        },
         "2026-04-10": {
-          "s4": {
+          "s3": {
             "faculty": "CRJ",
             "subject": "DME"
-          }
-        },
-        "2026-05-08": {
-          "s1": {
+          },
+          "s4": {
+            "faculty": "NAB",
+            "subject": "MDACAD"
+          },
+          "s6": {
             "faculty": "CRJ",
             "subject": "MIT"
           }
@@ -219,6 +242,28 @@
       "teacher": "SSK"
     }
   },
+  "logs": {
+    "2026-04-10": {
+      "-Opq3NTClicIhGTD8eyp": {
+        "room": "LAB31",
+        "status": "Entry",
+        "teacher": "NAB",
+        "time": "11:55"
+      },
+      "-Opq3Rm35IRBv51uaHxM": {
+        "room": "LAB31",
+        "status": "Exit",
+        "teacher": "NAB",
+        "time": "11:56"
+      },
+      "-Opq3aW4RgQ90sfUK5cO": {
+        "room": "LAB31",
+        "status": "Entry",
+        "teacher": "NAB",
+        "time": "11:56"
+      }
+    }
+  },
   "notice": {
     "current": {
       "-Ons6hp8XAIjQJca2ueD": {
@@ -257,23 +302,56 @@
         "expiry": "2026-04-04T11:28",
         "message": "Those students are not yet fill above google form can fill the google form today before 02.00 PM. Otherwise, the students themselves will be responsible for further Process."
       },
+      "-Opq845MnYPjZK7uvf0h": {
+        "expiry": "2026-04-10T12:17",
+        "message": "Hello Shraddhesh"
+      },
       "expiry": "2026-03-16T14:25",
       "message": "gffgfghfghfghfghfghfgfhgfgfghfgf"
     }
   },
   "notifications": {
-    "1775718554230": {
-      "message": "✅ Your booking for LAB31 (MIT) is APPROVED",
+    "1775729459054": {
+      "expiry": "2026-04-11T10:10:59.054Z",
+      "message": "✅ Your booking for LAB31 (ADE) is APPROVED",
       "status": "approved",
-      "teacher": "CRJ",
-      "time": "2026-04-09T07:09:14.230Z"
+      "teacher": "NAB",
+      "time": "2026-04-09T10:10:59.054Z"
     },
-    "1775719835060": {
-      "expiry": "2026-04-11T07:30:35.060Z",
+    "1775764204047": {
+      "expiry": "2026-04-11T19:50:04.047Z",
+      "message": "✅ Your booking for LAB31 (MDACAD) is APPROVED",
+      "status": "approved",
+      "teacher": "NAB",
+      "time": "2026-04-09T19:50:04.047Z"
+    },
+    "1775770721189": {
+      "expiry": "2026-04-11T21:38:41.189Z",
       "message": "✅ Your booking for LAB31 (DME) is APPROVED",
       "status": "approved",
       "teacher": "CRJ",
-      "time": "2026-04-09T07:30:35.060Z"
+      "time": "2026-04-09T21:38:41.189Z"
+    },
+    "1775770771735": {
+      "expiry": "2026-04-11T21:39:31.735Z",
+      "message": "✅ Your booking for CR125 (MIT) is APPROVED",
+      "status": "approved",
+      "teacher": "CRJ",
+      "time": "2026-04-09T21:39:31.735Z"
+    },
+    "1775803555633": {
+      "expiry": "2026-04-12T06:45:55.633Z",
+      "message": "❌ Your booking for CR125 is REJECTED",
+      "status": "rejected",
+      "teacher": "CRJ",
+      "time": "2026-04-10T06:45:55.633Z"
+    },
+    "1775804805344": {
+      "expiry": "2026-04-12T07:06:45.344Z",
+      "message": "✅ Your booking for LAB31 (MIT) is APPROVED",
+      "status": "approved",
+      "teacher": "CRJ",
+      "time": "2026-04-10T07:06:45.344Z"
     }
   },
   "previous_timetables": {
@@ -849,6 +927,10 @@
             "subject": "MIT"
           },
           "s2": {
+            "faculty": "RKA",
+            "subject": "RAC"
+          },
+          "s3": {
             "faculty": "RKA",
             "subject": "RAC"
           }
