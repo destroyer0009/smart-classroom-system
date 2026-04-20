@@ -177,11 +177,7 @@ Serial.println("\nTime synced!");
 
   delay(2000);
 
-  lcd.clear();
-  lcd.setCursor(0,0);
-  lcd.print(ROOM_NAME);
-  lcd.setCursor(0,1);
-  lcd.print("Press Button");
+  
 }
 
 void loop() {
@@ -228,17 +224,24 @@ else{
 }
 
 // 📺 DISPLAY
-lcd.clear();
+lcd.setCursor(0,0);
+lcd.print(ROOM_NAME+"             ");
+
+lcd.setCursor(0,1);
 
 if(scheduledFaculty != ""){
-  lcd.setCursor(0,0);
-  lcd.print("Lecture:");
-  lcd.setCursor(0,1);
-  lcd.print(subject);
+  String displayText = subject;
+
+  if(displayText.length() > 16){
+    displayText = displayText.substring(0,16);
+  }
+
+  lcd.print(""); // clear full line
+lcd.setCursor(0,1);
+lcd.print(displayText);
 }
 else{
-  lcd.setCursor(0,0);
-  lcd.print("No Lecture");
+  lcd.print("No Lecture ");
 }
 time_t nowTime;
 
@@ -304,23 +307,7 @@ todayDate += (t->tm_mday < 10 ? "0" : "") + String(t->tm_mday);
   return;
 }
 
-// ✅ NOW CHECK CANCEL
-String cancelPath = "cancelled_lectures/" + todayDate + "/" + String(ROOM_NAME) + "/" + slot;
 
-if(Firebase.RTDB.getString(&fbdo, cancelPath)){
-
-  // 🔥 REMOVE LIVE CLASS (CARD DISAPPEARS)
-  Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/status", "Free");
-  Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/faculty", "");
-  Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/subject", "");
-
-  lcd.clear();
-  lcd.print("Cancelled");
-
-  delay(2000);
-  scanMode = false;
-  return;
-}
 // ⏰ AUTO CANCEL AFTER 30 MIN (ONLY TODAY)
 
 if(currentMinutes > slotStart + 30){
@@ -437,7 +424,7 @@ if(Firebase.RTDB.getJSON(&fbdo, "late_notifications")){
     Serial.println("Scanned: " + scannedFaculty);
     Serial.println("----------");
 
-    lcd.clear();
+
 
     // ⏰ TIMING CONTROL
 int earlyAllow = 10;   // 10 min before allowed
@@ -477,6 +464,15 @@ Firebase.RTDB.pushJSON(&fbdo, path, &logJson);
 // ✅ ENTRY
 
 else if(!isInside && scannedFaculty == scheduledFaculty){
+  String cancelPath = "cancelled_lectures/" + todayDate + "/" + String(ROOM_NAME) + "/" + slot;
+
+if(Firebase.RTDB.getString(&fbdo, cancelPath) && fbdo.stringData() != ""){
+  lcd.clear();
+  lcd.print("Lecture Cancelled");
+  beepInvalid();
+  scanMode = false;
+  return;
+}
 
   // ⏰ 30 MIN WINDOW LOGIC
 
@@ -649,8 +645,7 @@ else{
     
 
     scanMode = false;  // 🔥 RESET
-    lcd.clear();
-    lcd.print("Press Button");
+    
 
     mfrc522.PICC_HaltA();
 
@@ -658,13 +653,6 @@ else{
 Serial.println(ctime(&nowTime));
 delay(500);
 
-
-
-lcd.clear();
-  lcd.setCursor(0,0);
-  lcd.print(ROOM_NAME);
-  lcd.setCursor(0,1);
-  lcd.print("Press Button");
   }
   
 
