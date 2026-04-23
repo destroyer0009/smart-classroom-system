@@ -14,6 +14,9 @@ font-family:Arial;
 background:#f4f6f9;
 }
 
+.stat-card{
+  cursor:pointer;
+}
 /* HEADER */
 .collegeHeader{
 background:#002147;
@@ -49,12 +52,10 @@ text-align:center;
 }
 
 .navbar button{
-padding:10px 20px;
-margin:5px;
-border:none;
-background:rgb(255, 255, 255);
-cursor:pointer;
-border-radius:5px;
+  padding:6px 12px;
+  font-size:13px;
+  border-radius:6px;
+  margin:4px;
 }
 .navbar button:hover {
   transform: translateY(-4px);
@@ -62,7 +63,32 @@ border-radius:5px;
   box-shadow: 0 8px 15px rgba(42,88,165,0.4);
 } 
 
+.stat-card{
+  min-width:140px;
+  padding:10px 12px;
+  border-radius:10px;
+  color:white;
+  text-align:center;
+  font-weight:600;
 
+  box-shadow:0 4px 10px rgba(0,0,0,0.12);
+  transition:0.25s;
+}
+
+.stat-card:hover{
+  transform:translateY(-3px);
+  box-shadow:0 6px 18px rgba(0,0,0,0.2);
+}
+
+.stat-card div:first-child{
+  font-size:12px;
+  opacity:0.9;
+}
+
+.stat-card div:last-child{
+  font-size:18px;
+  font-weight:bold;
+}
 
 /* CONTENT */
 
@@ -108,6 +134,11 @@ background:#002147;
 color:white;
 }
 
+
+.blue{ background:#007bff; }
+.green{ background:#28a745; }
+.red{ background:#dc3545; }
+.yellow{ background:#ffc107; color:black; }
 /* CARD */
 
 .card{
@@ -411,25 +442,72 @@ Add Teacher
 
 
 <div id="live" class="section">
+<div id="roomPopup" style="
+display:none;
+position:fixed;
+top:0; left:0;
+width:100%; height:100%;
+background:rgba(0,0,0,0.5);
+justify-content:center;
+align-items:center;
+z-index:999;
+">
 
+<div style="
+background:white;
+padding:20px;
+border-radius:10px;
+width:300px;
+max-height:400px;
+overflow:auto;
+text-align:center;
+">
+
+<h3 id="popupTitle"></h3>
+
+<div id="popupData"></div>
+
+<br>
+<button onclick="closePopup()">Close</button>
+
+</div>
+</div>
 <div class="card">
 
 <h2>Live Classroom Status</h2>
 
-<table>
+<div style="
+display:flex;
+justify-content:center;
+align-items:center;
+gap:15px;
+flex-wrap:wrap;
+margin:15px 0 25px 0;
+">
 
-<tr>
-<th>Room</th>
-<th>Current Subject</th>
-<th>Faculty</th>
-<th>Status</th>
-</tr>
+<div class="stat-card blue" onclick="filterRooms('all')">
+  <div>Total Rooms</div>
+  <div id="totalRooms">0</div>
+</div>
 
-<tbody id="liveClassTable">
+<div class="stat-card green" onclick="filterRooms('Free')">
+  <div>Free</div>
+  <div id="freeRooms">0</div>
+</div>
 
-</tbody>
+<div class="stat-card red" onclick="filterRooms('Ongoing')">
+  <div>Ongoing</div>
+  <div id="ongoingRooms">0</div>
+</div>
 
-</table>
+<div class="stat-card yellow" onclick="filterRooms('Waiting')">
+  <div>Waiting</div>
+  <div id="waitingRooms">0</div>
+</div>
+
+
+</div>
+
 
 </div>
 
@@ -830,57 +908,7 @@ showSection("teachers");
 
 /* LIVE CLASSROOM STATUS */
 
-function loadLiveClassrooms(){
 
-const table=document.getElementById("liveClassTable");
-
-const rooms=["LAB31","CR125","CR126"];
-
-table.innerHTML="";
-
-rooms.forEach(room => {
-
-table.innerHTML+=`
-
-<tr>
-
-<td>${room}</td>
-
-<td id="${room}_sub">Loading...</td>
-
-<td id="${room}_fac">-</td>
-
-<td id="${room}_stat">Checking...</td>
-
-</tr>
-
-`;
-
-const roomRef=ref(database,"classrooms/"+room+"/live");
-
-onValue(roomRef,(snapshot)=>{
-
-if(snapshot.exists()){
-
-const data = snapshot.val();
-
-document.getElementById(room+"_sub").innerText = data.subject || "-";
-
-// 🔥 faculty stored separately sometimes
-document.getElementById(room+"_fac").innerText =
-data.faculty || data.current_faculty || "-";
-
-document.getElementById(room+"_stat").innerText = data.status || "Free";
-
-}
-
-});
-
-});
-
-}
-
-loadLiveClassrooms();
 
 
 import { push } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
@@ -1705,6 +1733,116 @@ await set(ref(database,
 alert("✅ Classroom Timetable Uploaded Successfully");
 
 }
+
+
+function loadDashboardStats(){
+
+  const rooms = ["LAB31","CR125","CR126"];
+
+  const statusMap = {}; // store each room status
+
+  rooms.forEach(room => {
+
+    const roomRef = ref(database,"classrooms/"+room+"/live");
+
+    onValue(roomRef,(snap)=>{
+
+      // store latest status
+      if(snap.exists()){
+        statusMap[room] = snap.val().status || "Free";
+      }else{
+        statusMap[room] = "Free";
+      }
+
+      // RESET COUNTS
+      let total = rooms.length;
+      let free = 0;
+      let ongoing = 0;
+      let waiting = 0;
+
+      // COUNT PROPERLY
+      Object.values(statusMap).forEach(status=>{
+        if(status === "Ongoing") ongoing++;
+        else if(status === "Waiting") waiting++;
+        else free++;
+      });
+
+      // UPDATE UI (only numbers)
+      document.getElementById("totalRooms").innerText = total;
+      document.getElementById("freeRooms").innerText = free;
+      document.getElementById("ongoingRooms").innerText = ongoing;
+      document.getElementById("waitingRooms").innerText = waiting;
+
+    });
+
+  });
+
+}
+window.closePopup = function(){
+  document.getElementById("roomPopup").style.display = "none";
+}
+
+window.filterRooms = function(type){
+
+  const rooms = ["LAB31","CR125","CR126"];
+  const container = document.getElementById("popupData");
+
+  document.getElementById("roomPopup").style.display = "flex";
+  document.getElementById("popupTitle").innerText = type + " Classrooms";
+
+  container.innerHTML = "Loading...";
+
+  let html = "";
+
+  rooms.forEach(room => {
+
+    const roomRef = ref(database,"classrooms/"+room+"/live");
+
+    onValue(roomRef,(snap)=>{
+
+      let status = "Free";
+      let subject = "-";
+      let faculty = "-";
+
+      if(snap.exists()){
+        const data = snap.val();
+
+        status = data.status || "Free";
+        subject = data.subject || "No Lecture";
+        faculty = data.faculty || "-";
+      }
+
+      if(type === "all" || status === type){
+
+        html += `
+        <div style="
+        padding:12px;
+        margin:10px 0;
+        border-radius:10px;
+        background:linear-gradient(135deg,#f1f7ff,#ffffff);
+        box-shadow:0 3px 8px rgba(0,0,0,0.1);
+        text-align:left;
+        ">
+
+        <b style="font-size:16px;">${room}</b><br>
+
+        <span>📚 ${subject}</span><br>
+        <span>👨 ${faculty}</span><br>
+        <span>📌 Status: ${status}</span>
+
+        </div>
+        `;
+
+        container.innerHTML = html || "No rooms";
+      }
+
+    });
+
+  });
+
+}
+
+loadDashboardStats();
 </script>
 
 
