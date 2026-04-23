@@ -1237,7 +1237,7 @@ table.appendChild(row);
 };
 window.submitMarks = async function(){
 
-const subject = document.getElementById("subjectSelectMarks").value;
+const subject = document.getElementById("subjectSelectMarks").value.trim().toUpperCase();
 const teacher = localStorage.getItem("teacherID");
 
 const rows = document.querySelectorAll("#marksTable tr");
@@ -1384,7 +1384,7 @@ if(snapshot.exists()){
           const lec = data[room].timetable[day][slot];
 
           if(isSameTeacher(lec.faculty, teacher) && lec.subject){
-            subjects.add(lec.subject);
+           subjects.add(lec.subject.trim().toUpperCase());
           }
 
         }
@@ -1427,7 +1427,7 @@ select.addEventListener("change", async function(){
 
 const subject = this.value;
 
-const marksSnap = await get(ref(database,"marks/" + subject));
+const marksSnap = await get(ref(database,"marks/" + subject.trim()));
 
 let html = `
 <table style="width:100%; border-collapse:collapse; margin-top:10px;">
