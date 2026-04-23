@@ -307,6 +307,9 @@ document.getElementById("teacherName").innerText =
 
 });
 
+function isSameTeacher(a,b){
+  return a && b && a.trim().toUpperCase() === b.trim().toUpperCase();
+}
 
 window.showToday = async function(){
 
@@ -342,7 +345,7 @@ const cancelSnap = await get(ref(database,
 
 if(cancelSnap.exists()) continue;
 
-if(lec.faculty === teacher){
+if(lec.faculty && lec.faculty.trim().toUpperCase() === teacher.trim().toUpperCase()){
 
 html += `
 <div class="card">
@@ -386,7 +389,7 @@ for(let slot in data[room].timetable[day]){
 
 const lec = data[room].timetable[day][slot];
 
-if(lec.faculty === teacher){
+if(lec.faculty && lec.faculty.trim().toUpperCase() === teacher.trim().toUpperCase()){
 
 html += `
 <div class="card">
@@ -573,20 +576,34 @@ const data = snapshot.val();
 
 for(let room in data){
 
-if(!data[room].timetable) continue;
-
+// ✅ TIMETABLE
+if(data[room].timetable){
 for(let day in data[room].timetable){
-
 for(let slot in data[room].timetable[day]){
 
 const lec = data[room].timetable[day][slot];
 
-if(lec.faculty === teacher){
+if(isSameTeacher(lec.faculty, teacher)){
 subjects.add(lec.subject);
 }
 
 }
+}
+}
 
+// ✅ SPECIAL BOOKINGS
+if(data[room].specialBookings){
+for(let date in data[room].specialBookings){
+for(let slot in data[room].specialBookings[date]){
+
+const lec = data[room].specialBookings[date][slot];
+
+if(isSameTeacher(lec.faculty, teacher)){
+subjects.add(lec.subject);
+}
+
+}
+}
 }
 
 }
@@ -598,9 +615,12 @@ select.innerHTML = "<option>No subjects found</option>";
 }else{
 subjects.forEach(sub=>{
 select.innerHTML += `<option>${sub}</option>`;
+
 });
 }
 }
+
+
 window.submitBooking = async function(){
 
 const room = document.getElementById("room").value;
@@ -749,7 +769,7 @@ for(let slot in dayData){
 
 const lec = dayData[slot];
 
-if(lec.faculty === teacher){
+if(lec.faculty && lec.faculty.trim().toUpperCase() === teacher.trim().toUpperCase()){
 subjects.add(lec.subject);
 }
 
@@ -762,9 +782,7 @@ subjects.add(lec.subject);
 if(subjects.size === 0){
 select.innerHTML = "<option>No lectures on this day</option>";
 }else{
-subjects.forEach(sub=>{
-select.innerHTML += `<option>${sub}</option>`;
-});
+
 }
 
 });
@@ -854,7 +872,6 @@ await set(ref(database,
 
 }
 window.showLate = async function(){
-
 document.getElementById("content").innerHTML = `
 
 <h3 style="
@@ -959,17 +976,36 @@ const data = snapshot.val();
 
 for(let room in data){
 
-if(!data[room].timetable) continue;
+// ✅ TIMETABLE
+if(data[room].timetable){
 
 const dayData = data[room].timetable[day];
 
-if(!dayData) continue;
+if(dayData){
 
 for(let slot in dayData){
 
 const lec = dayData[slot];
 
-if(lec.faculty === teacher){
+if(isSameTeacher(lec.faculty, teacher)){
+subjects.add(lec.subject);
+}
+}
+
+}
+
+}
+
+// ✅ SPECIAL BOOKINGS
+if(data[room].specialBookings){
+
+for(let date in data[room].specialBookings){
+
+for(let slot in data[room].specialBookings[date]){
+
+const lec = data[room].specialBookings[date][slot];
+
+if(isSameTeacher(lec.faculty, teacher)){
 subjects.add(lec.subject);
 }
 
@@ -978,18 +1014,23 @@ subjects.add(lec.subject);
 }
 
 }
+} // ✅ for(let room in data) close
 
+} // ✅ if(snapshot.exists()) close
+
+// ✅ dropdown fill
 if(subjects.size === 0){
-select.innerHTML = "<option>No lectures on this day</option>";
+  select.innerHTML = "<option>No subjects</option>";
 }else{
-subjects.forEach(sub=>{
-select.innerHTML += `<option>${sub}</option>`;
-});
+  subjects.forEach(sub=>{
+    select.innerHTML += `<option>${sub}</option>`;
+  });
 }
 
-});
-}
+}); // ✅ EVENT LISTENER CLOSE
 
+} // ✅ showLate FUNCTION CLOSE
+// 🔥🔥 IMPORTANT: yeh closing bracket hona chahiye
 
 window.submitLate = async function(){
 
@@ -1127,26 +1168,57 @@ select.innerHTML = "";
 let subjects = new Set();
 
 if(snapshot.exists()){
-const data = snapshot.val();
+  const data = snapshot.val();
 
-for(let room in data){
-if(!data[room].timetable) continue;
+  // ✅ TIMETABLE
+  for(let room in data){
+    if(data[room].timetable){
+      for(let day in data[room].timetable){
+        for(let slot in data[room].timetable[day]){
 
-for(let day in data[room].timetable){
-for(let slot in data[room].timetable[day]){
-const lec = data[room].timetable[day][slot];
+          const lec = data[room].timetable[day][slot];
 
-if(lec.faculty === teacher){
-subjects.add(lec.subject);
-}
-}
-}
-}
+          if(isSameTeacher(lec.faculty, teacher)){
+            subjects.add(lec.subject);
+          }
+
+        }
+      }
+    }
+  }
+
+  // ✅ BOOKING REQUESTS
+  const bookingSnap = await get(ref(database,"booking_requests"));
+  if(bookingSnap.exists()){
+    bookingSnap.forEach(child=>{
+      const b = child.val();
+      if(b.teacher === teacher){
+        subjects.add(b.subject);
+      }
+    });
+  }
+
+  // ✅ LATE NOTIFICATIONS
+  const lateSnap = await get(ref(database,"late_notifications"));
+  if(lateSnap.exists()){
+    lateSnap.forEach(child=>{
+      const l = child.val();
+      if(l.teacher === teacher){
+        subjects.add(l.subject);
+      }
+    });
+  }
 }
 
-subjects.forEach(sub=>{
-select.innerHTML += `<option>${sub}</option>`;
-});
+// ✅ FILL DROPDOWN
+if(subjects.size === 0){
+  select.innerHTML = "<option>No subjects found</option>";
+}else{
+  subjects.forEach(sub=>{
+    select.innerHTML += `<option>${sub}</option>`;
+  });
+}
+
 
 };
 window.addRow = function(){
@@ -1267,11 +1339,7 @@ document.getElementById("content").innerHTML = `
 📊 View Marks
 </h3>
 
-<div style="
-display:flex;
-justify-content:center;
-">
-
+<div style="display:flex; justify-content:center;">
 <div style="
 background:white;
 padding:30px;
@@ -1287,7 +1355,6 @@ padding:12px;
 margin-bottom:20px;
 border-radius:8px;
 border:1px solid #ccc;
-font-size:14px;
 ">
 <option>Select Subject</option>
 </select>
@@ -1295,39 +1362,64 @@ font-size:14px;
 <div id="marksDisplay"></div>
 
 </div>
-
 </div>
 `;
 
 const teacher = localStorage.getItem("teacherID");
 
-// Load subjects
 const snapshot = await get(ref(database,"classrooms"));
 const select = document.getElementById("viewSubject");
 
 let subjects = new Set();
 
 if(snapshot.exists()){
-const data = snapshot.val();
+  const data = snapshot.val();
 
-for(let room in data){
-if(!data[room].timetable) continue;
+  // ✅ TIMETABLE
+  for(let room in data){
+    if(data[room].timetable){
+      for(let day in data[room].timetable){
+        for(let slot in data[room].timetable[day]){
 
-for(let day in data[room].timetable){
-for(let slot in data[room].timetable[day]){
+          const lec = data[room].timetable[day][slot];
 
-const lec = data[room].timetable[day][slot];
+          if(isSameTeacher(lec.faculty, teacher) && lec.subject){
+            subjects.add(lec.subject);
+          }
 
-if(lec.faculty === teacher){
-subjects.add(lec.subject);
+        }
+      }
+    }
+  }
+
+  // ✅ BOOKING REQUESTS
+  const bookingSnap = await get(ref(database,"booking_requests"));
+  if(bookingSnap.exists()){
+    bookingSnap.forEach(child=>{
+      const b = child.val();
+      if(b.teacher === teacher && b.subject){
+        subjects.add(b.subject);
+      }
+    });
+  }
+
+  // ✅ LATE NOTIFICATIONS
+  const lateSnap = await get(ref(database,"late_notifications"));
+  if(lateSnap.exists()){
+    lateSnap.forEach(child=>{
+      const l = child.val();
+      if(l.teacher === teacher && l.subject){
+        subjects.add(l.subject);
+      }
+    });
+  }
 }
-}
-}
-}
-}
+
+// ✅ FILL DROPDOWN
+select.innerHTML = "<option>Select Subject</option>";
 
 subjects.forEach(sub=>{
-select.innerHTML += `<option>${sub}</option>`;
+  select.innerHTML += `<option>${sub}</option>`;
 });
 
 // when subject selected
@@ -1338,36 +1430,26 @@ const subject = this.value;
 const marksSnap = await get(ref(database,"marks/" + subject));
 
 let html = `
-<table style="
-width:100%;
-border-collapse:collapse;
-margin-top:10px;
-">
-
-<tr style="
-background:#002147;
-color:white;
-">
+<table style="width:100%; border-collapse:collapse; margin-top:10px;">
+<tr style="background:#002147;color:white;">
 <th style="padding:10px;">Student ID</th>
 <th style="padding:10px;">Marks</th>
 </tr>
 `;
 
 if(marksSnap.exists()){
-marksSnap.forEach(child=>{
-const data = child.val();
+  marksSnap.forEach(child=>{
+    const data = child.val();
 
-html += `
-<tr style="border-bottom:1px solid #ddd;">
-<td style="padding:10px;">${child.key}</td>
-<td style="padding:10px;">${data.midsem}</td>
-</tr>
-`;
-});
+    html += `
+    <tr style="border-bottom:1px solid #ddd;">
+    <td style="padding:10px;">${child.key}</td>
+    <td style="padding:10px;">${data.midsem}</td>
+    </tr>
+    `;
+  });
 }else{
-html += `<tr>
-<td colspan="2" style="padding:10px;">No data</td>
-</tr>`;
+  html += `<tr><td colspan="2">No data</td></tr>`;
 }
 
 html += "</table>";
@@ -1377,7 +1459,6 @@ document.getElementById("marksDisplay").innerHTML = html;
 });
 
 };
-
 window.logout = function(){
 
   // 🔥 LOGIN MODAL HIDE
