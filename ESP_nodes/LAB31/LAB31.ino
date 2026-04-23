@@ -114,20 +114,27 @@ String findFacultyByUID(String uid){
 }
 
 String getCurrentSlot() {
-  int h = hour();
-  int m = minute();
-  int current = h * 60 + m;
+  time_t now = time(nullptr);
+  struct tm *t = localtime(&now);
 
-  if(current >= 510 && current < 570) return "s1";
-  if(current >= 570 && current < 630) return "s2";
-  if(current >= 630 && current < 690) return "s3";
-  if(current >= 690 && current < 750) return "s4";
-  if(current >= 750 && current < 810) return "s5";
-  if(current >= 810 && current < 870) return "s6";
-  if(current >= 870 && current < 930) return "s7";
-  if(current >= 930 && current < 990) return "s8";
+  int current = t->tm_hour * 60 + t->tm_min;
 
-  return "";
+  if(current >= 510 && current < 570) return "s1";   // 8:30–9:30
+  if(current >= 570 && current < 630) return "s2";   // 9:30–10:30
+
+  // ❌ BREAK (10:30–10:40)
+
+  if(current >= 640 && current < 700) return "s3";   // 10:40–11:40
+  if(current >= 700 && current < 760) return "s4";   // 11:40–12:40
+
+  // ❌ LUNCH (12:40–1:20)
+
+  if(current >= 800 && current < 860) return "s5";   // 13:20–14:20
+  if(current >= 860 && current < 920) return "s6";   // 14:20–15:20
+  if(current >= 920 && current < 980) return "s7";   // 15:20–16:20
+  if(current >= 980 && current < 1040) return "s8";  // 16:20–17:20
+
+  return "";  // break / outside time
 }
 void setup() {
 
@@ -325,10 +332,6 @@ void loop() {
 
     int currentMinutes = tNow->tm_hour * 60 + tNow->tm_min;
     int slotStart = getSlotStartMinutes(slot);
-    // 📅 GET TODAY DATE
-    String todayDate = "";
-
-
 
     // 🔥 CHECK SPECIAL BOOKING FIRST
     String specialPath = "classrooms/" + String(ROOM_NAME) + "/specialBookings/" + todayDate + "/" + slot + "/faculty";
