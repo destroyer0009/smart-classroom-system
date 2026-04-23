@@ -448,6 +448,32 @@ margin-bottom:25px;
 📂 Upload Excel Timetable
 </h2>
 
+<hr>
+
+<h2 style="color:#002147; margin-top:20px;">
+📄 Upload PDF Timetable
+</h2>
+
+<input id="driveLink" placeholder="Paste Google Drive PDF link here" style="
+padding:10px;
+border-radius:8px;
+border:1px solid #ccc;
+width:320px;
+margin-top:10px;
+">
+
+<br><br>
+
+<button onclick="uploadPDF()" style="
+padding:10px 18px;
+background:#28a745;
+color:white;
+border-radius:8px;
+font-weight:bold;
+cursor:pointer;
+">
+Save PDF Link
+</button>
 <div style="
 display:flex;
 gap:15px;
@@ -462,30 +488,21 @@ border:1px solid #ccc;
 background:#f9f9f9;
 ">
 
-<button onclick="showUploadOptions()" style="
+<button id="uploadExcelBtn" style="
 padding:10px 18px;
 background:#007bff;
 color:white;
 border-radius:8px;
 font-weight:bold;
 ">
-Upload
+Upload Classroom Excel
 </button>
 
-<button onclick="showDownloadOptions()" style="
-padding:10px 18px;
-background:#6c757d;
-color:white;
-border-radius:8px;
-font-weight:bold;
-">
-Download
-</button>
 
 </div>
 
 <!-- OPTIONS -->
-<div id="uploadOptions" style="
+<!-- <div id="uploadOptions" style="
 display:none;
 margin-top:15px;
 ">
@@ -500,22 +517,11 @@ border-radius:8px;
 📘 Classroom Timetable
 </button>
 
-<button onclick="uploadDepartmentExcel()" style="
-margin:5px;
-background:#17a2b8;
-color:white;
-padding:8px 14px;
-border-radius:8px;
-">
-🏫 Department Timetable
-</button>
 
-</div>
 
-<div id="downloadOptions" style="
-display:none;
-margin-top:15px;
-">
+</div> -->
+
+
 
 <button onclick="exportClassroomExcel()" style="
 margin:5px;
@@ -527,154 +533,46 @@ border-radius:8px;
 ⬇ Classroom
 </button>
 
-<button onclick="exportDepartmentExcel()" style="
-margin:5px;
-background:#17a2b8;
-color:white;
-padding:8px 14px;
-border-radius:8px;
-">
-⬇ Department
-</button>
 
 </div>
+<hr>
 
-</div>
-<div class="card" style="
-border-radius:15px;
-padding:25px;
-box-shadow:0 8px 25px rgba(0,0,0,0.15);
-">
-
-<h2 style="color:#002147; margin-bottom:20px;">
-🗂 Upload New Term Timetable
+<h2 style="color:#002147; margin-top:20px;">
+📚 Upload Previous Timetable
 </h2>
 
-<div style="
-display:grid;
-grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-gap:15px;
-">
-
-<input id="ttTerm" placeholder="Term (e.g. winter2026)" style="
-padding:12px;
+<input id="prevTerm" placeholder="Enter Term (e.g. sem5_2024)" style="
+padding:10px;
 border-radius:8px;
 border:1px solid #ccc;
+width:220px;
 ">
 
-<select id="ttSem" style="padding:12px; border-radius:8px;">
-<option value="Sem1">Sem1</option>
-<option value="Sem2">Sem2</option>
-<option value="Sem3">Sem3</option>
-<option value="Sem4">Sem4</option>
-<option value="Sem5">Sem5</option>
-<option value="Sem6">Sem6</option>
-<option value="Sem7">Sem7</option>
-<option value="Sem8">Sem8</option>
-</select>
-
-<select id="ttDay" style="padding:12px; border-radius:8px;">
-<option>Monday</option>
-<option>Tuesday</option>
-<option>Wednesday</option>
-<option>Thursday</option>
-<option>Friday</option>
-<option>Saturday</option>
-</select>
-
-<select id="ttSlot" style="padding:12px; border-radius:8px;">
-<option value="s1">8:30-9:30</option>
-<option value="s2">9:30-10:30</option>
-<option value="s3">10:30-10:40</option>
-<option value="s4">10:40-11:40</option>
-<option value="s5">11:40-12:40</option>
-<option value="s6">12:40-1:20</option>
-<option value="s7">1:20-2:20</option>
-<option value="s8">2:20-3:20</option>
-<option value="s9">3:20-4:20</option>
-<option value="s10">4:20-5:20</option>
-</select>
-
-<input id="ttSubject" placeholder="Subject" style="
-padding:12px;
+<input id="prevDriveLink" placeholder="Paste Google Drive PDF link" style="
+padding:10px;
 border-radius:8px;
 border:1px solid #ccc;
+width:320px;
+margin-top:10px;
 ">
-
-<input id="ttFaculty" placeholder="Faculty ID" style="
-padding:12px;
-border-radius:8px;
-border:1px solid #ccc;
-">
-
-</div>
-
-<button onclick="uploadTimetable()" style="
-margin-top:20px;
-padding:12px;
-width:100%;
-background:linear-gradient(135deg,#007bff,#0056b3);
-color:white;
-border-radius:10px;
-font-weight:bold;
-">
-➕ Add Lecture
-</button>
-
-</div>
-</div>
-
-
-<div id="prevTimetable" class="section">
-
-<div class="card">
-
-<h2>Previous Timetable Archive</h2>
-
-<label>Select Term:</label>
-
-<select id="termSelect" onchange="loadSemesters()">
-<option value="">Select Term</option>
-<option value="winter2024">winter2024</option>
-<option value="summer2024">summer2024</option>
-</select>
 
 <br><br>
 
-<label>Select Semester:</label>
-
-<select id="semSelect" onchange="loadTimetable()">
-<option value="">Select Semester</option>
-
-</select>
-
-</div>
-
-<div class="card">
-
-<table>
-
-<tr>
-<th>Day</th>
-<th>8:30-9:30</th>
-<th>9:30-10:30</th>
-<th>10:30-10:40</th>
-<th>10:40-11:40</th>
-<th>11:40-12:40</th>
-<th>12:40-1:20</th>
-<th>1:20-2:20</th>
-<th>2:20-3:20</th>
-<th>3:20-4:20</th>
-<th>4:20-5:20</th>
-</tr>
-
-<tbody id="archiveTTBody"></tbody>
-
-</table>
-
+<button onclick="uploadPreviousPDF()" style="
+padding:10px 18px;
+background:#17a2b8;
+color:white;
+border-radius:8px;
+font-weight:bold;
+cursor:pointer;
+">
+Save Previous Timetable
+</button>
 </div>
 
 </div>
+
+
 
 <div id="notice" class="section">
 
@@ -877,6 +775,8 @@ text-align:center;
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
 import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+import { getStorage, ref as sRef, uploadBytes, getDownloadURL } 
+from "https://www.gstatic.com/firebasejs/12.10.0/firebase-storage.js";
 
 const firebaseConfig = {
 apiKey: "AIzaSyAXNrkME8ssbzJxfUrEpzSNDCa7MEpOgrY",
@@ -890,6 +790,7 @@ apiKey: "AIzaSyAXNrkME8ssbzJxfUrEpzSNDCa7MEpOgrY",
 
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
+const storage = getStorage(app);
 
 loadTeachers();
 
@@ -900,6 +801,12 @@ if(isAdmin !== "true"){
   alert("Unauthorized Access");
   window.location.href = "index.html";
 }
+
+window.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("uploadExcelBtn")
+    .addEventListener("click", uploadClassroomExcel);
+});
+
 /* PAGE SECTION SWITCH */
 
 window.showSection=function(id){
@@ -914,11 +821,6 @@ loadBookingRequests();
 }
 if(id === "logs"){
   loadLogs();
-}
-if(id==="prevTimetable"){
-document.getElementById("termSelect").value="";
-document.getElementById("semSelect").innerHTML="<option value=''>Select Semester</option>";
-document.getElementById("archiveTTBody").innerHTML="";
 }
 
 }
@@ -980,98 +882,6 @@ document.getElementById(room+"_stat").innerText = data.status || "Free";
 
 loadLiveClassrooms();
 
-function loadSemesters(){
-
-const term=document.getElementById("termSelect").value;
-const semSelect=document.getElementById("semSelect");
-
-semSelect.innerHTML="<option value=''>Select Semester</option>";
-document.getElementById("archiveTTBody").innerHTML="";
-
-if(!term) return;
-
-let sems=[];
-
-if(term==="winter2024"){
-sems=["Sem3","Sem5","Sem7"];
-}
-else if(term==="summer2024"){
-sems=["Sem2","Sem4","Sem6"];
-}
-
-sems.forEach(function(s){
-
-let opt=document.createElement("option");
-opt.value=s;
-opt.textContent=s;
-
-semSelect.appendChild(opt);
-
-});
-
-}
-function loadTimetable(){
-
-const term=document.getElementById("termSelect").value;
-const sem=document.getElementById("semSelect").value;
-
-const table=document.getElementById("archiveTTBody");
-
-if(term==="" || sem===""){
-table.innerHTML="";
-return;
-}
-
-const ttRef=ref(database,"previous_timetables/"+term+"/"+sem);
-
-get(ttRef).then((snapshot)=>{
-
-table.innerHTML="";
-
-if(!snapshot.exists()){
-table.innerHTML="<tr><td colspan='11'>No timetable data found</td></tr>";
-return;
-}
-
-const data=snapshot.val();
-if(!data){
-table.innerHTML="<tr><td colspan='11'>No timetable data</td></tr>";
-return;
-}
-
-const days=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-
-days.forEach(day=>{
-
-const d=data[day] || {};
-
-table.innerHTML+=`
-
-<tr>
-
-<td>${day}</td>
-
-<td>${d.s1 || "-"}</td>
-<td>${d.s2 || "-"}</td>
-<td>${d.s3 || "-"}</td>
-<td>${d.s4 || "-"}</td>
-<td>${d.s5 || "-"}</td>
-<td>${d.s6 || "-"}</td>
-<td>${d.s7 || "-"}</td>
-<td>${d.s8 || "-"}</td>
-<td>${d.s9 || "-"}</td>
-<td>${d.s10 || "-"}</td>
-
-</tr>
-
-`;
-
-});
-
-});
-
-}
-/* POST NOTICE */
 
 import { push } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
 
@@ -1096,32 +906,6 @@ alert("Notice Published");
 
 document.getElementById("noticeText").value="";
 }
-
-window.uploadTimetable = function(){
-
-const term = document.getElementById("ttTerm").value;
-const sem = document.getElementById("ttSem").value;
-const day = document.getElementById("ttDay").value;
-const slot = document.getElementById("ttSlot").value;
-
-const subject = document.getElementById("ttSubject").value;
-const faculty = document.getElementById("ttFaculty").value;
-const room = document.getElementById("ttRoom")?.value;
-
-if(subject === "" || !room){
-  alert("Fill all details");
-  return;
-}
-
-set(ref(database,
-`classrooms/${room}/timetable/${day}/${slot}`),{
-  subject: subject,
-  faculty: faculty
-});
-
-alert("Lecture Added to Timetable");
-}
-
 
 
 window.saveAcademicTT = function(){
@@ -1188,74 +972,7 @@ set(ref(database,
 alert("Lecture Deleted");
 }
 
-window.uploadClassroomExcel = async function(){
 
-const file = document.getElementById("excelFile").files[0];
-
-if(!file){
-alert("Select file first");
-return;
-}
-
-// CLEAR ONLY CLASSROOM DATA
-await set(ref(database,"classrooms"), null);
-
-const data = await file.arrayBuffer();
-const workbook = XLSX.read(data);
-
-const sheet = workbook.Sheets[workbook.SheetNames[0]];
-const json = XLSX.utils.sheet_to_json(sheet);
-
-for(let row of json){
-
-const {Day, Slot, Subject, Faculty, Room} = row;
-
-if(!Day || !Slot || !Subject || !Faculty || !Room) continue;
-
-await set(ref(database,
-`classrooms/${Room}/timetable/${Day}/${Slot}`),{
-subject:Subject,
-faculty:Faculty
-});
-
-}
-
-alert("Classroom Timetable Uploaded");
-}
-window.uploadDepartmentExcel = async function(){
-
-const file = document.getElementById("excelFile").files[0];
-
-if(!file){
-alert("Select file first");
-return;
-}
-
-// CLEAR ONLY SEMESTER DATA
-await set(ref(database,"semesters"), null);
-
-const data = await file.arrayBuffer();
-const workbook = XLSX.read(data);
-
-const sheet = workbook.Sheets[workbook.SheetNames[0]];
-const json = XLSX.utils.sheet_to_json(sheet);
-
-for(let row of json){
-
-const {Day, Slot, Subject, Faculty, Semester} = row;
-
-if(!Day || !Slot || !Subject || !Faculty || !Semester) continue;
-
-await set(ref(database,
-`semesters/${Semester}/timetable/${Day}/${Slot}`),{
-subject:Subject,
-faculty:Faculty
-});
-
-}
-
-alert("Department Timetable Uploaded");
-}
 window.exportClassroomExcel = async function(){
 
 const snapshot = await get(ref(database,"classrooms"));
@@ -1300,50 +1017,7 @@ XLSX.utils.book_append_sheet(wb, ws, "Classrooms");
 XLSX.writeFile(wb, "Classroom_Timetable.xlsx");
 
 }
-window.exportDepartmentExcel = async function(){
 
-const snapshot = await get(ref(database,"semesters"));
-
-if(!snapshot.exists()){
-alert("No semester data");
-return;
-}
-
-const data = snapshot.val();
-let excelData = [];
-
-for(let sem in data){
-
-if(!data[sem].timetable) continue;
-
-for(let day in data[sem].timetable){
-
-for(let slot in data[sem].timetable[day]){
-
-const entry = data[sem].timetable[day][slot];
-
-excelData.push({
-Semester: sem,
-Day: day,
-Slot: slot,
-Subject: entry.subject || "",
-Faculty: entry.faculty || ""
-});
-
-}
-
-}
-
-}
-
-const ws = XLSX.utils.json_to_sheet(excelData);
-const wb = XLSX.utils.book_new();
-
-XLSX.utils.book_append_sheet(wb, ws, "Department");
-
-XLSX.writeFile(wb, "Department_Timetable.xlsx");
-
-}
 window.showDownloadOptions = function(){
 
 const div = document.getElementById("downloadOptions");
@@ -1920,6 +1594,115 @@ window.history.pushState(null, null, window.location.href);
 window.onpopstate = function () {
   window.location.replace("index.html");
 };
+
+window.uploadPDF = async function(){
+
+const driveLink = document.getElementById("driveLink").value;
+
+if(!driveLink){
+  alert("Paste link first");
+  return;
+}
+
+// extract file ID
+let fileId = "";
+
+try{
+  fileId = driveLink.split("/d/")[1].split("/")[0];
+}catch(e){
+  alert("Invalid Google Drive link");
+  return;
+}
+
+// convert to preview
+const embedLink = "https://drive.google.com/file/d/" + fileId + "/preview";
+
+// save to firebase
+await set(ref(database, "timetable_pdf/academic"), embedLink);
+
+alert("✅ PDF Linked Successfully");
+
+// clear input
+document.getElementById("driveLink").value = "";
+}
+
+window.uploadPreviousPDF = async function(){
+
+const term = document.getElementById("prevTerm").value;
+const driveLink = document.getElementById("prevDriveLink").value;
+
+if(!term || !driveLink){
+  alert("Fill all fields");
+  return;
+}
+
+// extract file ID
+let fileId = "";
+
+try{
+  fileId = driveLink.split("/d/")[1].split("/")[0];
+}catch(e){
+  alert("Invalid Google Drive link");
+  return;
+}
+
+// convert to preview
+const embedLink = "https://drive.google.com/file/d/" + fileId + "/preview";
+
+// save to firebase
+await set(ref(database, "timetable_pdf/previous/" + term), embedLink);
+
+alert("✅ Previous Timetable Saved");
+
+// clear fields
+document.getElementById("prevTerm").value = "";
+document.getElementById("prevDriveLink").value = "";
+}
+
+window.uploadClassroomExcel = async function(){
+
+const file = document.getElementById("excelFile").files[0];
+
+if(!file){
+  alert("Select Excel file first");
+  return;
+}
+
+// 🔥 CLEAR OLD DATA (optional but recommended)
+const snapshot = await get(ref(database,"classrooms"));
+
+if(snapshot.exists()){
+  const rooms = Object.keys(snapshot.val());
+
+  for(let room of rooms){
+    await set(ref(database,`classrooms/${room}/timetable`), null);
+  }
+}
+
+const data = await file.arrayBuffer();
+const workbook = XLSX.read(data);
+
+const sheet = workbook.Sheets[workbook.SheetNames[0]];
+const json = XLSX.utils.sheet_to_json(sheet);
+
+// 🔁 LOOP THROUGH EXCEL
+for(let row of json){
+
+const {Room, Day, Slot, Subject, Faculty} = row;
+
+if(!Room || !Day || !Slot) continue;
+
+await set(ref(database,
+`classrooms/${Room}/timetable/${Day}/${Slot}`),{
+  subject: Subject || "",
+  faculty: Faculty || ""
+});
+
+}
+
+alert("✅ Classroom Timetable Uploaded Successfully");
+
+}
 </script>
 
 

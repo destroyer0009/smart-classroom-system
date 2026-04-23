@@ -2,272 +2,47 @@
 <html>
 
 <head>
-
-<title>Mechanical Engineering Timetable</title>
-
-<style>
-
-body{
-    font-family: 'Segoe UI', Arial;
-    margin:0;
-    background:linear-gradient(to right,#eef2f7,#e3e9f1);
-}
-
-/* HEADER */
-.header-bar{
-    background:linear-gradient(135deg,#002147,#003b73);
-    color:white;
-    padding:18px;
-    text-align:center;
-    font-size:20px;
-    font-weight:600;
-    letter-spacing:1px;
-    box-shadow:0 2px 8px rgba(0,0,0,0.2);
-    position:relative;
-}
-
-/* HOME BUTTON */
-.home-btn{
-    position:absolute;
-    right:20px;
-    top:15px;
-    padding:8px 16px;
-    background: #2fb344;;
-    color:#e9e2e2;
-    border:none;
-    border-radius:20px;
-    cursor:pointer;
-    font-weight:600;
-    transition:0.3s;
-}
-
-.home-btn:hover{
-    background:#dce6f2;
-}
-
-/* DROPDOWN */
-select{
-    padding:10px 18px;
-    margin:20px;
-    font-size:15px;
-    border-radius:20px;
-    border:1px solid #ccc;
-    outline:none;
-    box-shadow:0 2px 6px rgba(0,0,0,0.1);
-}
-
-/* TABLE CONTAINER */
-.table-container{
-    width:95%;
-    margin:auto;
-    background:white;
-    border-radius:12px;
-    box-shadow:0 4px 15px rgba(0,0,0,0.1);
-    overflow:hidden;
-}
-
-/* TABLE */
-table{
-    border-collapse:collapse;
-    width:100%;
-    font-size:13px;
-}
-
-/* HEADER */
-th{
-    background:#002147;
-    color:white;
-    padding:10px;
-    font-weight:600;
-}
-
-/* CELLS */
-td{
-    padding:8px;
-    text-align:center;
-    border-bottom:1px solid #eee;
-}
-
-/* ROW HOVER */
-tr:hover td{
-    background:#f1f6ff;
-}
-
-/* DAY COLUMN */
-td:first-child{
-    font-weight:600;
-    background:#f9fbff;
-}
-
-/* BREAK & LUNCH */
-.break{
-    writing-mode:vertical-rl;
-    transform:rotate(180deg);
-    font-weight:bold;
-    background:#f0f4fa;
-    color:#002147;
-    letter-spacing:1px;
-}
-
-/* SUBJECT STYLE */
-td{
-    line-height:1.4;
-}
-
-</style>
-
+<title>College Timetable</title>
 </head>
 
-<body>
+<body style="margin:0; font-family:Arial;">
 
-<div class="header-bar">
+<div style="
+background:#002147;
+color:white;
+padding:20px;
+text-align:center;
+position:relative;
+">
 
-<button onclick="window.location.href='index.html'" class="home-btn">
+<h2>College Timetable</h2>
+
+<button onclick="window.location.href='index.html'" style="
+position:absolute;
+right:20px;
+top:15px;
+padding:8px 16px;
+background:#28a745;
+color:white;
+border:none;
+border-radius:6px;
+cursor:pointer;
+">
 Home
 </button>
 
-Mechatronics Engineering Timetable
-
 </div>
 
-<!-- <button onclick="window.location.href='index.html'"
-style="position:absolute; left:20px; top:15px; padding:6px 12px;">
-Home
-</button> -->
+<div style="padding:20px; text-align:center;">
 
+<h3>📄 Official Timetable</h3>
 
-<center>
+<iframe id="pdfFrame"
+width="100%"
+height="600px"
+style="border:none;">
+</iframe>
 
-<select id="semesterSelect" onchange="changeSemester()">
-
-<option value="SEM3">Semester III</option>
-<option value="SEM5">Semester V</option>
-<option value="SEM7">Semester VII</option>
-
-</select>
-
-</center>
-
-<!-- ================= SEM 3 ================= -->
-
-<div style="padding:30px;">
-<div class="table-container">
-
-<table>
-
-<tr class="header">
-
-<th>Day</th>
-<th>8:30-9:30</th>
-<th>9:30-10:30</th>
-<th>10:30-10:40</th>
-<th>10:40-11:40</th>
-<th>11:40-12:40</th>
-<th>12:40-1:20</th>
-<th>1:20-2:20</th>
-<th>2:20-3:20</th>
-<th>3:20-4:20</th>
-
-</tr>
-
-<tr>
-<td>Monday</td>
-
-<td id="Monday_830"></td>
-<td id="Monday_930"></td>
-
-<td rowspan="6" class="break">BREAK</td>
-
-<td id="Monday_1040"></td>
-<td id="Monday_1140"></td>
-
-<td rowspan="6" class="break">LUNCH</td>
-
-<td id="Monday_120"></td>
-<td id="Monday_220"></td>
-<td id="Monday_320"></td>
-
-</tr>
-
-<tr>
-<td>Tuesday</td>
-
-<td id="Tuesday_830"></td>
-<td id="Tuesday_930"></td>
-
-<td id="Tuesday_1040"></td>
-<td id="Tuesday_1140"></td>
-
-<td id="Tuesday_120"></td>
-<td id="Tuesday_220"></td>
-<td id="Tuesday_320"></td>
-
-</tr>
-
-<tr>
-<td>Wednesday</td>
-
-<td id="Wednesday_830"></td>
-<td id="Wednesday_930"></td>
-
-<td id="Wednesday_1040"></td>
-<td id="Wednesday_1140"></td>
-
-<td id="Wednesday_120"></td>
-<td id="Wednesday_220"></td>
-<td id="Wednesday_320"></td>
-
-</tr>
-
-<tr>
-<td>Thursday</td>
-
-<td id="Thursday_830"></td>
-<td id="Thursday_930"></td>
-
-<td id="Thursday_1040"></td>
-<td id="Thursday_1140"></td>
-
-<td id="Thursday_120"></td>
-<td id="Thursday_220"></td>
-<td id="Thursday_320"></td>
-
-</tr>
-
-<tr>
-<td>Friday</td>
-
-<td id="Friday_830"></td>
-<td id="Friday_930"></td>
-
-<td id="Friday_1040"></td>
-<td id="Friday_1140"></td>
-
-<td id="Friday_120"></td>
-<td id="Friday_220"></td>
-<td id="Friday_320"></td>
-
-</tr>
-
-<tr>
-<td>Saturday</td>
-
-<td id="Saturday_830"></td>
-<td id="Saturday_930"></td>
-
-<td id="Saturday_1040"></td>
-<td id="Saturday_1140"></td>
-
-<td id="Saturday_120"></td>
-<td id="Saturday_220"></td>
-<td id="Saturday_320"></td>
-
-</tr>
-
-</table>
-</table>
-</div>
-</div>
 </div>
 
 <script type="module">
@@ -276,150 +51,22 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/fireba
 import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
 
 const firebaseConfig = {
-apiKey: "AIzaSyAXNrkME8ssbzJxfUrEpzSNDCa7MEpOgrY",
+  apiKey: "AIzaSyAXNrkME8ssbzJxfUrEpzSNDCa7MEpOgrY",
   authDomain: "sample-final-proj.firebaseapp.com",
   databaseURL: "https://sample-final-proj-default-rtdb.asia-southeast1.firebasedatabase.app/",
   projectId: "sample-final-proj",
-  storageBucket: "sample-final-proj.firebasestorage.app",
-  messagingSenderId: "215816969558",
-  appId: "1:215816969558:web:efe3040d393e5ee26a0af7",
 };
 
 const app = initializeApp(firebaseConfig);
-const database = getDatabase(app);
+const db = getDatabase(app);
 
-async function loadTimetable(){
+const snap = await get(ref(db,"timetable_pdf/academic"));
 
-const semester=document.getElementById("semesterSelect").value;
-
-const snapshot=await get(ref(database,"semesters/"+semester+"/timetable"));
-
-if(!snapshot.exists()) return;
-
-const data=snapshot.val();
-
-const slotMap = {
-s1:"830",
-s2:"930",
-s3:"1040",
-s4:"1140",
-s5:"120",
-s6:"220",
-s7:"320"
-};
-
-const days=[
-"Monday",
-"Tuesday",
-"Wednesday",
-"Thursday",
-"Friday",
-"Saturday"
-];
-
-/* Clear table first */
-
-const allSlots = ["830","930","1040","1140","120","220","320"];
-
-for(let day of days){
-
-for(let s of allSlots){
-
-const cell = document.getElementById(day + "_" + s);
-
-if(cell){
-cell.innerHTML = "-";
+if(snap.exists()){
+  document.getElementById("pdfFrame").src = snap.val();
+}else{
+  document.body.innerHTML += "<p>No timetable uploaded</p>";
 }
-
-}
-
-}
-
-async function loadTimetable(){
-
-const semester=document.getElementById("semesterSelect").value;
-
-const snapshot=await get(ref(database,"semesters/"+semester+"/timetable"));
-
-const days=[
-"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"
-];
-
-const slotMap = {
-s1:"830",
-s2:"930",
-s3:"1040",
-s4:"1140",
-s5:"120",
-s6:"220",
-s7:"320"
-};
-
-const allSlots = ["830","930","1040","1140","120","220","320"];
-
-/* CLEAR TABLE FIRST */
-
-for(let day of days){
-
-for(let s of allSlots){
-
-const cell = document.getElementById(day + "_" + s);
-
-if(cell){
-cell.innerHTML = "-";
-}
-
-}
-
-}
-
-if(!snapshot.exists()) return;
-
-const data=snapshot.val();
-
-/* FILL DATA */
-
-for(let day in data){
-
-for(let slot in data[day]){
-
-const id = day + "_" + slotMap[slot];
-
-const cell = document.getElementById(id);
-
-if(!cell) continue;
-
-cell.innerHTML =
-data[day][slot].subject + "<br>(" + data[day][slot].faculty + ")";
-
-}
-
-}
-
-}
-
-/* Fill timetable */
-
-for(let day in data){
-
-for(let slot in data[day]){
-
-const id = day + "_" + slotMap[slot];
-
-const cell = document.getElementById(id);
-
-if(!cell) continue;
-
-cell.innerHTML = data[day][slot].subject + "<br>(" + data[day][slot].faculty + ")";
-
-}
-
-}
-
-}
-
-loadTimetable();
-document.getElementById("semesterSelect").addEventListener("change",loadTimetable);
 
 </script>
 
