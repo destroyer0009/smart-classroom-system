@@ -1,7 +1,3 @@
-
-// hello
-
-
 #include <WiFi.h>
 #include <SPI.h>
 #include <MFRC522.h>
@@ -40,6 +36,8 @@ String currentFaculty = "";
 String currentSubject = "";
 String lastLine1 = "";
 String lastLine2 = "";
+    FirebaseJson lateJson;
+    unsigned long lastLateFetch = 0;
 unsigned long lastScanTime = 0;
 // 🔊 BUZZER
 void beepValid() {
@@ -281,7 +279,11 @@ if(isInside){
   line2 = currentSubject;
 }
 else if(scheduledFaculty != ""){
+  if(subjectName != ""){
   line2 = subjectName;
+}else{
+  line2 = "Lecture";
+}
 }
 else{
   line2 = "No Lecture";
@@ -330,8 +332,7 @@ updateLCD(line1, line2);
 
     Serial.println("UID: " + uid);
 
-    lcd.clear();
-    lcd.print("Checking...");
+   updateLCD("Checking", "Please Wait");
 
     time_t nowTime = time(nullptr);
     struct tm *tNow = localtime(&nowTime);
@@ -345,37 +346,12 @@ updateLCD(line1, line2);
   scanMode = false;
   return;
 }
-    else{
-      // 🔁 NORMAL TIMETABLE
-      String path = "classrooms/" + String(ROOM_NAME) + "/timetable/" + day + "/" + slot + "/faculty";
-
-      if(!Firebase.RTDB.getString(&fbdo, path) || fbdo.stringData() == ""){
-        lcd.clear();
-        lcd.print("No Lecture Now");
-        delay(2000);
-        scanMode = false;
-        lcd.clear();
-        lcd.print("Press Button");
-        return;
-      }
-
-      scheduledFaculty = fbdo.stringData();
-
-      String subjectPath = "classrooms/" + String(ROOM_NAME) + "/timetable/" + day + "/" + slot + "/subject";
-
-      if(Firebase.RTDB.getString(&fbdo, subjectPath) && fbdo.stringData() != ""){
-        subjectName = fbdo.stringData();
-      }
-    }
+    
     String scannedFaculty = findFacultyByUID(uid);
 
 
         // 🔔 SHOW WAITING STATE
-    lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print("Lecture Time");
-    lcd.setCursor(0,1);
-    lcd.print("Waiting...");
+   updateLCD("Lecture Time", "Waiting...");
     delay(1000);
 
 
@@ -385,10 +361,13 @@ updateLCD(line1, line2);
     // ❌ Too Early
 
         // 🔔 CHECK LATE
-    FirebaseJson lateJson;
 
-    if(Firebase.RTDB.getJSON(&fbdo, "late_notifications")){
-      lateJson = fbdo.jsonObject();
+
+    if(millis() - lastLateFetch > 10000){
+  if(Firebase.RTDB.getJSON(&fbdo, "late_notifications")){
+    lateJson = fbdo.jsonObject();
+  }
+  lastLateFetch = millis();
 
       size_t count = lateJson.iteratorBegin();
 
@@ -456,7 +435,7 @@ updateLCD(line1, line2);
 
     // ✅ PUSH
     Firebase.RTDB.pushJSON(&fbdo, path, &logJson);
-      lcd.print("Unknown Card");
+      updateLCD("Access", "Unknown Card");
       beepInvalid();
     }
 
@@ -468,8 +447,7 @@ updateLCD(line1, line2);
     if(slot != "" && scheduledFaculty != "" &&
       Firebase.RTDB.getString(&fbdo, cancelPath) &&
       fbdo.stringData() == "Manually Cancelled"){
-      lcd.clear();
-      lcd.print("Lecture Cancelled");
+      updateLCD("Lecture","Cancelled");
       beepInvalid();
       scanMode = false;
       return;
@@ -478,23 +456,19 @@ updateLCD(line1, line2);
       // ⏰ 30 MIN WINDOW LOGIC
 
       if(currentMinutes < slotStart){
-        lcd.clear();
-        lcd.print("Too Early");
+        updateLCD("Access", "Too Early");
         beepInvalid();
         scanMode = false;
         return;
       }
 
       if(currentMinutes >= slotStart && currentMinutes <= slotStart + 30){
-        lcd.clear();
-        lcd.print("Entry Allowed");
-        delay(1000);
+        updateLCD("Access", "Allowed");
+        delay(500);
       }
 
       if(currentMinutes > slotStart + 30){
-      lcd.clear();
-      lcd.print("Slot Over");
-
+      updateLCD("Slot","Over");
       Firebase.RTDB.deleteNode(&fbdo, 
       "classrooms/" + String(ROOM_NAME) + "/live");
 
@@ -503,15 +477,10 @@ updateLCD(line1, line2);
     }
 
       // ✅ ORIGINAL ENTRY CODE CONTINUES
-      lcd.clear();
-      lcd.print("Lecture Started");
+      updateLCD("Lecture","Started");
       delay(1500);
 
-      lcd.clear();
-      lcd.setCursor(0,0);
-      lcd.print("Ongoing:      ");
-      lcd.setCursor(0,1);
-      lcd.print(subjectName);
+      updateLCD("Ongoing", subjectName.substring(0,16));
 
       beepValid();
 
@@ -566,12 +535,10 @@ updateLCD(line1, line2);
     // ✅ EXIT (same teacher scans again)
     else if(isInside && scannedFaculty == currentFaculty){
 
-      lcd.clear();
-      lcd.print("Lecture Ended");
+      updateLCD("Lecture", "Ended");
       delay(1500);
 
-      lcd.clear();
-      lcd.print("Room Free");
+      updateLCD("Room","Free");
 
       beepValid();
 
@@ -621,7 +588,7 @@ updateLCD(line1, line2);
 
     // ❌ WRONG PERSON
     else{
-      lcd.print("Access Denied");
+      updateLCD("Access", "Denied");
       beepInvalid();
     }
 
