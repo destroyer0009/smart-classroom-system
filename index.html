@@ -886,12 +886,15 @@ for(let slot of slotOrder){
   let lecture = null;
 
   // 🔥 PRIORITY: special booking
-  if(specialData[slot]){
-    lecture = specialData[slot];
-  }
-  else if(timetableData[slot]){
-    lecture = timetableData[slot];
-  }
+const lower = slot.toLowerCase();
+const upper = slot.toUpperCase();
+
+if(specialData[lower] || specialData[upper]){
+  lecture = specialData[lower] || specialData[upper];
+}
+else if(timetableData[lower] || timetableData[upper]){
+  lecture = timetableData[lower] || timetableData[upper];
+}
 
   if(lecture){
 
