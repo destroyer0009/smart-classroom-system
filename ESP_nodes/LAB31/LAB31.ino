@@ -228,11 +228,9 @@ void loop() {
     lcd.print(ROOM_NAME);
 
     if(slot == ""){
-      lcd.setCursor(0,0);
-      lcd.print(ROOM_NAME + "      ");
-      lcd.setCursor(0,1);
-      lcd.print("No Active Slot   ");
-      return;
+      updateLCD(ROOM_NAME, "No Active Slot");
+      scanMode = false;
+return;
     }
 
     // 📅 DATE
@@ -296,8 +294,7 @@ updateLCD(line1, line2);
 
       // 🔘 BUTTON PRESS → ENABLE SCAN
       if (digitalRead(BUTTON_PIN) == LOW && !scanMode) {
-  lcd.clear();
-  lcd.print("Ready to Scan");
+  updateLCD("Ready", "Scan Card");
   scanMode = true;
   delay(400);
 }
@@ -339,10 +336,42 @@ updateLCD(line1, line2);
 
     int currentMinutes = tNow->tm_hour * 60 + tNow->tm_min;
     int slotStart = getSlotStartMinutes(slot);
+    bool isLateAllowed = false;
+// 🔥 RE-FETCH DATA FOR SCAN (VERY IMPORTANT)
+
+// Check special booking again
+String specialPath = "classrooms/" + String(ROOM_NAME) + 
+"/specialBookings/" + todayDate + "/" + slot + "/faculty";
+
+if(Firebase.RTDB.getString(&fbdo, specialPath) && fbdo.stringData() != ""){
+  scheduledFaculty = fbdo.stringData();
+
+  String subPath = "classrooms/" + String(ROOM_NAME) + 
+  "/specialBookings/" + todayDate + "/" + slot + "/subject";
+
+  if(Firebase.RTDB.getString(&fbdo, subPath)){
+    subjectName = fbdo.stringData();
+  }
+}
+else{
+  // fallback to timetable
+  String path = "classrooms/" + String(ROOM_NAME) + 
+  "/timetable/" + day + "/" + slot + "/faculty";
+
+  if(Firebase.RTDB.getString(&fbdo, path)){
+    scheduledFaculty = fbdo.stringData();
+  }
+
+  String subjectPath = "classrooms/" + String(ROOM_NAME) + 
+  "/timetable/" + day + "/" + slot + "/subject";
+
+  if(Firebase.RTDB.getString(&fbdo, subjectPath)){
+    subjectName = fbdo.stringData();
+  }
+}
 
    if(scheduledFaculty == ""){
-  lcd.clear();
-  lcd.print("No Lecture Now");
+  updateLCD("No Lecture", "Now");
   scanMode = false;
   return;
 }
@@ -352,22 +381,19 @@ updateLCD(line1, line2);
 
         // 🔔 SHOW WAITING STATE
    updateLCD("Lecture Time", "Waiting...");
-    delay(1000);
+    delay(500);
 
-
-        
-
-
-    // ❌ Too Early
 
         // 🔔 CHECK LATE
 
 
-    if(millis() - lastLateFetch > 10000){
-  if(Firebase.RTDB.getJSON(&fbdo, "late_notifications")){
-    lateJson = fbdo.jsonObject();
-  }
-  lastLateFetch = millis();
+
+  if(millis() - lastLateFetch > 5000){
+    if(Firebase.RTDB.getJSON(&fbdo, "late_notifications")){
+        lateJson = fbdo.jsonObject();
+    }
+    lastLateFetch = millis();
+}
 
       size_t count = lateJson.iteratorBegin();
 
@@ -388,18 +414,19 @@ updateLCD(line1, line2);
         obj.get(minData, "minutes");
 
         if(roomData.stringValue == ROOM_NAME &&
-          slotData.stringValue == slot &&
-          dateData.stringValue == todayDate){
+        slotData.stringValue == slot &&
+        dateData.stringValue == todayDate){
+          isLateAllowed = true;   // ✅ IMPORTANT
 
-            lcd.clear();
-            lcd.print("Late ");
-            lcd.print(minData.stringValue + "m");
-            delay(2000);
-        }
+          updateLCD("Late", minData.stringValue + "m");
+          delay(1000);
+
+          
       }
+    }
 
       lateJson.iteratorEnd();
-    }
+      
 
         // 🔥 DEBUG
         Serial.println("----------");
@@ -412,8 +439,7 @@ updateLCD(line1, line2);
 
 
         // ⏰ TIMING CONTROL
-    int earlyAllow = 10;   // 10 min before allowed
-    int lateAllow = 30;    // 10 min after allowed
+  
 
     if(scannedFaculty == ""){
 
@@ -455,26 +481,24 @@ updateLCD(line1, line2);
 
       // ⏰ 30 MIN WINDOW LOGIC
 
-      if(currentMinutes < slotStart){
-        updateLCD("Access", "Too Early");
-        beepInvalid();
-        scanMode = false;
-        return;
-      }
+      // ❌ Too early
+if(currentMinutes < slotStart){
+  updateLCD("Access", "Too Early");
+  beepInvalid();
+  scanMode = false;
+  return;
+}
 
-      if(currentMinutes >= slotStart && currentMinutes <= slotStart + 30){
-        updateLCD("Access", "Allowed");
-        delay(500);
-      }
+// ❌ Slot over ONLY if late not allowed
+if(currentMinutes > slotStart + 30 && !isLateAllowed){
+  updateLCD("Slot","Over");
 
-      if(currentMinutes > slotStart + 30){
-      updateLCD("Slot","Over");
-      Firebase.RTDB.deleteNode(&fbdo, 
-      "classrooms/" + String(ROOM_NAME) + "/live");
+  Firebase.RTDB.deleteNode(&fbdo, 
+  "classrooms/" + String(ROOM_NAME) + "/live");
 
-      scanMode = false;
-      return;
-    }
+  scanMode = false;
+  return;
+}
 
       // ✅ ORIGINAL ENTRY CODE CONTINUES
       updateLCD("Lecture","Started");
@@ -590,6 +614,7 @@ updateLCD(line1, line2);
     else{
       updateLCD("Access", "Denied");
       beepInvalid();
+      delay(1500);
     }
 
         delay(3000);
