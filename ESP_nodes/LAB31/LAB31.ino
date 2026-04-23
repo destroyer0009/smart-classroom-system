@@ -61,22 +61,6 @@ String getCurrentDay() {
 }
 
 // ⏰ SLOT (IMPORTANT: s1, s2...)
-String getCurrentSlot() {
-  time_t currentTime = time(nullptr);
-struct tm *t = localtime(&currentTime);
-
-int minutes = t->tm_hour * 60 + t->tm_min;
-
-  if (minutes >= 510 && minutes < 570) return "s1";
-  if (minutes >= 570 && minutes < 630) return "s2";
-  if (minutes >= 630 && minutes < 690) return "s3";
-  if (minutes >= 690 && minutes < 750) return "s4";
-  if (minutes >= 750 && minutes < 810) return "s5";
-  if (minutes >= 810 && minutes < 870) return "s6";
-  if (minutes >= 870 && minutes < 930) return "s7";
-
-  return "";
-}
 int getSlotStartMinutes(String slot) {
   if (slot == "s1") return 510;
   if (slot == "s2") return 570;
@@ -125,6 +109,22 @@ String findFacultyByUID(String uid){
   return "";
 }
 
+String getCurrentSlot() {
+  int h = hour();
+  int m = minute();
+  int current = h * 60 + m;
+
+  if(current >= 510 && current < 570) return "s1";
+  if(current >= 570 && current < 630) return "s2";
+  if(current >= 630 && current < 690) return "s3";
+  if(current >= 690 && current < 750) return "s4";
+  if(current >= 750 && current < 810) return "s5";
+  if(current >= 810 && current < 870) return "s6";
+  if(current >= 870 && current < 930) return "s7";
+  if(current >= 930 && current < 990) return "s8";
+
+  return "";
+}
 void setup() {
 
   Serial.begin(115200);
@@ -183,7 +183,6 @@ Serial.println("\nTime synced!");
 void loop() {
 
   // 🔥 ALWAYS SHOW CURRENT LECTURE (NO BUTTON NEEDED)
-
 String day = getCurrentDay();
 String slot = getCurrentSlot();
 
@@ -261,7 +260,16 @@ time_t nowTime;
   // 🔍 ONLY SCAN WHEN BUTTON PRESSED
   if (scanMode) {
 
-    while (!mfrc522.PICC_IsNewCardPresent()) {
+  String slot = getCurrentSlot();   // 🔥 ADD THIS
+
+  if(slot == ""){
+    lcd.clear();
+    lcd.print("Outside Time");
+    scanMode = false;
+    return;
+  }
+
+  while (!mfrc522.PICC_IsNewCardPresent()) {
   delay(500);
 }
 
@@ -308,21 +316,6 @@ todayDate += (t->tm_mday < 10 ? "0" : "") + String(t->tm_mday);
 }
 
 
-// ⏰ AUTO CANCEL AFTER 30 MIN (ONLY TODAY)
-
-if(currentMinutes > slotStart + 30){
-
-  String cancelPath = "cancelled_lectures/" + todayDate + "/" + String(ROOM_NAME) + "/" + slot;
-
-  Firebase.RTDB.setString(&fbdo, cancelPath, "Auto Cancelled");
-
-  lcd.clear();
-  lcd.print("Auto Cancelled");
-  delay(2000);
-
-  scanMode = false;
-  return;
-}
     // 🔔 SHOW WAITING STATE
 
     String scheduledFaculty = "";
@@ -331,7 +324,7 @@ String subject = "";
 // 🔥 CHECK SPECIAL BOOKING FIRST
 String specialPath = "classrooms/" + String(ROOM_NAME) + "/specialBookings/" + todayDate + "/" + slot + "/faculty";
 
-if(Firebase.RTDB.getString(&fbdo, specialPath)){
+if(Firebase.RTDB.getString(&fbdo, specialPath) && fbdo.stringData() != ""){
   scheduledFaculty = fbdo.stringData();
 
   String subPath = "classrooms/" + String(ROOM_NAME) + "/specialBookings/" + todayDate + "/" + slot + "/subject";
@@ -491,16 +484,14 @@ if(Firebase.RTDB.getString(&fbdo, cancelPath) && fbdo.stringData() != ""){
   }
 
   if(currentMinutes > slotStart + 30){
-    lcd.clear();
-    lcd.print("Room Free");
+  lcd.print("Slot Over");
 
-    Firebase.RTDB.setString(&fbdo, 
-      "classrooms/" + String(ROOM_NAME) + "/live/status", "Free");
+  Firebase.RTDB.deleteNode(&fbdo, 
+  "classrooms/" + String(ROOM_NAME) + "/live");
 
-    beepInvalid();
-    scanMode = false;
-    return;
-  }
+  scanMode = false;
+  return;
+}
 
   // ✅ ORIGINAL ENTRY CODE CONTINUES
   lcd.clear();
@@ -532,6 +523,7 @@ String basePath = String("classrooms/") + ROOM_NAME + "/live/";
 Firebase.RTDB.setString(&fbdo, basePath + "status", "Ongoing");
 Firebase.RTDB.setString(&fbdo, basePath + "subject", currentSubject);
 Firebase.RTDB.setString(&fbdo, basePath + "faculty", scannedFaculty);
+Firebase.RTDB.setString(&fbdo, basePath + "slot", slot);
 
   Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/current_faculty", scannedFaculty);
   Firebase.RTDB.setInt(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/startTime", time(nullptr));
@@ -595,8 +587,7 @@ else if(isInside && scannedFaculty == currentFaculty){
   currentSubject = "";
 
   // 🔥 Firebase update
-  Firebase.RTDB.setString(&fbdo, 
-  "classrooms/" + String(ROOM_NAME) + "/live/status", "Free");
+ Firebase.RTDB.deleteNode(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live");
 
   Firebase.RTDB.setString(&fbdo, 
   "classrooms/" + String(ROOM_NAME) + "/live/faculty", "");
@@ -654,6 +645,11 @@ Serial.println(ctime(&nowTime));
 delay(500);
 
   }
-  
+  String slotCheck = getCurrentSlot();
+
+if(slotCheck == ""){
+  Firebase.RTDB.deleteNode(&fbdo, 
+  "classrooms/" + String(ROOM_NAME) + "/live");
+}
 
 }

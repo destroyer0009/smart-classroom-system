@@ -571,6 +571,9 @@ if(specialDaySnap.exists()){
     lecture = specialData[firstSlot];
     lectureSlot = firstSlot; // 🔥 IMPORTANT
   }
+  if(!lectureSlot){
+  lectureSlot = currentSlot;
+}
 }
 if(lecture && !currentSlot){
   
@@ -594,46 +597,57 @@ if(lecture && !currentSlot){
 }
   } catch(e){}
 
-// 🔥 3. CANCEL CHECK
-let isCancelled = false;
+  // 🔥 RESET SAFE DEFAULTS
+if(!lecture){
+  status = "Free";
+  currentSubject = "No Lecture";
+  currentFaculty = "-";
+}
 
-try {
-  const cancelSnap = await get(ref(database,
-  `cancelled_lectures/${todayDate}/${room}/${lectureSlot}`));
+// 4️⃣ STATUS DECISION
+if(lecture){
 
-  if(cancelSnap.exists()){
-    isCancelled = true;
-  }
-} catch(e){}
+  // 🔥 DEFAULT BOOKED
+  if(!currentSlot){
+  status = "Booked";  // future lecture
+}
 
-  // 4️⃣ STATUS DECISION
-if(lecture && !isCancelled){
-
-  // 🔥 ONLY set Booked if inside slot
-  if(currentSlot){
-    status = "Booked";
-  }
-
-  // 🔥 ONLY assign CURRENT if slot exists
-  if(currentSlot){
-    currentSubject = lecture.subject;
-    currentFaculty = lecture.faculty;
-  }
-
+  // 🔥 LIVE OVERRIDE (HIGHEST PRIORITY)
   const liveRef = ref(database,`classrooms/${room}/live`);
   const liveSnap = await get(liveRef);
 
-  if(liveSnap.exists()){
+  let liveExists = false;
 
-    const live = liveSnap.val();
+if(liveSnap.exists()){
+  const live = liveSnap.val();
+  liveExists = true;
 
-    if(live.status === "Ongoing"){
-      status = "Ongoing";
-      currentSubject = live.subject;
-      currentFaculty = live.faculty;
-    }else{
-      status = "Waiting";
+  if(live.status === "Ongoing" && lecture){
+    status = "Ongoing";
+    currentSubject = live.subject;
+    currentFaculty = live.faculty;
+  }
+}
+
+// ✅ WAITING SHOULD NOT DEPEND ON liveSnap
+if(currentSlot && lecture && status !== "Ongoing"){
+  status = "Waiting";  // current slot lecture
+}
+
+  // 🔥 NOW CHECK CANCEL (LOW PRIORITY)
+  let isCancelled = false;
+
+  if(lectureSlot){
+    const cancelSnap = await get(ref(database,
+    `cancelled_lectures/${todayDate}/${room}/${lectureSlot}`));
+
+    if(cancelSnap.exists()){
+      isCancelled = true;
     }
+  }
+
+  if(isCancelled && status !== "Ongoing"){
+    status = "Cancelled";
   }
 
   // 🔔 LATE CHECK
