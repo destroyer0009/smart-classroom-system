@@ -38,6 +38,8 @@ bool scanMode = false;
 bool isInside = false;
 String currentFaculty = "";
 String currentSubject = "";
+String lastLine1 = "";
+String lastLine2 = "";
 unsigned long lastScanTime = 0;
 // 🔊 BUZZER
 void beepValid() {
@@ -54,7 +56,24 @@ void beepInvalid() {
     delay(150);
   }
 }
+void updateLCD(String line1, String line2) {
 
+  if(line1 != lastLine1){
+    lcd.setCursor(0,0);
+    lcd.print("                ");
+    lcd.setCursor(0,0);
+    lcd.print(line1);
+    lastLine1 = line1;
+  }
+
+  if(line2 != lastLine2){
+    lcd.setCursor(0,1);
+    lcd.print("                ");
+    lcd.setCursor(0,1);
+    lcd.print(line2);
+    lastLine2 = line2;
+  }
+}
 // 📅 DAY
 String getCurrentDay() {
   time_t currentTime = time(nullptr);
@@ -68,11 +87,12 @@ String getCurrentDay() {
 int getSlotStartMinutes(String slot) {
   if (slot == "s1") return 510;
   if (slot == "s2") return 570;
-  if (slot == "s3") return 630;
-  if (slot == "s4") return 690;
-  if (slot == "s5") return 750;
-  if (slot == "s6") return 810;
-  if (slot == "s7") return 870;
+  if (slot == "s3") return 640;
+  if (slot == "s4") return 700;
+  if (slot == "s5") return 800;
+  if (slot == "s6") return 860;
+  if (slot == "s7") return 920;
+  if (slot == "s8") return 980;
   return -1;
 }
 
@@ -214,7 +234,7 @@ void loop() {
       lcd.print(ROOM_NAME + "      ");
       lcd.setCursor(0,1);
       lcd.print("No Active Slot   ");
-      // return;
+      return;
     }
 
     // 📅 DATE
@@ -254,42 +274,31 @@ void loop() {
     }
 
     // 📺 DISPLAY
-    lcd.setCursor(0,0);
-    lcd.print("                ");
-    lcd.setCursor(0,0);
-    lcd.print(ROOM_NAME);
+    String line1 = ROOM_NAME;
+String line2 = "";
 
-    lcd.setCursor(0,1);
+if(isInside){
+  line2 = currentSubject;
+}
+else if(scheduledFaculty != ""){
+  line2 = subjectName;
+}
+else{
+  line2 = "No Lecture";
+}
 
-    if(isInside){
-      lcd.setCursor(0,1);
-      lcd.print("                ");
-      lcd.setCursor(0,1);
-      lcd.print(currentSubject.substring(0,16));
-    }
-    else if(scheduledFaculty != ""){
-      lcd.setCursor(0,1);
-      lcd.print("                ");
-      lcd.setCursor(0,1);
-      lcd.print(subjectName.substring(0,16));
-    }
-    else{
-      lcd.setCursor(0,1);
-      lcd.print("No Lecture      ");
-    }
+updateLCD(line1, line2);
+
+
     time_t nowTime;
 
       // 🔘 BUTTON PRESS → ENABLE SCAN
-      if (digitalRead(BUTTON_PIN) == LOW) {
-
-        lcd.clear();
-        lcd.print("Ready to Scan");
-
-        scanMode = true;
-
-        delay(300); // debounce
-
-      }
+      if (digitalRead(BUTTON_PIN) == LOW && !scanMode) {
+  lcd.clear();
+  lcd.print("Ready to Scan");
+  scanMode = true;
+  delay(400);
+}
 
       // 🔍 ONLY SCAN WHEN BUTTON PRESSED
       if (scanMode) {
@@ -300,16 +309,13 @@ void loop() {
         lcd.clear();
         lcd.print("Outside Time");
         scanMode = false;
-        // return;
-      }
-
-      if (!mfrc522.PICC_IsNewCardPresent()) {
         return;
       }
 
-      if (!mfrc522.PICC_ReadCardSerial()) {
-        return;
-      }
+      if (!mfrc522.PICC_IsNewCardPresent() || 
+    !mfrc522.PICC_ReadCardSerial()) {
+  return;
+}
 
     if(millis() - lastScanTime < 3000) return;
     lastScanTime = millis();
@@ -333,17 +339,12 @@ void loop() {
     int currentMinutes = tNow->tm_hour * 60 + tNow->tm_min;
     int slotStart = getSlotStartMinutes(slot);
 
-    // 🔥 CHECK SPECIAL BOOKING FIRST
-    String specialPath = "classrooms/" + String(ROOM_NAME) + "/specialBookings/" + todayDate + "/" + slot + "/faculty";
-
-    if(Firebase.RTDB.getString(&fbdo, specialPath) && fbdo.stringData() != ""){
-      scheduledFaculty = fbdo.stringData();
-
-      String subPath = "classrooms/" + String(ROOM_NAME) + "/specialBookings/" + todayDate + "/" + slot + "/subject";
-      if(Firebase.RTDB.getString(&fbdo, subPath)){
-        subjectName = fbdo.stringData();
-      }
-    }
+   if(scheduledFaculty == ""){
+  lcd.clear();
+  lcd.print("No Lecture Now");
+  scanMode = false;
+  return;
+}
     else{
       // 🔁 NORMAL TIMETABLE
       String path = "classrooms/" + String(ROOM_NAME) + "/timetable/" + day + "/" + slot + "/faculty";
@@ -645,4 +646,5 @@ void loop() {
       "classrooms/" + String(ROOM_NAME) + "/live");
     }
 
+    delay(200);
 }
