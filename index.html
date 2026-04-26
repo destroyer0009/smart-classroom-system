@@ -559,161 +559,88 @@ container.innerHTML="";
 const day=getCurrentDay();
 const currentSlot=getCurrentTimeSlot();
 
-// 🔴 GET LATE DATA
-const lateSnapshot = await get(ref(database,"late_notifications"));
-let lateData = [];
-
-if(lateSnapshot && lateSnapshot.exists()){
-  lateSnapshot.forEach(child=>{
-    const data = child.val();
-
-    const now = new Date();
-    const today = now.getFullYear() + "-" +
-    String(now.getMonth()+1).padStart(2,'0') + "-" +
-    String(now.getDate()).padStart(2,'0');
-
-    if(data.date === today){
-      lateData.push(data);
-    }
-  });
-}
-
-// ✅ LOOP START
-for(let room of rooms){
-
-let nextSlot = getNextSlot(currentSlot);
-let currentSubject="No Lecture";
-let currentFaculty="-";
-
-let nextSubject="-";
-let nextFaculty="-";
-
-let status = "Free";
-let color = "#d4edda";
-
-let lecture = null;
-let lectureSlot = null;
-
 const now = new Date();
 const todayDate = now.getFullYear() + "-" +
 String(now.getMonth()+1).padStart(2,'0') + "-" +
 String(now.getDate()).padStart(2,'0');
 
-try {
+for(let room of rooms){
 
-const specialDaySnap = await get(ref(database,
-`classrooms/${room}/specialBookings/${todayDate}`));
+let lecture = null;
+let nextLecture = null;
 
-if(specialDaySnap.exists()){
-  const specialData = specialDaySnap.val();
+// 🔥 1. GET CURRENT LECTURE (SPECIAL FIRST)
+if(currentSlot){
 
-  if(currentSlot && specialData[currentSlot]){
-    lecture = specialData[currentSlot];
-    lectureSlot = currentSlot;
-  } else {
-    const firstSlot = Object.keys(specialData)[0];
-    lecture = specialData[firstSlot];
-    lectureSlot = firstSlot;
-  }
+const specialSnap = await get(ref(database,
+`classrooms/${room}/specialBookings/${todayDate}/${currentSlot}`));
 
-  if(!lectureSlot){
-    lectureSlot = currentSlot;
-  }
-}
-
-if(lecture && !currentSlot){
-  nextSubject = lecture.subject;
-  nextFaculty = lecture.faculty;
-  nextSlot = lectureSlot;
-}
-
-if(!lecture && currentSlot){
+if(specialSnap.exists()){
+  lecture = specialSnap.val();
+}else{
   const normalSnap = await get(ref(database,
   `classrooms/${room}/timetable/${day}/${currentSlot}`));
 
   if(normalSnap.exists()){
     lecture = normalSnap.val();
-    lectureSlot = currentSlot;
   }
 }
+}
 
-} catch(e){}
+// 🔥 2. GET NEXT SLOT
+const nextSlot = getNextSlot(currentSlot);
 
-// STATUS
-if(lecture){
-  currentSubject = lecture.subject || "No Lecture";
-  currentFaculty = lecture.faculty || "-";
+if(nextSlot){
 
-  if(!currentSlot){
-    status = "Booked";
+const specialNextSnap = await get(ref(database,
+`classrooms/${room}/specialBookings/${todayDate}/${nextSlot}`));
+
+if(specialNextSnap.exists()){
+  nextLecture = specialNextSnap.val();
+}else{
+  const normalNextSnap = await get(ref(database,
+  `classrooms/${room}/timetable/${day}/${nextSlot}`));
+
+  if(normalNextSnap.exists()){
+    nextLecture = normalNextSnap.val();
   }
+}
+}
 
-  const liveSnap = await get(ref(database,`classrooms/${room}/live`));
+// 🔥 DEFAULT VALUES
+let currentSubject = lecture ? lecture.subject : "No Lecture";
+let currentFaculty = lecture ? lecture.faculty : "-";
+
+let nextSubject = nextLecture ? nextLecture.subject : "-";
+let nextFaculty = nextLecture ? nextLecture.faculty : "-";
+
+// 🔥 STATUS LOGIC (CLEAN)
+let status = "Free";
+let color = "#d4edda"; // green
+
+const liveSnap = await get(ref(database,`classrooms/${room}/live`));
+
+if(lecture){
 
   if(liveSnap.exists()){
     const live = liveSnap.val();
+
     if(live.status === "Ongoing"){
       status = "Ongoing";
+      color = "#f8d7da"; // 🔴 red
+
       currentSubject = live.subject || currentSubject;
       currentFaculty = live.faculty || currentFaculty;
     }
-  }
-
-  if(currentSlot && status !== "Ongoing"){
+  }else{
+    // 🔥 lecture exists but teacher not entered
     status = "Waiting";
+    color = "#ffeeba"; // 🟡 yellow
   }
+
 }
 
-// CANCEL
-if(lectureSlot){
-  const cancelSnap = await get(ref(database,
-  `cancelled_lectures/${todayDate}/${room}/${lectureSlot}`));
-
-  if(cancelSnap.exists() && status !== "Ongoing"){
-    status = "Cancelled";
-  }
-}
-
-// LATE
-for(let late of lateData){
-  if(late.room === room && late.slot === lectureSlot){
-    status = "Late (" + late.minutes + "m)";
-  }
-}
-
-// COLOR
-if(typeof status === "string" && status.includes("Late")){
-  color = "#ffeeba";
-}
-else if(status === "Ongoing"){
-  color = "#f8d7da";
-}
-else if(status === "Waiting" || status === "Booked"){
-  color = "#d4edda"; // green (Free jaisa)
-}
-else{
-  color = "#d4edda";
-}
-
-// NEXT
-if(nextSlot && !lecture){
-  const nextSnap = await get(ref(database,
-  `classrooms/${room}/timetable/${day}/${nextSlot}`));
-
-  if(nextSnap.exists()){
-    nextSubject = nextSnap.val().subject;
-    nextFaculty = nextSnap.val().faculty;
-  }
-}
-
-let lateMessage = "";
-for(let late of lateData){
-  if(late.room === room && late.slot === lectureSlot){
-    lateMessage = `⚠ ${late.teacher} is late by ${late.minutes} mins`;
-  }
-}
-
-// UI
+// 🔥 UI
 container.innerHTML+=`
 <div onclick="openRoom('${room}')"
 style="
@@ -733,7 +660,6 @@ onmouseout="this.style.transform='scale(1)'">
 <h2>${room}</h2>
 
 <p><b>Status:</b> ${status}</p>
-${lateMessage ? `<p style="color:red;"><b>${lateMessage}</b></p>` : ""}
 
 <hr>
 
@@ -750,10 +676,9 @@ ${lateMessage ? `<p style="color:red;"><b>${lateMessage}</b></p>` : ""}
 </div>
 `;
 
-} // ✅ LOOP END
+} // loop end
 
-} // ✅ FUNCTION END
-
+}
 
 
 /* TEACHER LOGIN */
@@ -857,22 +782,22 @@ container.innerHTML = "Loading...";
 
 const day = getCurrentDay();
 const now = new Date();
-const todayDate = now.getFullYear() + "-" +
 
+const todayDate = now.getFullYear() + "-" +
 String(now.getMonth()+1).padStart(2,'0') + "-" +
 String(now.getDate()).padStart(2,'0');
 
-const currentSlot = getCurrentTimeSlot(); // ✅ separate line
+const currentSlot = getCurrentTimeSlot();
 
-// 🔹 Get timetable + special
+// 🔹 Fetch data
 const timetableSnap = await get(ref(database,
 `classrooms/${room}/timetable/${day}`));
 
 const specialSnap = await get(ref(database,
 `classrooms/${room}/specialBookings/${todayDate}`));
 
-let timetableData = timetableSnap.exists() ? timetableSnap.val() : {};
-let specialData = specialSnap.exists() ? specialSnap.val() : {};
+const timetableData = timetableSnap.exists() ? timetableSnap.val() : {};
+const specialData = specialSnap.exists() ? specialSnap.val() : {};
 
 container.innerHTML = "";
 
@@ -880,49 +805,69 @@ const slotOrder = ["s1","s2","s3","s4","s5","s6","s7","s8"];
 
 let hasLecture = false;
 
-// 🔥 LOOP ALL SLOTS (IMPORTANT)
+// 🔥 LOOP
 for(let slot of slotOrder){
 
-  let lecture = null;
+let lecture = null;
+let isSpecial = false;
 
-  // 🔥 PRIORITY: special booking
-const lower = slot.toLowerCase();
-const upper = slot.toUpperCase();
-
-if(specialData[lower] || specialData[upper]){
-  lecture = specialData[lower] || specialData[upper];
+// ✅ PRIORITY: special
+if(specialData[slot]){
+  lecture = specialData[slot];
+  isSpecial = true;
 }
-else if(timetableData[lower] || timetableData[upper]){
-  lecture = timetableData[lower] || timetableData[upper];
-}
-
-  if(lecture){
-
-  // 🔥 OUTSIDE HOURS:
-
-    hasLecture = true;
-
-    let tag = specialData[slot] ? " (Booked)" : "";
-
-    container.innerHTML += `
-      <div style="
-        padding:10px;
-        margin:6px;
-        border-radius:6px;
-        background:#f8f9fa;
-        border-left:5px solid ${specialData[slot] ? "#17a2b8" : "#007bff"};
-      ">
-        <b>${slotMap[slot]}</b><br>
-        ${lecture.subject} (${lecture.faculty}) ${tag}
-      </div>
-    `;
-  }
+else if(timetableData[slot]){
+  lecture = timetableData[slot];
 }
 
-// 🔥 FINAL CHECK
+// ❌ skip if no lecture
+if(!lecture) continue;
+
+hasLecture = true;
+
+// 🔥 STYLE BASED ON TIME
+let bg = "#e9ecef"; // past
+let border = "#6c757d";
+
+if(slot === currentSlot){
+  bg = "#fff3cd";        // 🟡 current
+  border = "#ffc107";
+}
+else if(slotOrder.indexOf(slot) > slotOrder.indexOf(currentSlot)){
+  bg = "#d1ecf1";        // 🔵 future
+  border = "#17a2b8";
+}
+
+// 🔥 SPECIAL OVERRIDE STYLE
+if(isSpecial){
+  border = "#6f42c1";   // 🟣 purple
+}
+
+// 🔥 UI
+container.innerHTML += `
+<div style="
+padding:12px;
+margin:8px;
+border-radius:8px;
+background:${bg};
+border-left:6px solid ${border};
+transition:0.2s;
+">
+
+<b>${slotMap[slot]}</b><br>
+${lecture.subject} (${lecture.faculty})
+
+${isSpecial ? `<div style="color:#6f42c1; font-size:12px;">Special Booking</div>` : ""}
+
+</div>
+`;
+}
+
+// 🔥 EMPTY
 if(!hasLecture){
-  container.innerHTML = "No lectures scheduled today";
+container.innerHTML = "No lectures scheduled today";
 }
+
 }
 
 window.closeRoom=function(){

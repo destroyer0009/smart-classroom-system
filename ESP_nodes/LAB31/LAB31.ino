@@ -139,13 +139,14 @@ String getCurrentSlot() {
 
   if(current >= 510 && current < 570) return "s1";   // 8:30–9:30
   if(current >= 570 && current < 630) return "s2";   // 9:30–10:30
-
+  if(current >= 630 && current < 640) return "";
   // ❌ BREAK (10:30–10:40)
 
   if(current >= 640 && current < 700) return "s3";   // 10:40–11:40
   if(current >= 700 && current < 760) return "s4";   // 11:40–12:40
 
   // ❌ LUNCH (12:40–1:20)
+  if(current >= 760 && current < 800) return "";
 
   if(current >= 800 && current < 860) return "s5";   // 13:20–14:20
   if(current >= 860 && current < 920) return "s6";   // 14:20–15:20
@@ -222,10 +223,6 @@ void loop() {
     Serial.println("SLOT: " + slot);
 
       // 🔥 ALWAYS SHOW CURRENT LECTURE (NO BUTTON NEEDED)
-    lcd.setCursor(0,0);
-    lcd.print("                ");
-    lcd.setCursor(0,0);
-    lcd.print(ROOM_NAME);
 
     if(slot == ""){
       updateLCD(ROOM_NAME, "No Active Slot");
@@ -247,7 +244,7 @@ return;
     // 🔥 CHECK SPECIAL BOOKING
     String specialPath = "classrooms/" + String(ROOM_NAME) + "/specialBookings/" + todayDate + "/" + slot + "/faculty";
 
-    if(Firebase.RTDB.getString(&fbdo, specialPath) && fbdo.stringData() != ""){
+    if(Firebase.RTDB.get(&fbdo, specialPath) && fbdo.dataType() == "string" && fbdo.stringData() != ""){
       scheduledFaculty = fbdo.stringData();
 
       String subPath = "classrooms/" + String(ROOM_NAME) + "/specialBookings/" + todayDate + "/" + slot + "/subject";
@@ -343,7 +340,7 @@ updateLCD(line1, line2);
 String specialPath = "classrooms/" + String(ROOM_NAME) + 
 "/specialBookings/" + todayDate + "/" + slot + "/faculty";
 
-if(Firebase.RTDB.getString(&fbdo, specialPath) && fbdo.stringData() != ""){
+if(Firebase.RTDB.get(&fbdo, specialPath) && fbdo.dataType() == "string" && fbdo.stringData() != ""){
   scheduledFaculty = fbdo.stringData();
 
   String subPath = "classrooms/" + String(ROOM_NAME) + 
@@ -470,14 +467,15 @@ else{
     else if(!isInside && scannedFaculty == scheduledFaculty){
       String cancelPath = "cancelled_lectures/" + todayDate + "/" + String(ROOM_NAME) + "/" + slot;
 
-    if(slot != "" && scheduledFaculty != "" &&
-      Firebase.RTDB.getString(&fbdo, cancelPath) &&
-      fbdo.stringData() == "Manually Cancelled"){
-      updateLCD("Lecture","Cancelled");
-      beepInvalid();
-      scanMode = false;
-      return;
-    }
+if(slot != "" && scheduledFaculty != "" &&
+   Firebase.RTDB.get(&fbdo, cancelPath) &&
+   fbdo.dataType() == "string"){
+
+  updateLCD("Lecture","Cancelled");
+  beepInvalid();
+  scanMode = false;
+  return;
+}
 
       // ⏰ 30 MIN WINDOW LOGIC
 
@@ -501,8 +499,10 @@ if(currentMinutes > slotStart + 30 && !isLateAllowed){
 }
 
       // ✅ ORIGINAL ENTRY CODE CONTINUES
-      updateLCD("Lecture","Started");
-      delay(1500);
+      Firebase.RTDB.deleteNode(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live");
+
+  updateLCD("Lecture","Started");
+  delay(1500);
 
       updateLCD("Ongoing", subjectName.substring(0,16));
 
