@@ -47,19 +47,19 @@
       },
       "timetable": {
         "Friday": {
-          "S2": {
+          "s2": {
             "faculty": "RKA",
             "subject": "MSM"
           },
-          "S4": {
+          "s4": {
             "faculty": "RMR",
             "subject": "LBA"
           },
-          "S5": {
+          "s5": {
             "faculty": "SSK",
             "subject": "MDM"
           },
-          "S6": {
+          "s6": {
             "faculty": "SSK",
             "subject": "MDM"
           }
@@ -123,14 +123,6 @@
           }
         },
         "Tuesday": {
-          "S5": {
-            "faculty": "CRJ",
-            "subject": "MT"
-          },
-          "S6": {
-            "faculty": "RKA",
-            "subject": "MM"
-          },
           "s1": {
             "faculty": "JSP",
             "subject": "M3"
@@ -146,6 +138,14 @@
           "s4": {
             "faculty": "NGP",
             "subject": "ADE"
+          },
+          "s5": {
+            "faculty": "CRJ",
+            "subject": "MT"
+          },
+          "s6": {
+            "faculty": "RKA",
+            "subject": "MM"
           }
         },
         "Wednesday": {
@@ -163,27 +163,27 @@
     "CR126": {
       "timetable": {
         "Friday": {
-          "S1": {
+          "s1": {
             "faculty": "EDP",
             "subject": "DIP"
           },
-          "S2": {
+          "s2": {
             "faculty": "RRM",
             "subject": "RBS"
           },
-          "S3": {
+          "s3": {
             "faculty": "EDP",
             "subject": "MEMS"
           },
-          "S4": {
+          "s4": {
             "faculty": "SGA",
             "subject": "DAS"
           },
-          "S5": {
+          "s5": {
             "faculty": "CRJ",
             "subject": "MT"
           },
-          "S6": {
+          "s6": {
             "faculty": "VSJ",
             "subject": "RER"
           }
@@ -237,15 +237,15 @@
           }
         },
         "Tuesday": {
-          "S2": {
+          "s2": {
             "faculty": "SSK",
             "subject": "DSP"
           },
-          "S5": {
+          "s5": {
             "faculty": "SVB",
             "subject": "EE"
           },
-          "S6": {
+          "s6": {
             "faculty": "CRJ",
             "subject": "ED"
           }
@@ -266,35 +266,43 @@
       "live": {
         "status": "Free"
       },
+      "specialBookings": {
+        "2026-04-24": {
+          "s7": {
+            "faculty": "CRJ",
+            "subject": "MT"
+          }
+        }
+      },
       "timetable": {
         "Friday": {
-          "S3": {
+          "s3": {
             "faculty": "RRM",
             "subject": "RBS"
           },
-          "S4": {
+          "s4": {
             "faculty": "NAB",
             "subject": "CAM"
           },
-          "S5": {
+          "s5": {
             "faculty": "NGP",
             "subject": "MP"
           },
-          "S6": {
+          "s6": {
             "faculty": "NGP",
             "subject": "MP"
           },
-          "S7": {
+          "s7": {
             "faculty": "NGP",
             "subject": "MP"
           }
         },
         "Monday": {
-          "S5": {
+          "s5": {
             "faculty": "SSK",
             "subject": "ADE"
           },
-          "S6": {
+          "s6": {
             "faculty": "VSJ",
             "subject": "CAD"
           }
@@ -322,18 +330,6 @@
           }
         },
         "Tuesday": {
-          "S5": {
-            "faculty": "SSK",
-            "subject": "ADE"
-          },
-          "S6": {
-            "faculty": "VSJ",
-            "subject": "CAD"
-          },
-          "S7": {
-            "faculty": "CRJ",
-            "subject": "MT"
-          },
           "s3": {
             "faculty": "RRM",
             "subject": "RBS"
@@ -341,6 +337,18 @@
           "s4": {
             "faculty": "NAB",
             "subject": "CAM"
+          },
+          "s5": {
+            "faculty": "SSK",
+            "subject": "ADE"
+          },
+          "s6": {
+            "faculty": "VSJ",
+            "subject": "CAD"
+          },
+          "s7": {
+            "faculty": "CRJ",
+            "subject": "MT"
           }
         },
         "Wednesday": {
@@ -426,6 +434,20 @@
       }
     }
   },
+  "marks": {
+    "MT": {
+      "Muttahir Gadkair": {
+        "date": "2026-04-23",
+        "midsem": 25,
+        "teacher": "CRJ"
+      },
+      "Sarosh Adurkar": {
+        "date": "2026-04-23",
+        "midsem": 24,
+        "teacher": "CRJ"
+      }
+    }
+  },
   "notice": {
     "current": {
       "-Ons6hp8XAIjQJca2ueD": {
@@ -480,6 +502,10 @@
         "expiry": "2026-04-24T10:30",
         "message": "hello muttu"
       },
+      "-OqzgdL2Wy8iCxvU4B4P": {
+        "expiry": "2026-04-24T19:03",
+        "message": "Hello students"
+      },
       "expiry": "2026-03-16T14:25",
       "message": "gffgfghfghfghfghfghfgfhgfgfghfgf"
     }
@@ -526,11 +552,20 @@
       "status": "approved",
       "teacher": "CRJ",
       "time": "2026-04-10T07:06:45.344Z"
+    },
+    "1776975065726": {
+      "expiry": "2026-04-25T20:11:05.726Z",
+      "message": "✅ Your booking for LAB31 (MT) is APPROVED",
+      "status": "approved",
+      "teacher": "CRJ",
+      "time": "2026-04-23T20:11:05.726Z"
     }
   },
   "teachers": {
     "CKA": {
-      "name": "Ms. C. K. Ambre"
+      "name": "Ms. C. K. Ambre",
+      "password": "MTIzNDU2",
+      "rfid": "478E4A06"
     },
     "CRJ": {
       "name": "Mr. C. R. Jadhav",
@@ -539,7 +574,8 @@
     },
     "EDP": {
       "name": "Mrs. E. Devi Priya",
-      "password": "TlRZME1qTTE="
+      "password": "Nzg5MTIz",
+      "rfid": "3C28FB05"
     },
     "NAB": {
       "name": "Mr. N. A. Bhosale",
@@ -548,31 +584,38 @@
     },
     "NGP": {
       "name": "Prof. N. G. Pardeshi",
-      "password": "Nzg2NTIz"
+      "password": "Nzg2NTIz",
+      "rfid": "713F3E06"
     },
     "RKA": {
       "name": "Mr. R. K. Ambekar",
-      "password": "741258"
+      "password": "NDU2Nzg5",
+      "rfid": "62F5925C"
     },
     "RMR": {
-      "name": "Ms. R. M. Rathod"
+      "name": "Ms. R. M. Rathod",
+      "password": "MjM0NTY3",
+      "rfid": "721DCC5C"
     },
     "RRM": {
       "name": "Mrs. R. R. Mukadam",
-      "password": "852369"
+      "password": "OTg3MTIz",
+      "rfid": "1DBC7CB2101080"
     },
     "SGA": {
       "name": "Dr. S. G. Akojwar",
       "password": "NTk3NjIz",
-      "rfid": ""
+      "rfid": "E339F905"
     },
     "SSK": {
       "name": "Mrs. S. S. Kulkarni",
-      "password": "OTY1",
-      "rfid": ""
+      "password": "OTY1MjM0",
+      "rfid": "7EFDFA05"
     },
     "SVB": {
-      "name": "Mrs. S. V. Bundile"
+      "name": "Mrs. S. V. Bundile",
+      "password": "NjU3MjMx",
+      "rfid": "8205675C"
     },
     "VSJ": {
       "name": "Dr. V. S. Jadhav"
