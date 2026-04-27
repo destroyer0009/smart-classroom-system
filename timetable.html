@@ -5,43 +5,79 @@
 <title>College Timetable</title>
 </head>
 
-<body style="margin:0; font-family:Arial;">
+<body style="margin:0; font-family:Arial; background:#f4f6f9;">
 
+<!-- HEADER -->
 <div style="
 background:#002147;
 color:white;
 padding:20px;
 text-align:center;
 position:relative;
+box-shadow:0 4px 10px rgba(0,0,0,0.2);
 ">
 
-<h2>College Timetable</h2>
+<h2 style="margin:0;">📄 College Timetable</h2>
 
 <button onclick="window.location.href='index.html'" style="
 position:absolute;
 right:20px;
 top:15px;
-padding:8px 16px;
-background:#28a745;
-color:white;
+padding:8px 18px;
+background:white;
+color:#002147;
 border:none;
-border-radius:6px;
+border-radius:8px;
 cursor:pointer;
+font-weight:bold;
+box-shadow:0 3px 8px rgba(0,0,0,0.2);
+transition:0.2s;
 ">
 Home
 </button>
 
 </div>
 
-<div style="padding:20px; text-align:center;">
+<!-- MAIN SECTION -->
+<div style="
+display:flex;
+justify-content:center;
+align-items:center;
+padding:40px 20px;
+">
 
-<h3>📄 Official Timetable</h3>
+<!-- CARD -->
+<div style="
+width:95%;
+max-width:1000px;
+background:white;
+padding:25px;
+border-radius:15px;
+box-shadow:0 8px 25px rgba(0,0,0,0.1);
+text-align:center;
+">
 
+<h3 style="
+color:#002147;
+margin-bottom:20px;
+font-size:20px;
+">
+📘 Official Timetable
+</h3>
+
+<!-- PDF FRAME -->
 <iframe id="pdfFrame"
-width="100%"
-height="600px"
-style="border:none;">
+style="
+width:100%;
+height:650px;
+border:none;
+border-radius:10px;
+box-shadow:0 4px 15px rgba(0,0,0,0.15);
+background:#f8f9fa;
+">
 </iframe>
+
+</div>
 
 </div>
 
@@ -65,7 +101,7 @@ const snap = await get(ref(db,"timetable_pdf/academic"));
 if(snap.exists()){
   document.getElementById("pdfFrame").src = snap.val();
 }else{
-  document.body.innerHTML += "<p>No timetable uploaded</p>";
+  document.body.innerHTML += "<p style='text-align:center; color:red;'>No timetable uploaded</p>";
 }
 
 </script>
