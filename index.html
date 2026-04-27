@@ -967,6 +967,8 @@ window.showStudentMarks = async function(){
 // 🔥 FULL PAGE REPLACE (new screen)
 document.body.innerHTML = `
 
+
+
 <div style="background:#002147; color:white; padding:20px; text-align:center; position:relative;">
 
 <h2>Check Your Marks</h2>
@@ -1058,6 +1060,7 @@ for(let subject in data){
 select.innerHTML += `<option>${subject}</option>`;
 }
 }
+
 
 };
 window.getStudentMarks = async function(){
