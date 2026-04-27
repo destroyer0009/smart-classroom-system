@@ -508,31 +508,33 @@ return days[new Date().getDay()];
 function getCurrentTimeSlot(){
 
   const now=new Date();
-const current=now.getHours()*60+now.getMinutes();
+  const current=now.getHours()*60+now.getMinutes();
 
-const slotRanges=[
+  const slotRanges=[
+    ["s1",8*60+30,9*60+30],
+    ["s2",9*60+30,10*60+40], // extended
+    ["s3",10*60+40,11*60+40],
+    ["s4",11*60+40,12*60+40],
+    ["s5",13*60+20,14*60+20],
+    ["s6",14*60+20,15*60+20],
+    ["s7",15*60+20,16*60+20],
+    ["s8",16*60+20,17*60+20]
+  ];
 
-["s1",8*60+30,9*60+30],
-["s2",9*60+30,10*60+30],
-["s3",10*60+40,11*60+40],
-["s4",11*60+40,12*60+40],
-["s5",13*60+20,14*60+20],
-["s6",14*60+20,15*60+20],
-["s7",15*60+20,16*60+20],
-["s8",16*60+20,17*60+20]
+  for(let slot of slotRanges){
+    if(current>=slot[1] && current<=slot[2]){
+      return slot[0];
+    }
+  }
 
-];
+  // 🔥 fallback: return last slot before current time
+  for(let i=slotRanges.length-1;i>=0;i--){
+    if(current > slotRanges[i][1]){
+      return slotRanges[i][0];
+    }
+  }
 
-for(let slot of slotRanges){
-
-if(current>=slot[1] && current<=slot[2]){
-return slot[0];
-}
-
-}
-
-return null;
-
+  return null;
 }
 
 
@@ -558,6 +560,18 @@ container.innerHTML="";
 
 const day=getCurrentDay();
 const currentSlot=getCurrentTimeSlot();
+
+const nowMinutes = new Date().getHours()*60 + new Date().getMinutes();
+
+const isRealSlot =
+  (nowMinutes >= 510 && nowMinutes <= 570) ||   // s1
+  (nowMinutes >= 570 && nowMinutes <= 640) ||   // s2
+  (nowMinutes >= 640 && nowMinutes <= 700) ||   // s3
+  (nowMinutes >= 700 && nowMinutes <= 760) ||   // s4
+  (nowMinutes >= 800 && nowMinutes <= 860) ||   // s5
+  (nowMinutes >= 860 && nowMinutes <= 920) ||   // s6
+  (nowMinutes >= 920 && nowMinutes <= 980) ||   // s7
+  (nowMinutes >= 980 && nowMinutes <= 1040);    // s8
 
 const now = new Date();
 const todayDate = now.getFullYear() + "-" +
@@ -608,38 +622,46 @@ if(specialNextSnap.exists()){
 }
 
 // 🔥 DEFAULT VALUES
-let currentSubject = lecture ? lecture.subject : "No Lecture";
-let currentFaculty = lecture ? lecture.faculty : "-";
+let currentSubject = (lecture && isRealSlot) ? lecture.subject : "No Lecture";
+let currentFaculty = (lecture && isRealSlot) ? lecture.faculty : "-";
 
-let nextSubject = nextLecture ? nextLecture.subject : "-";
-let nextFaculty = nextLecture ? nextLecture.faculty : "-";
+let nextSubject = (isRealSlot && nextLecture) ? nextLecture.subject : "-";
+let nextFaculty = (isRealSlot && nextLecture) ? nextLecture.faculty : "-";
 
 // 🔥 STATUS LOGIC (CLEAN)
 let status = "Free";
-let color = "#d4edda"; // green
+let color = "#d4edda";
+
+// 🔥 BREAK TIME CHECK
+if(!isRealSlot){
+  status = "Break";
+  color = "#e2e3e5";
+}// green
 
 const liveSnap = await get(ref(database,`classrooms/${room}/live`));
 
-if(lecture){
+if(lecture && isRealSlot){
 
-  if(liveSnap.exists()){
+  if(liveSnap.exists() && liveSnap.val().status === "Ongoing"){
+
     const live = liveSnap.val();
 
-    if(live.status === "Ongoing"){
-      status = "Ongoing";
-      color = "#f8d7da"; // 🔴 red
+    status = "Ongoing";
+    color = "#f8d7da";
 
-      currentSubject = live.subject || currentSubject;
-      currentFaculty = live.faculty || currentFaculty;
-    }
-  }else{
-    // 🔥 lecture exists but teacher not entered
+    currentSubject = live.subject || currentSubject;
+    currentFaculty = live.faculty || currentFaculty;
+
+  } else {
+
     status = "Waiting";
-    color = "#ffeeba"; // 🟡 yellow
+    color = "#ffeeba";
+
   }
-
 }
-
+console.log("DAY:", day);
+console.log("SLOT:", currentSlot);
+console.log("ROOM:", room);
 // 🔥 UI
 container.innerHTML+=`
 <div onclick="openRoom('${room}')"
@@ -665,17 +687,17 @@ onmouseout="this.style.transform='scale(1)'">
 
 <p><b>Current:</b> ${currentSubject}</p>
 <p><b>Faculty:</b> ${currentFaculty}</p>
-<p><b>Time:</b> ${currentSlot ? slotMap[currentSlot] : "Outside Class Hours"}</p>
+<p><b>Time:</b> ${isRealSlot ? slotMap[currentSlot] : "Break Time"}</p>
 
 <hr>
 
 <p><b>Next:</b> ${nextSubject}</p>
 <p><b>Faculty:</b> ${nextFaculty}</p>
-<p><b>Time:</b> ${nextSlot ? slotMap[nextSlot] : "-"}</p>
+<p><b>Time:</b> ${isRealSlot && nextSlot ? slotMap[nextSlot] : "-"}</p>
 
 </div>
 `;
-
+console.log("LECTURE:", lecture);
 } // loop end
 
 }

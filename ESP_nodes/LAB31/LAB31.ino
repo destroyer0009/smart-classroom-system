@@ -6,7 +6,7 @@
 #include <Firebase_ESP_Client.h>
 #include <time.h>
 
-#define ROOM_NAME "LAB31"
+#define ROOM_NAME "CR126"
 
 // WIFI 
 #define WIFI_SSID "group5"
@@ -36,6 +36,14 @@ String currentFaculty = "";
 String currentSubject = "";
 String lastLine1 = "";
 String lastLine2 = "";
+
+FirebaseJson teachersCache;
+bool teachersLoaded = false;
+
+String cachedSlot = "";
+String cachedFaculty = "";
+String cachedSubject = "";
+String cachedDate = "";
     FirebaseJson lateJson;
     unsigned long lastLateFetch = 0;
 unsigned long lastScanTime = 0;
@@ -97,13 +105,17 @@ int getSlotStartMinutes(String slot) {
 // 🔍 UID → FACULTY
 String findFacultyByUID(String uid){
 
-  FirebaseJson json;
-  if (!Firebase.RTDB.getJSON(&fbdo, "teachers")) {
-  Serial.println("Teacher fetch failed");
-  return "";
-}
+  if(!teachersLoaded){
+    if (Firebase.RTDB.getJSON(&fbdo, "teachers")) {
+      teachersCache = fbdo.jsonObject();
+      teachersLoaded = true;
+    } else {
+      Serial.println("Teacher fetch failed");
+      return "";
+    }
+  }
 
-  json = fbdo.jsonObject();
+  FirebaseJson &json = teachersCache;
 
   size_t count = json.iteratorBegin();
 
@@ -131,29 +143,29 @@ String findFacultyByUID(String uid){
   return "";
 }
 
+
 String getCurrentSlot() {
   time_t now = time(nullptr);
   struct tm *t = localtime(&now);
 
   int current = t->tm_hour * 60 + t->tm_min;
 
-  if(current >= 510 && current < 570) return "s1";   // 8:30–9:30
-  if(current >= 570 && current < 630) return "s2";   // 9:30–10:30
-  if(current >= 630 && current < 640) return "";
-  // ❌ BREAK (10:30–10:40)
+  if(current >= 510 && current < 570) return "s1";
+  if(current >= 570 && current < 630) return "s2";
 
-  if(current >= 640 && current < 700) return "s3";   // 10:40–11:40
-  if(current >= 700 && current < 760) return "s4";   // 11:40–12:40
+  // if(current >= 630 && current < 640) return "break";
 
-  // ❌ LUNCH (12:40–1:20)
-  if(current >= 760 && current < 800) return "";
+  if(current >= 640 && current < 700) return "s3";
+  if(current >= 700 && current < 760) return "s4";
 
-  if(current >= 800 && current < 860) return "s5";   // 13:20–14:20
-  if(current >= 860 && current < 920) return "s6";   // 14:20–15:20
-  if(current >= 920 && current < 980) return "s7";   // 15:20–16:20
-  if(current >= 980 && current < 1040) return "s8";  // 16:20–17:20
+  if(current >= 760 && current < 800) return "lunch";
 
-  return "";  // break / outside time
+  if(current >= 800 && current < 860) return "s5";
+  if(current >= 860 && current < 920) return "s6";
+  if(current >= 920 && current < 980) return "s7";
+  if(current >= 980 && current < 1040) return "s8";
+
+  return "none";
 }
 void setup() {
 
@@ -193,7 +205,7 @@ void setup() {
     Firebase.reconnectWiFi(true);
 
     // 🔴 CLEAN TIME CODE
-    configTime(0, 0, "pool.ntp.org");
+    configTime(19800, 0, "pool.ntp.org");
     Serial.print("Syncing time");
 
     time_t now = time(nullptr);
@@ -215,70 +227,88 @@ void loop() {
 
     String day = getCurrentDay();
     String slot = getCurrentSlot();
+if(WiFi.status() != WL_CONNECTED){
+  Serial.println("WiFi Lost - Running on Cache");
+  Firebase.RTDB.deleteNode(&fbdo, 
+  "classrooms/" + String(ROOM_NAME) + "/live");
+}
+    time_t nowDate = time(nullptr);
+struct tm *t = localtime(&nowDate);
 
-    String scheduledFaculty = "";
-    String subjectName = "";
+String todayDate = String(t->tm_year + 1900) + "-";
+todayDate += (t->tm_mon + 1 < 10 ? "0" : "") + String(t->tm_mon + 1) + "-";
+todayDate += (t->tm_mday < 10 ? "0" : "") + String(t->tm_mday);
+
 
     Serial.println("DAY: " + day);
     Serial.println("SLOT: " + slot);
 
       // 🔥 ALWAYS SHOW CURRENT LECTURE (NO BUTTON NEEDED)
 
-    if(slot == ""){
+    if(slot == "lunch" || slot == "none"){
       updateLCD(ROOM_NAME, "No Active Slot");
       scanMode = false;
 return;
     }
 
-    // 📅 DATE
-    time_t nowDate = time(nullptr);
-    struct tm *t = localtime(&nowDate);
+if(slot != cachedSlot || todayDate != cachedDate){
 
-    String todayDate = String(t->tm_year + 1900) + "-";
-    todayDate += (t->tm_mon + 1 < 10 ? "0" : "") + String(t->tm_mon + 1) + "-";
-    todayDate += (t->tm_mday < 10 ? "0" : "") + String(t->tm_mday);
+  Serial.println("🔄 Fetching from Firebase...");
 
-    scheduledFaculty = "";
-    subjectName = "";
+  cachedSlot = slot;
+  cachedDate = todayDate;
 
-    // 🔥 CHECK SPECIAL BOOKING
-    String specialPath = "classrooms/" + String(ROOM_NAME) + "/specialBookings/" + todayDate + "/" + slot + "/faculty";
+  cachedFaculty = "";
+  cachedSubject = "";
 
-    if(Firebase.RTDB.get(&fbdo, specialPath) && fbdo.dataType() == "string" && fbdo.stringData() != ""){
-      scheduledFaculty = fbdo.stringData();
+  String specialPath = "classrooms/" + String(ROOM_NAME) + 
+  "/specialBookings/" + todayDate + "/" + slot + "/faculty";
 
-      String subPath = "classrooms/" + String(ROOM_NAME) + "/specialBookings/" + todayDate + "/" + slot + "/subject";
-      if(Firebase.RTDB.getString(&fbdo, subPath)){
-        subjectName = fbdo.stringData();
-      }
+  if(Firebase.RTDB.get(&fbdo, specialPath) && 
+     fbdo.dataType() == "string" && fbdo.stringData() != ""){
+
+    cachedFaculty = fbdo.stringData();
+
+    String subPath = "classrooms/" + String(ROOM_NAME) + 
+    "/specialBookings/" + todayDate + "/" + slot + "/subject";
+
+    if(Firebase.RTDB.getString(&fbdo, subPath)){
+      cachedSubject = fbdo.stringData();
     }
-    else{
-      // 🔁 TIMETABLE
-      String path = "classrooms/" + String(ROOM_NAME) + "/timetable/" + day + "/" + slot + "/faculty";
+  }
+  else{
+    String path = "classrooms/" + String(ROOM_NAME) + 
+    "/timetable/" + day + "/" + slot + "/faculty";
 
-      if(Firebase.RTDB.getString(&fbdo, path) && fbdo.stringData() != ""){
-        scheduledFaculty = fbdo.stringData();
-
-      String subjectPath = "classrooms/" + String(ROOM_NAME) + "/timetable/" + day + "/" + slot + "/subject";
-        if(Firebase.RTDB.getString(&fbdo, subjectPath) && fbdo.stringData() != ""){
-          subjectName = fbdo.stringData();
-        }
-      }
+    if(Firebase.RTDB.getString(&fbdo, path)){
+      cachedFaculty = fbdo.stringData();
     }
+
+    String subjectPath = "classrooms/" + String(ROOM_NAME) + 
+    "/timetable/" + day + "/" + slot + "/subject";
+
+    if(Firebase.RTDB.getString(&fbdo, subjectPath)){
+      cachedSubject = fbdo.stringData();
+    }
+  }
+}
+
+String scheduledFaculty = cachedFaculty;
+String subjectName = cachedSubject;
 
     // 📺 DISPLAY
-    String line1 = ROOM_NAME;
+String line1 = ROOM_NAME;
 String line2 = "";
 
 if(isInside){
   line2 = currentSubject;
 }
-else if(scheduledFaculty != ""){
+else if(slot != "none" && slot != "lunch" && scheduledFaculty != ""){
   if(subjectName != ""){
-  line2 = subjectName;
-}else{
-  line2 = "Lecture";
-}
+    line2 = subjectName;
+  } else {
+    line2 = "Lecture";
+  }
 }
 else{
   line2 = "No Lecture";
@@ -301,7 +331,7 @@ updateLCD(line1, line2);
 
       slot = getCurrentSlot();   // 🔥 ADD THIS
 
-      if(slot == ""){
+      if(slot == "lunch" || slot == "none"){
         lcd.clear();
         lcd.print("Outside Time");
         scanMode = false;
@@ -323,6 +353,7 @@ updateLCD(line1, line2);
     }
 
     uid.toUpperCase();
+    Serial.println(uid);
 
     Serial.println("UID: " + uid);
 
@@ -334,40 +365,40 @@ updateLCD(line1, line2);
     int currentMinutes = tNow->tm_hour * 60 + tNow->tm_min;
     int slotStart = getSlotStartMinutes(slot);
     bool isLateAllowed = false;
-// 🔥 RE-FETCH DATA FOR SCAN (VERY IMPORTANT)
+// // 🔥 RE-FETCH DATA FOR SCAN (VERY IMPORTANT)
 
-// Check special booking again
-String specialPath = "classrooms/" + String(ROOM_NAME) + 
-"/specialBookings/" + todayDate + "/" + slot + "/faculty";
+// // Check special booking again
+// String specialPath = "classrooms/" + String(ROOM_NAME) + 
+// "/specialBookings/" + todayDate + "/" + slot + "/faculty";
 
-if(Firebase.RTDB.get(&fbdo, specialPath) && fbdo.dataType() == "string" && fbdo.stringData() != ""){
-  scheduledFaculty = fbdo.stringData();
+// if(Firebase.RTDB.get(&fbdo, specialPath) && fbdo.dataType() == "string" && fbdo.stringData() != ""){
+//   cachedFaculty = fbdo.stringData();
 
-  String subPath = "classrooms/" + String(ROOM_NAME) + 
-  "/specialBookings/" + todayDate + "/" + slot + "/subject";
+//   String subPath = "classrooms/" + String(ROOM_NAME) + 
+//   "/specialBookings/" + todayDate + "/" + slot + "/subject";
 
-  if(Firebase.RTDB.getString(&fbdo, subPath)){
-    subjectName = fbdo.stringData();
-  }
-}
-else{
-  // fallback to timetable
-  String path = "classrooms/" + String(ROOM_NAME) + 
-  "/timetable/" + day + "/" + slot + "/faculty";
+//   if(Firebase.RTDB.getString(&fbdo, subPath)){
+//     cachedSubject = fbdo.stringData();
+//   }
+// }
+// else{
+//   // fallback to timetable
+//   String path = "classrooms/" + String(ROOM_NAME) + 
+//   "/timetable/" + day + "/" + slot + "/faculty";
 
-  if(Firebase.RTDB.getString(&fbdo, path)){
-    scheduledFaculty = fbdo.stringData();
-  }
+//   if(Firebase.RTDB.getString(&fbdo, path)){
+//     cachedFaculty = fbdo.stringData();
+//   }
 
-  String subjectPath = "classrooms/" + String(ROOM_NAME) + 
-  "/timetable/" + day + "/" + slot + "/subject";
+//   String subjectPath = "classrooms/" + String(ROOM_NAME) + 
+//   "/timetable/" + day + "/" + slot + "/subject";
 
-  if(Firebase.RTDB.getString(&fbdo, subjectPath)){
-    subjectName = fbdo.stringData();
-  }
-}
+//   if(Firebase.RTDB.getString(&fbdo, subjectPath)){
+//     cachedSubject = fbdo.stringData();
+//   }
+// }
 
-   if(scheduledFaculty == ""){
+   if(cachedFaculty == ""){
   updateLCD("No Lecture", "Now");
   scanMode = false;
   return;
@@ -429,7 +460,7 @@ else{
         Serial.println("----------");
         Serial.println("Day: " + day);
         Serial.println("Slot: " + slot);
-        Serial.println("Scheduled: " + scheduledFaculty);
+        Serial.println("Scheduled: " + cachedFaculty);
         Serial.println("Scanned: " + scannedFaculty);
         Serial.println("----------");
 
@@ -464,10 +495,10 @@ else{
 
     // ✅ ENTRY
 
-    else if(!isInside && scannedFaculty == scheduledFaculty){
+    else if(!isInside && scannedFaculty == cachedFaculty){
       String cancelPath = "cancelled_lectures/" + todayDate + "/" + String(ROOM_NAME) + "/" + slot;
 
-if(slot != "" && scheduledFaculty != "" &&
+if(slot != "lunch" && slot != "none" && cachedFaculty != "" &&
    Firebase.RTDB.get(&fbdo, cancelPath) &&
    fbdo.dataType() == "string"){
 
@@ -504,14 +535,14 @@ if(currentMinutes > slotStart + 30 && !isLateAllowed){
   updateLCD("Lecture","Started");
   delay(1500);
 
-      updateLCD("Ongoing", subjectName.substring(0,16));
+      updateLCD("Ongoing", cachedSubject.substring(0,16));
 
       beepValid();
 
       isInside = true;
       currentFaculty = scannedFaculty;
-      if(subjectName != ""){
-        currentSubject = subjectName;
+      if(cachedSubject != ""){
+        currentSubject = cachedSubject;
       } else {
         currentSubject = "Lecture";
       }
@@ -633,7 +664,7 @@ if(currentMinutes > slotStart + 30 && !isLateAllowed){
       }
       String slotCheck = getCurrentSlot();
 
-    if(slotCheck == ""){
+    if(slotCheck == "lunch" || slotCheck == "none"){
       Firebase.RTDB.deleteNode(&fbdo, 
       "classrooms/" + String(ROOM_NAME) + "/live");
     }
