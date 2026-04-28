@@ -642,15 +642,33 @@ const liveSnap = await get(ref(database,`classrooms/${room}/live`));
 
 if(lecture && isRealSlot){
 
-  if(liveSnap.exists() && liveSnap.val().status === "Ongoing"){
+  if(liveSnap.exists()){
 
     const live = liveSnap.val();
+    const nowTime = Date.now();
 
-    status = "Ongoing";
-    color = "#f8d7da";
+    const MAX_DURATION = 70 * 60 * 1000; // 70 minutes
 
-    currentSubject = live.subject || currentSubject;
-    currentFaculty = live.faculty || currentFaculty;
+    const isValid =
+      live.status === "Ongoing" &&
+      live.slot === currentSlot &&
+      live.timestamp &&                        // 🔥 safety check
+      (nowTime - live.timestamp) < MAX_DURATION;
+
+    if(isValid){
+
+      status = "Ongoing";
+      color = "#f8d7da";
+
+      currentSubject = live.subject || currentSubject;
+      currentFaculty = live.faculty || currentFaculty;
+
+    } else {
+
+      status = "Waiting";
+      color = "#ffeeba";
+
+    }
 
   } else {
 
@@ -1133,7 +1151,7 @@ window.logoutAdmin = function(){
 }
 window.addEventListener("DOMContentLoaded", () => {
   loadRooms();
-  setInterval(loadRooms,60000);
+  setInterval(loadRooms,10000);
 });
 </script>
 

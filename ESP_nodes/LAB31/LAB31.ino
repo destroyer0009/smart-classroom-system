@@ -228,9 +228,8 @@ void loop() {
     String day = getCurrentDay();
     String slot = getCurrentSlot();
 if(WiFi.status() != WL_CONNECTED){
-  Serial.println("WiFi Lost - Running on Cache");
-  Firebase.RTDB.deleteNode(&fbdo, 
-  "classrooms/" + String(ROOM_NAME) + "/live");
+  Serial.println("WiFi Lost - Running Offline");
+  return;
 }
     time_t nowDate = time(nullptr);
 struct tm *t = localtime(&nowDate);
@@ -250,6 +249,15 @@ todayDate += (t->tm_mday < 10 ? "0" : "") + String(t->tm_mday);
       scanMode = false;
 return;
     }
+
+    static String lastSlot = "";
+
+if(slot != lastSlot && lastSlot != ""){
+  Firebase.RTDB.deleteNode(&fbdo, 
+  "classrooms/" + String(ROOM_NAME) + "/live");
+}
+
+lastSlot = slot;
 
 if(slot != cachedSlot || todayDate != cachedDate){
 
@@ -557,13 +565,19 @@ if(currentMinutes > slotStart + 30 && !isLateAllowed){
     // Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/subject", subject);
     String basePath = String("classrooms/") + ROOM_NAME + "/live/";
 
+    time_t now;
+    time(&now);
+
+    long long timestamp = (long long)now * 1000;   // 🔥 convert to milliseconds
+
     Firebase.RTDB.setString(&fbdo, basePath + "status", "Ongoing");
     Firebase.RTDB.setString(&fbdo, basePath + "subject", currentSubject);
     Firebase.RTDB.setString(&fbdo, basePath + "faculty", scannedFaculty);
     Firebase.RTDB.setString(&fbdo, basePath + "slot", slot);
+    Firebase.RTDB.setDouble(&fbdo, basePath + "timestamp", timestamp); // 🔥 FIX
 
-      Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/current_faculty", scannedFaculty);
-      Firebase.RTDB.setInt(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/startTime", time(nullptr));
+    Firebase.RTDB.setString(&fbdo, 
+    "classrooms/" + String(ROOM_NAME) + "/current_faculty", scannedFaculty);
 
       FirebaseJson logJson;
 
@@ -601,15 +615,17 @@ if(currentMinutes > slotStart + 30 && !isLateAllowed){
       time_t currentTime = time(nullptr);
       struct tm *t = localtime(&currentTime);
 
-      Firebase.RTDB.getInt(&fbdo,
-      "classrooms/" + String(ROOM_NAME) + "/live/startTime");
+      long long timestamp = 0;
 
-      int startTime = fbdo.intData();
+      if(Firebase.RTDB.getDouble(&fbdo,
+      "classrooms/" + String(ROOM_NAME) + "/live/timestamp")){
 
-      if(currentTime - startTime < 1800){
-        Serial.println("Left Early");
+        timestamp = (long long)(fbdo.doubleData() / 1000);
       }
 
+      if(timestamp > 0 && (currentTime - timestamp < 1800)){
+        Serial.println("Left Early");
+      }
       isInside = false;
       currentFaculty = "";
       currentSubject = "";
