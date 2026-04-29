@@ -511,18 +511,18 @@ function getCurrentTimeSlot(){
   const current=now.getHours()*60+now.getMinutes();
 
   const slotRanges=[
-    ["s1",8*60+30,9*60+30],
-    ["s2",9*60+30,10*60+40], // extended
-    ["s3",10*60+40,11*60+40],
-    ["s4",11*60+40,12*60+40],
-    ["s5",13*60+20,14*60+20],
-    ["s6",14*60+20,15*60+20],
-    ["s7",15*60+20,16*60+20],
-    ["s8",16*60+20,17*60+20]
-  ];
+  ["s1",510,570],
+  ["s2",570,630],
+  ["s3",640,700],
+  ["s4",700,760],
+  ["s5",800,860],
+  ["s6",860,920],
+  ["s7",920,980],
+  ["s8",980,1040]
+];
 
   for(let slot of slotRanges){
-    if(current>=slot[1] && current<=slot[2]){
+    if(current >= slot[1] && current < slot[2]){
       return slot[0];
     }
   }
@@ -564,14 +564,14 @@ const currentSlot=getCurrentTimeSlot();
 const nowMinutes = new Date().getHours()*60 + new Date().getMinutes();
 
 const isRealSlot =
-  (nowMinutes >= 510 && nowMinutes <= 570) ||   // s1
-  (nowMinutes >= 570 && nowMinutes <= 640) ||   // s2
-  (nowMinutes >= 640 && nowMinutes <= 700) ||   // s3
-  (nowMinutes >= 700 && nowMinutes <= 760) ||   // s4
-  (nowMinutes >= 800 && nowMinutes <= 860) ||   // s5
-  (nowMinutes >= 860 && nowMinutes <= 920) ||   // s6
-  (nowMinutes >= 920 && nowMinutes <= 980) ||   // s7
-  (nowMinutes >= 980 && nowMinutes <= 1040);    // s8
+  (nowMinutes >= 510 && nowMinutes < 570) ||
+  (nowMinutes >= 570 && nowMinutes < 640) ||
+  (nowMinutes >= 640 && nowMinutes < 700) ||
+  (nowMinutes >= 700 && nowMinutes < 760) ||
+  (nowMinutes >= 800 && nowMinutes < 860) ||
+  (nowMinutes >= 860 && nowMinutes < 920) ||
+  (nowMinutes >= 920 && nowMinutes < 980) ||
+  (nowMinutes >= 980 && nowMinutes < 1040);
 
 const now = new Date();
 const todayDate = now.getFullYear() + "-" +
@@ -622,8 +622,8 @@ if(specialNextSnap.exists()){
 }
 
 // 🔥 DEFAULT VALUES
-let currentSubject = (lecture && isRealSlot) ? lecture.subject : "No Lecture";
-let currentFaculty = (lecture && isRealSlot) ? lecture.faculty : "-";
+let currentSubject = lecture ? lecture.subject : "No Lecture";
+let currentFaculty = lecture ? lecture.faculty : "-";
 
 let nextSubject = (isRealSlot && nextLecture) ? nextLecture.subject : "-";
 let nextFaculty = (isRealSlot && nextLecture) ? nextLecture.faculty : "-";
@@ -640,43 +640,56 @@ if(!isRealSlot){
 
 const liveSnap = await get(ref(database,`classrooms/${room}/live`));
 
-if(lecture && isRealSlot){
+if(isRealSlot){
 
   if(liveSnap.exists()){
 
     const live = liveSnap.val();
     const nowTime = Date.now();
 
-    const MAX_DURATION = 70 * 60 * 1000; // 70 minutes
+    let ts = live.timestamp;
 
-    const isValid =
-      live.status === "Ongoing" &&
-      live.slot === currentSlot &&
-      live.timestamp &&                        // 🔥 safety check
-      (nowTime - live.timestamp) < MAX_DURATION;
-
-    if(isValid){
-
-      status = "Ongoing";
-      color = "#f8d7da";
-
-      currentSubject = live.subject || currentSubject;
-      currentFaculty = live.faculty || currentFaculty;
-
-    } else {
-
+    if(!ts){
+      console.log("❌ NO TIMESTAMP");
       status = "Waiting";
       color = "#ffeeba";
+    } else {
+
+      if(ts < 10000000000){
+        ts = ts * 1000;
+      }
+
+      console.log("LIVE:", live);
+      console.log("CURRENT SLOT:", currentSlot);
+
+      const isValid =
+        live.status === "Ongoing" &&
+        live.slot &&
+        currentSlot &&
+        live.slot.toLowerCase() === currentSlot.toLowerCase() &&
+        (nowTime - ts) < (70 * 60 * 1000);
+
+      if(isValid){
+        status = "Ongoing";
+        color = "#f8d7da";
+
+        currentSubject = live.subject || currentSubject;
+        currentFaculty = live.faculty || currentFaculty;
+
+      } else {
+        status = "Waiting";
+        color = "#ffeeba";
+      }
 
     }
 
-  } else {
-
+  }
+  else if(lecture){
     status = "Waiting";
     color = "#ffeeba";
-
   }
 }
+
 console.log("DAY:", day);
 console.log("SLOT:", currentSlot);
 console.log("ROOM:", room);

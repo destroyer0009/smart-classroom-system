@@ -6,7 +6,7 @@
 #include <Firebase_ESP_Client.h>
 #include <time.h>
 
-#define ROOM_NAME "CR126"
+#define ROOM_NAME "CR125"
 
 // WIFI 
 #define WIFI_SSID "group5"
@@ -328,10 +328,15 @@ updateLCD(line1, line2);
     time_t nowTime;
 
       // 🔘 BUTTON PRESS → ENABLE SCAN
-      if (digitalRead(BUTTON_PIN) == LOW && !scanMode) {
-  updateLCD("Ready", "Scan Card");
-  scanMode = true;
-  delay(400);
+      static unsigned long lastButtonPress = 0;
+
+if (digitalRead(BUTTON_PIN) == LOW && millis() - lastButtonPress > 1000) {
+  lastButtonPress = millis();
+
+  if(!scanMode){
+    updateLCD("Ready", "Scan Card");
+    scanMode = true;
+  }
 }
 
       // 🔍 ONLY SCAN WHEN BUTTON PRESSED
