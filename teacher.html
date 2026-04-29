@@ -846,9 +846,11 @@ subjects.add(lec.subject);
 }
 
 if(subjects.size === 0){
-select.innerHTML = "<option>No lectures on this day</option>";
+  select.innerHTML = "<option>No lectures on this day</option>";
 }else{
-
+  subjects.forEach(sub=>{
+    select.innerHTML += `<option>${sub}</option>`;
+  });
 }
 
 });
@@ -859,31 +861,15 @@ window.cancelLecture = async function(){
 
   const teacherID = localStorage.getItem("teacherID");
   const date = document.getElementById("cancelDate").value;
+  const subject = document.getElementById("cancelSubject").value;
 
-  if(!date){
-    alert("Select date first");
+  if(!date || !subject){
+    alert("Select date and subject");
     return;
   }
 
-  // Get teacher name from Firebase
-  const teacherSnap = await get(ref(database, "teachers/" + teacherID));
-
-  if(!teacherSnap.exists()){
-    alert("Teacher not found");
-    return;
-  }
-
-  const fullName = teacherSnap.val().name;
-
-  // Get initials
-  function getInitials(name){
-    return name.split(" ").map(w => w[0]).join("").toUpperCase();
-  }
-
-  const initials = teacherID;
-  const correctCode = "MX3042" + initials;
-
-  // Ask user input
+  // 🔐 CONFIRMATION CODE
+  const correctCode = "MX3042" + teacherID;
   const enteredCode = prompt("Enter confirmation code:");
 
   if(enteredCode !== correctCode){
@@ -891,52 +877,68 @@ window.cancelLecture = async function(){
     return;
   }
 
-  // 🔍 FIND LECTURE FIRST
-const day = new Date(date).toLocaleString('en-US',{weekday:'long'});
-const snapshot = await get(ref(database,"classrooms"));
+  const day = new Date(date).toLocaleString('en-US',{weekday:'long'});
+  const snapshot = await get(ref(database,"classrooms"));
 
-let found = null;
+  let foundLectures = [];
 
-if(snapshot.exists()){
-  const data = snapshot.val();
+  if(snapshot.exists()){
+    const data = snapshot.val();
 
-  for(let room in data){
-    const dayData = data[room].timetable?.[day];
+    for(let room in data){
 
-    if(!dayData) continue;
+      const dayData = data[room].timetable?.[day];
+      if(!dayData) continue;
 
-    for(let slot in dayData){
-      const lec = dayData[slot];
+      for(let slot in dayData){
 
-      if(lec.faculty === teacherID){
-        found = {room, slot, subject: lec.subject};
+        const lec = dayData[slot];
+
+        if(
+          lec.faculty === teacherID &&
+          lec.subject === subject
+        ){
+          foundLectures.push({
+            room,
+            slot,
+            subject: lec.subject
+          });
+        }
       }
     }
   }
-}
 
-if(!found){
-  alert("Lecture not found");
-  return;
-}
-  // Find lecture and remove it
-await set(ref(database,
-`cancelled_lectures/${date}/${found.room}/${found.slot}`),{
-  teacher: teacherID,
-  subject: found.subject
-});
+  if(foundLectures.length === 0){
+    alert("No matching lecture found");
+    return;
+  }
 
-  // ✅ Instead of request → DIRECT ACTION
-  await set(ref(database,"cancel_logs/"+Date.now()),{
+  // 🔥 CANCEL ALL MATCHING LECTURES
+  for(let lec of foundLectures){
+
+    await set(ref(database,
+      `cancelled_lectures/${date}/${lec.room}/${lec.slot}`),{
+        teacher: teacherID,
+        subject: lec.subject,
+        timestamp: Date.now()
+    });
+
+  }
+
+  // 🔥 LOG ENTRY
+  await set(ref(database,"cancel_logs/" + Date.now()),{
     teacher: teacherID,
+    subject: subject,
     date: date,
+    totalCancelled: foundLectures.length,
     status: "cancelled"
   });
 
   document.getElementById("cancelMsg").innerHTML =
-  "✅ Lecture Cancelled Successfully";
+  `✅ ${foundLectures.length} Lecture(s) Cancelled Successfully`;
 
-}
+};
+
 window.showLate = async function(){
 document.getElementById("content").innerHTML = `
 
