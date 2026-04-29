@@ -345,6 +345,7 @@ apiKey: "AIzaSyAXNrkME8ssbzJxfUrEpzSNDCa7MEpOgrY",
 
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
+let cancelSubjectMap = {};
 
 const teacherID = localStorage.getItem("teacherID");
 if(!teacherID){
@@ -771,6 +772,23 @@ border-radius:8px;
 border:1px solid #ccc;
 ">
 
+<select id="cancelSlot" style="
+width:100%;
+padding:12px;
+margin-bottom:15px;
+border-radius:8px;
+border:1px solid #ccc;
+">
+<option value="">Select Slot</option>
+<option value="s1">8:30-9:30</option>
+<option value="s2">9:30-10:30</option>
+<option value="s3">10:40-11:40</option>
+<option value="s4">11:40-12:40</option>
+<option value="s5">1:20-2:20</option>
+<option value="s6">2:20-3:20</option>
+<option value="s7">3:20-4:20</option>
+</select>
+
 <button onclick="cancelLecture()" style="
 width:100%;
 padding:12px;
@@ -808,53 +826,87 @@ const selectedDate = this.value;
 if(!selectedDate) return;
 
 const day = new Date(selectedDate).toLocaleString('en-US',{weekday:'long'});
-
 const teacher = localStorage.getItem("teacherID");
 
 const snapshot = await get(ref(database,"classrooms"));
 
-const select = document.getElementById("cancelSubject");
+const subjectSelect = document.getElementById("cancelSubject");
+const slotSelect = document.getElementById("cancelSlot");
 
-select.innerHTML = "";
+subjectSelect.innerHTML = "";
+slotSelect.innerHTML = "<option>Select Slot</option>";
 
-let subjects = new Set();
+cancelSubjectMap = {};
+// 🔥 subject → slots mapping
 
 if(snapshot.exists()){
+  const data = snapshot.val();
 
-const data = snapshot.val();
+  for(let room in data){
 
-for(let room in data){
+    const dayData = data[room].timetable?.[day];
+    if(!dayData) continue;
 
-if(!data[room].timetable) continue;
+    for(let slot in dayData){
 
-const dayData = data[room].timetable[day];
+      const lec = dayData[slot];
 
-if(!dayData) continue;
+      if(lec.faculty === teacher){
 
-for(let slot in dayData){
-
-const lec = dayData[slot];
-
-if(lec.faculty && lec.faculty.trim().toUpperCase() === teacher.trim().toUpperCase()){
-subjects.add(lec.subject);
+        // store subject
+if(!cancelSubjectMap[lec.subject]){
+  cancelSubjectMap[lec.subject] = [];
+}
+cancelSubjectMap[lec.subject].push(slot);
+      }
+    }
+  }
 }
 
-}
-
-}
-
-}
-
-if(subjects.size === 0){
-  select.innerHTML = "<option>No lectures on this day</option>";
+// 🔥 FILL SUBJECT DROPDOWN
+if(Object.keys(subjectMap).length === 0){
+  subjectSelect.innerHTML = "<option>No lectures</option>";
 }else{
-  subjects.forEach(sub=>{
-    select.innerHTML += `<option>${sub}</option>`;
-  });
+  for(let sub in cancelSubjectMap){
+    subjectSelect.innerHTML += `<option>${sub}</option>`;
+  }
 }
+
+// 🔥 WHEN SUBJECT CHANGES → UPDATE SLOTS
+document.addEventListener("change", function(e){
+
+  if(e.target.id === "cancelSubject"){
+
+    const selectedSub = e.target.value;
+    const slotSelect = document.getElementById("cancelSlot");
+
+    slotSelect.innerHTML = "<option>Select Slot</option>";
+
+    const slots = cancelSubjectMap[selectedSub] || [];
+
+    if(slots.length === 0){
+      slotSelect.innerHTML = "<option>No slots</option>";
+      return;
+    }
+
+    const slotMap = {
+      s1:"8:30-9:30",
+      s2:"9:30-10:30",
+      s3:"10:40-11:40",
+      s4:"11:40-12:40",
+      s5:"1:20-2:20",
+      s6:"2:20-3:20",
+      s7:"3:20-4:20"
+    };
+
+    slots.forEach(s=>{
+      slotSelect.innerHTML += `<option value="${s}">${slotMap[s]}</option>`;
+    });
+
+  }
 
 });
-
+});
 }
 
 window.cancelLecture = async function(){
@@ -862,13 +914,14 @@ window.cancelLecture = async function(){
   const teacherID = localStorage.getItem("teacherID");
   const date = document.getElementById("cancelDate").value;
   const subject = document.getElementById("cancelSubject").value;
+  const slot = document.getElementById("cancelSlot").value;
 
-  if(!date || !subject){
-    alert("Select date and subject");
+  if(!date || !subject || !slot){
+    alert("Select date, subject and slot");
     return;
   }
 
-  // 🔐 CONFIRMATION CODE
+  // 🔐 CONFIRMATION
   const correctCode = "MX3042" + teacherID;
   const enteredCode = prompt("Enter confirmation code:");
 
@@ -880,7 +933,7 @@ window.cancelLecture = async function(){
   const day = new Date(date).toLocaleString('en-US',{weekday:'long'});
   const snapshot = await get(ref(database,"classrooms"));
 
-  let foundLectures = [];
+  let found = null;
 
   if(snapshot.exists()){
     const data = snapshot.val();
@@ -890,55 +943,59 @@ window.cancelLecture = async function(){
       const dayData = data[room].timetable?.[day];
       if(!dayData) continue;
 
-      for(let slot in dayData){
+      const lec = dayData[slot];
 
-        const lec = dayData[slot];
-
-        if(
-          lec.faculty === teacherID &&
-          lec.subject === subject
-        ){
-          foundLectures.push({
-            room,
-            slot,
-            subject: lec.subject
-          });
-        }
+      if(
+        lec &&
+        lec.faculty === teacherID &&
+        lec.subject === subject
+      ){
+        found = {
+          room,
+          slot,
+          subject: lec.subject
+        };
       }
     }
   }
 
-  if(foundLectures.length === 0){
-    alert("No matching lecture found");
+  if(!found){
+    alert("No lecture found for selected slot");
     return;
   }
 
-  // 🔥 CANCEL ALL MATCHING LECTURES
-  for(let lec of foundLectures){
+  // 🔥 CHECK ALREADY CANCELLED
+  const already = await get(ref(database,
+    `cancelled_lectures/${date}/${found.room}/${found.slot}`
+  ));
 
-    await set(ref(database,
-      `cancelled_lectures/${date}/${lec.room}/${lec.slot}`),{
-        teacher: teacherID,
-        subject: lec.subject,
-        timestamp: Date.now()
-    });
-
+  if(already.exists()){
+    alert("Already cancelled");
+    return;
   }
 
-  // 🔥 LOG ENTRY
+  // 🔥 CANCEL ONLY THIS SLOT
+  await set(ref(database,
+    `cancelled_lectures/${date}/${found.room}/${found.slot}`),{
+      teacher: teacherID,
+      subject: found.subject,
+      slot: found.slot,
+      timestamp: Date.now()
+  });
+
+  // 🔥 LOG
   await set(ref(database,"cancel_logs/" + Date.now()),{
     teacher: teacherID,
     subject: subject,
     date: date,
-    totalCancelled: foundLectures.length,
-    status: "cancelled"
+    slot: slot,
+    status: "cancelled_single"
   });
 
   document.getElementById("cancelMsg").innerHTML =
-  `✅ ${foundLectures.length} Lecture(s) Cancelled Successfully`;
+  `✅ Lecture cancelled for ${slot}`;
 
 };
-
 window.showLate = async function(){
 document.getElementById("content").innerHTML = `
 
