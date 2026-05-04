@@ -1,127 +1,149 @@
+/*
+  ========================================================
+   Smart Classroom Allocation — ESP-NOW SLAVE NODE
+  ========================================================
+
+  ROLE:
+  - Reads RFID cards
+  - Sends {room, uid} to Master via ESP-NOW
+  - Receives LCD response packet from Master
+  - Drives LCD + buzzer based on Master's response
+  - NO WiFi, NO Firebase — pure local hardware
+
+  EACH SLAVE NEEDS:
+  - ROOM_NAME defined uniquely per node
+  - MASTER_MAC set to the actual master ESP32 MAC
+
+  HOW TO GET MASTER MAC:
+    Flash master firmware first. Read Serial output:
+    "Master MAC: XX:XX:XX:XX:XX:XX"
+    Paste that into MASTER_MAC below.
+*/
+
 #include <WiFi.h>
+#include <esp_now.h>
 #include <SPI.h>
 #include <MFRC522.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
-#include <Firebase_ESP_Client.h>
-#include <time.h>
 
-#define ROOM_NAME "CR126"
+// ── ROOM IDENTITY ───────────────────────────────────────
+#define ROOM_NAME "CR125"   // ← CHANGE PER SLAVE
 
-// WIFI 
-#define WIFI_SSID "group5"
-#define WIFI_PASSWORD "12345678"
+// ── MASTER MAC ──────────────────────────────────────────
+//  Get this by reading Serial on the master at boot
+uint8_t masterMAC[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0x00};
 
-// FIREBASE
-#define API_KEY "AIzaSyAXNrkME8ssbzJxfUrEpzSNDCa7MEpOgrY"
-#define DATABASE_URL "https://sample-final-proj-default-rtdb.asia-southeast1.firebasedatabase.app/"
-
-FirebaseData fbdo;
-FirebaseAuth auth;
-FirebaseConfig config;
-
-// RFID
-#define SS_PIN 5
-#define RST_PIN 4
-
-// BUTTON + BUZZER
+// ── PINS ────────────────────────────────────────────────
+#define SS_PIN     5
+#define RST_PIN    4
 #define BUTTON_PIN 17
 #define BUZZER_PIN 2
+#define ESPNOW_CHANNEL 1    // must match master
 
-MFRC522 mfrc522(SS_PIN, RST_PIN);
+// ── HARDWARE ────────────────────────────────────────────
+MFRC522           mfrc522(SS_PIN, RST_PIN);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
-bool scanMode = false;
-bool isInside = false;
-String currentFaculty = "";
-String currentSubject = "";
 
-// 🔊 BUZZER
+// ─────────────────────────────────────────────────────────
+//  PACKET STRUCTURES  (identical to master)
+// ─────────────────────────────────────────────────────────
+typedef struct ScanPacket {
+  char room[8];
+  char uid[16];
+} ScanPacket;
+
+typedef struct ResponsePacket {
+  char line1[17];
+  char line2[17];
+  uint8_t beep;
+} ResponsePacket;
+
+// ─────────────────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────────────────
+bool     scanMode        = false;
+bool     waitingResponse = false;
+unsigned long lastScanTime    = 0;
+unsigned long lastButtonPress = 0;
+unsigned long waitStart       = 0;
+#define RESPONSE_TIMEOUT_MS 6000  // give up if master silent for 6s
+
+// LCD anti-flicker cache
+String lastLine1 = "", lastLine2 = "";
+
+// ─────────────────────────────────────────────────────────
+//  BUZZER
+// ─────────────────────────────────────────────────────────
 void beepValid() {
-  digitalWrite(BUZZER_PIN, HIGH);
-  delay(200);
-  digitalWrite(BUZZER_PIN, LOW);
+  digitalWrite(BUZZER_PIN, HIGH); delay(200); digitalWrite(BUZZER_PIN, LOW);
 }
 
 void beepInvalid() {
   for (int i = 0; i < 2; i++) {
-    digitalWrite(BUZZER_PIN, HIGH);
-    delay(150);
-    digitalWrite(BUZZER_PIN, LOW);
-    delay(150);
+    digitalWrite(BUZZER_PIN, HIGH); delay(150);
+    digitalWrite(BUZZER_PIN, LOW);  delay(150);
   }
 }
 
-// 📅 DAY
-String getCurrentDay() {
-  time_t now = time(nullptr);
-  struct tm *timeinfo = localtime(&now);
-
-  String days[] = {"Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"};
-  return days[timeinfo->tm_wday];
-}
-
-// ⏰ SLOT (IMPORTANT: s1, s2...)
-String getCurrentSlot() {
-  struct tm *timeinfo;
-  time_t now = time(nullptr);
-  timeinfo = localtime(&now);
-
-  int minutes = timeinfo->tm_hour * 60 + timeinfo->tm_min;
-
-  if (minutes >= 510 && minutes < 570) return "s1";
-  if (minutes >= 570 && minutes < 630) return "s2";
-  if (minutes >= 630 && minutes < 690) return "s3";
-  if (minutes >= 690 && minutes < 750) return "s4";
-  if (minutes >= 750 && minutes < 810) return "s5";
-  if (minutes >= 810 && minutes < 870) return "s6";
-  if (minutes >= 870 && minutes < 930) return "s7";
-
-  return "";
-}
-
-// 🔍 UID → FACULTY
-String findFacultyByUID(String uid){
-
-  FirebaseJson json;
-  if (!Firebase.RTDB.getJSON(&fbdo, "teachers")) {
-  Serial.println("Teacher fetch failed");
-  return "";
-}
-
-  json = fbdo.jsonObject();
-
-  size_t count = json.iteratorBegin();
-
-  for (size_t i = 0; i < count; i++) {
-    String key, value;
-    int type;
-
-    json.iteratorGet(i, type, key, value);
-
-    if(type == FirebaseJson::JSON_OBJECT){
-
-      FirebaseJson subObj;
-      subObj.setJsonData(value);
-
-      FirebaseJsonData rfidData;
-      subObj.get(rfidData, "rfid");
-
-      if(rfidData.stringValue == uid){
-        return key;
-      }
-    }
+// ─────────────────────────────────────────────────────────
+//  LCD
+// ─────────────────────────────────────────────────────────
+void updateLCD(String l1, String l2) {
+  if (l1 != lastLine1) {
+    lcd.setCursor(0, 0); lcd.print("                ");
+    lcd.setCursor(0, 0); lcd.print(l1); lastLine1 = l1;
   }
-
-  json.iteratorEnd();
-  return "";
+  if (l2 != lastLine2) {
+    lcd.setCursor(0, 1); lcd.print("                ");
+    lcd.setCursor(0, 1); lcd.print(l2); lastLine2 = l2;
+  }
 }
 
+// ─────────────────────────────────────────────────────────
+//  ESP-NOW RECEIVE CALLBACK (runs in ISR context — keep short)
+// ─────────────────────────────────────────────────────────
+volatile bool   hasResponse   = false;
+volatile ResponsePacket pendingResponse;
+
+void onDataReceive(const uint8_t* mac, const uint8_t* data, int len) {
+  if (len != sizeof(ResponsePacket)) return;
+  memcpy((void*)&pendingResponse, data, sizeof(ResponsePacket));
+  hasResponse = true;
+}
+
+// ─────────────────────────────────────────────────────────
+//  SEND SCAN TO MASTER
+// ─────────────────────────────────────────────────────────
+void sendScanToMaster(String uid) {
+  ScanPacket pkt;
+  strncpy(pkt.room, ROOM_NAME, sizeof(pkt.room));
+  strncpy(pkt.uid,  uid.c_str(), sizeof(pkt.uid));
+  pkt.uid[sizeof(pkt.uid)-1] = 0;
+
+  esp_err_t result = esp_now_send(masterMAC, (uint8_t*)&pkt, sizeof(pkt));
+  if (result == ESP_OK) {
+    Serial.printf("[%s] Sent UID %s to master\n", ROOM_NAME, uid.c_str());
+    waitingResponse = true;
+    waitStart       = millis();
+  } else {
+    Serial.println("ESP-NOW send failed!");
+    updateLCD("Master", "Unreachable");
+    beepInvalid();
+    delay(2000);
+    updateLCD(ROOM_NAME, "Ready");
+    scanMode = false;
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+//  SETUP
+// ─────────────────────────────────────────────────────────
 void setup() {
-
   Serial.begin(115200);
 
-  pinMode(BUZZER_PIN, OUTPUT);
   pinMode(BUTTON_PIN, INPUT_PULLUP);
+  pinMode(BUZZER_PIN, OUTPUT);
 
   SPI.begin(18, 19, 23, 5);
   mfrc522.PCD_Init();
@@ -130,307 +152,115 @@ void setup() {
   lcd.init();
   lcd.backlight();
 
-  lcd.print("Connecting WiFi");
+  // Print own MAC so you can paste it into master's slaveMACs[]
+  WiFi.mode(WIFI_STA);
+  Serial.printf("[%s] My MAC: %s\n", ROOM_NAME, WiFi.macAddress().c_str());
 
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  // Set channel to match master/router
+  // Forcing channel so ESP-NOW doesn't drift after boot
+  esp_wifi_set_channel(ESPNOW_CHANNEL, WIFI_SECOND_CHAN_NONE);
 
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
+  // Init ESP-NOW
+  if (esp_now_init() != ESP_OK) {
+    updateLCD("ESP-NOW", "Init Failed!");
+    Serial.println("ESP-NOW init failed");
+    while (1) delay(1000);
+  }
+  esp_now_register_recv_cb(onDataReceive);
+
+  // Register master as peer
+  esp_now_peer_info_t peer = {};
+  memcpy(peer.peer_addr, masterMAC, 6);
+  peer.channel = ESPNOW_CHANNEL;
+  peer.encrypt  = false;
+  if (esp_now_add_peer(&peer) != ESP_OK) {
+    Serial.println("Failed to add master peer");
+    updateLCD("Peer", "Add Failed");
+    delay(3000);
   }
 
-  lcd.clear();
-  lcd.print("WiFi Connected");
-
-  config.api_key = API_KEY;
-  config.database_url = DATABASE_URL;
-
-  auth.user.email = "test@test.com";
-  auth.user.password = "123456";
-
-  Firebase.begin(&config, &auth);
-  Firebase.reconnectWiFi(true);
-
-  configTime(19800, 0, "pool.ntp.org");
-  Serial.print("Syncing time");
-
-time_t now = time(nullptr);
-
-while (now < 100000) {
-  delay(500);
-  Serial.print(".");
-  now = time(nullptr);
+  updateLCD(ROOM_NAME, "Ready");
+  Serial.printf("[%s] Slave ready\n", ROOM_NAME);
 }
 
-Serial.println("\nTime synced!");
-
-  delay(2000);
-
-  lcd.clear();
-  lcd.setCursor(0,0);
-  lcd.print(ROOM_NAME);
-  lcd.setCursor(0,1);
-  lcd.print("Press Button");
-}
-
+// ─────────────────────────────────────────────────────────
+//  MAIN LOOP
+// ─────────────────────────────────────────────────────────
 void loop() {
 
-  // 🔘 BUTTON PRESS → ENABLE SCAN
-  if (digitalRead(BUTTON_PIN) == LOW) {
+  // ── Handle incoming response from master ──────────────
+  if (hasResponse) {
+    hasResponse      = false;
+    waitingResponse  = false;
 
-    lcd.clear();
-    lcd.print("Ready to Scan");
+    ResponsePacket rsp;
+    memcpy(&rsp, (void*)&pendingResponse, sizeof(ResponsePacket));
 
-    scanMode = true;
+    updateLCD(String(rsp.line1), String(rsp.line2));
 
-    delay(300); // debounce
+    if (rsp.beep == 1) beepValid();
+    else               beepInvalid();
 
-    while(digitalRead(BUTTON_PIN) == LOW); // wait release
+    delay(2500);
+    updateLCD(ROOM_NAME, "Ready");
+    scanMode = false;
+    return;
   }
 
-  // 🔍 ONLY SCAN WHEN BUTTON PRESSED
+  // ── Timeout waiting for master ─────────────────────────
+  if (waitingResponse && millis() - waitStart > RESPONSE_TIMEOUT_MS) {
+    waitingResponse = false;
+    scanMode        = false;
+    updateLCD("No Response", "From Master");
+    beepInvalid();
+    delay(2000);
+    updateLCD(ROOM_NAME, "Ready");
+    return;
+  }
+
+  // ── Don't do anything else while waiting ─────────────
+  if (waitingResponse) {
+    delay(50);
+    return;
+  }
+
+  // ── Button → enable scan mode ─────────────────────────
+  if (digitalRead(BUTTON_PIN) == LOW && millis() - lastButtonPress > 1000) {
+    lastButtonPress = millis();
+    if (!scanMode) {
+      updateLCD("Ready", "Scan Card");
+      scanMode = true;
+    }
+  }
+
+  // ── Scan mode: read RFID, send to master ─────────────
   if (scanMode) {
+    if (!mfrc522.PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) {
+      delay(50);
+      return;
+    }
 
-    while (!mfrc522.PICC_IsNewCardPresent()) {
-  delay(500);
-}
+    // Debounce
+    if (millis() - lastScanTime < 3000) {
+      mfrc522.PICC_HaltA();
+      return;
+    }
+    lastScanTime = millis();
 
-while (!mfrc522.PICC_ReadCardSerial()) {
-  delay(500);
-}
-
+    // Build UID string
     String uid = "";
-
     for (byte i = 0; i < mfrc522.uid.size; i++) {
       if (mfrc522.uid.uidByte[i] < 0x10) uid += "0";
       uid += String(mfrc522.uid.uidByte[i], HEX);
     }
-
     uid.toUpperCase();
+    Serial.printf("[%s] Scanned UID: %s\n", ROOM_NAME, uid.c_str());
 
-    Serial.println("UID: " + uid);
-
-    lcd.clear();
-    lcd.print("Checking...");
-
-    String day = getCurrentDay();
-    String slot = getCurrentSlot();
-
-    // 📅 GET TODAY DATE
-String todayDate = "";
-time_t nowDate = time(nullptr);
-struct tm *t = localtime(&nowDate);
-
-todayDate = String(t->tm_year + 1900) + "-";
-todayDate += (t->tm_mon + 1 < 10 ? "0" : "") + String(t->tm_mon + 1) + "-";
-todayDate += (t->tm_mday < 10 ? "0" : "") + String(t->tm_mday);
-
-    if(slot == ""){
-  lcd.clear();
-  lcd.print("No Lecture");
-  delay(2000);
-  scanMode = false;
-  return;
-}
-
-// ✅ NOW CHECK CANCEL
-String cancelPath = "cancelled_lectures/" + todayDate + "/" + String(ROOM_NAME) + "/" + slot;
-
-if(Firebase.RTDB.getString(&fbdo, cancelPath)){
-  lcd.clear();
-  lcd.print("Cancelled");
-  delay(2000);
-  scanMode = false;
-  return;
-}
-    // 🔔 SHOW WAITING STATE
-
-    String scheduledFaculty = "";
-String subject = "";
-
-// 🔥 CHECK SPECIAL BOOKING FIRST
-String specialPath = "classrooms/" + String(ROOM_NAME) + "/specialBookings/" + todayDate + "/" + slot + "/faculty";
-
-if(Firebase.RTDB.getString(&fbdo, specialPath)){
-  scheduledFaculty = fbdo.stringData();
-
-  String subPath = "classrooms/" + String(ROOM_NAME) + "/specialBookings/" + todayDate + "/" + slot + "/subject";
-  if(Firebase.RTDB.getString(&fbdo, subPath)){
-    subject = fbdo.stringData();
-  }
-}
-else{
-  // 🔁 NORMAL TIMETABLE
-  String path = "classrooms/" + String(ROOM_NAME) + "/timetable/" + day + "/" + slot + "/faculty";
-
-  if(!Firebase.RTDB.getString(&fbdo, path)){
-    lcd.clear();
-    lcd.print("No Lecture Now");
-    delay(2000);
-    scanMode = false;
-    lcd.clear();
-    lcd.print("Press Button");
-    return;
-  }
-
-  scheduledFaculty = fbdo.stringData();
-
-  String subjectPath = "classrooms/" + String(ROOM_NAME) + "/timetable/" + day + "/" + slot + "/subject";
-
-  if(Firebase.RTDB.getString(&fbdo, subjectPath)){
-    subject = fbdo.stringData();
-  }
-}
-    // 🔔 SHOW WAITING STATE
-lcd.clear();
-lcd.setCursor(0,0);
-lcd.print("Lecture Time");
-lcd.setCursor(0,1);
-lcd.print("Waiting...");
-delay(1000);
-
-
-    String scannedFaculty = findFacultyByUID(uid);
-    // 🔔 CHECK LATE
-FirebaseJson lateJson;
-
-if(Firebase.RTDB.getJSON(&fbdo, "late_notifications")){
-  lateJson = fbdo.jsonObject();
-
-  size_t count = lateJson.iteratorBegin();
-
-  for (size_t i = 0; i < count; i++) {
-    String key, value;
-    int type;
-
-    lateJson.iteratorGet(i, type, key, value);
-
-    FirebaseJson obj;
-    obj.setJsonData(value);
-
-    FirebaseJsonData roomData, slotData, dateData, minData;
-
-    obj.get(roomData, "room");
-    obj.get(slotData, "slot");
-    obj.get(dateData, "date");
-    obj.get(minData, "minutes");
-
-    if(roomData.stringValue == ROOM_NAME &&
-       slotData.stringValue == slot &&
-       dateData.stringValue == todayDate){
-
-        lcd.clear();
-        lcd.print("Late ");
-        lcd.print(minData.stringValue + "m");
-        delay(2000);
-    }
-  }
-
-  lateJson.iteratorEnd();
-}
-
-    // 🔥 DEBUG
-    Serial.println("----------");
-    Serial.println("Day: " + day);
-    Serial.println("Slot: " + slot);
-    Serial.println("Scheduled: " + scheduledFaculty);
-    Serial.println("Scanned: " + scannedFaculty);
-    Serial.println("----------");
-
-    lcd.clear();
-
-
-if(scannedFaculty == ""){
-  lcd.print("Unknown Card");
-  beepInvalid();
-}
-
-// ✅ ENTRY
-else if(!isInside && scannedFaculty == scheduledFaculty){
-
-  lcd.print("Lecture Started");
-  delay(1500);
-
-  lcd.clear();
-  lcd.setCursor(0,0);
-  lcd.print("Ongoing:");
-  lcd.setCursor(0,1);
-  lcd.print(subject);   // 🔥 SHOW SUBJECT
-
-  beepValid();
-
-  isInside = true;
-  currentFaculty = scannedFaculty;
-  currentSubject = subject;
-
-  // 🔥 Firebase update
-  Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/status", "Ongoing");
-
-Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/faculty", scannedFaculty);
-
-Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/subject", subject);
-  Firebase.RTDB.setString(&fbdo, "classrooms/" + String(ROOM_NAME) + "/current_faculty", scannedFaculty);
-  Firebase.RTDB.setInt(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live/startTime", time(nullptr));
-}
-
-// ✅ EXIT (same teacher scans again)
-else if(isInside && scannedFaculty == currentFaculty){
-
-  lcd.clear();
-  lcd.print("Lecture Ended");
-  delay(1500);
-
-  lcd.clear();
-  lcd.print("Room Free");
-
-  beepValid();
-
-  // ⏱️ CHECK TIME
-  time_t now = time(nullptr);
-
-  Firebase.RTDB.getInt(&fbdo,
-  "classrooms/" + String(ROOM_NAME) + "/live/startTime");
-
-  int startTime = fbdo.intData();
-
-  if(now - startTime < 1800){
-    Serial.println("Left Early");
-  }
-
-  isInside = false;
-  currentFaculty = "";
-  currentSubject = "";
-
-  // 🔥 Firebase update
-  Firebase.RTDB.setString(&fbdo, 
-  "classrooms/" + String(ROOM_NAME) + "/live/status", "Free");
-
-  Firebase.RTDB.setString(&fbdo, 
-  "classrooms/" + String(ROOM_NAME) + "/live/faculty", "");
-
-  Firebase.RTDB.setString(&fbdo, 
-  "classrooms/" + String(ROOM_NAME) + "/live/subject", "");
-
-  Firebase.RTDB.setString(&fbdo, 
-  "classrooms/" + String(ROOM_NAME) + "/current_faculty", "");
-}
-
-// ❌ WRONG PERSON
-else{
-  lcd.print("Access Denied");
-  beepInvalid();
-}
-
-    delay(3000);
-
-    
-
-    scanMode = false;  // 🔥 RESET
-    lcd.clear();
-    lcd.print("Press Button");
+    updateLCD("Checking...", "Please Wait");
+    sendScanToMaster(uid);
 
     mfrc522.PICC_HaltA();
   }
-  time_t now = time(nullptr);
-Serial.println(ctime(&now));
-delay(500);
+
+  delay(50);
 }
