@@ -1,270 +1,184 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-
 <title>Previous Year Timetable</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+:root {
+  --navy: #001a3a;
+  --blue: #1565C0;
+  --accent: #F59E0B;
+  --bg: #EFF3F8;
+  --surface: #ffffff;
+  --text: #1e293b;
+  --text-muted: #64748b;
+  --shadow: 0 4px 24px rgba(0,26,58,0.1);
+  --shadow-lg: 0 8px 40px rgba(0,26,58,0.16);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); min-height: 100vh; }
 
-body{
-font-family:Arial;
-background:#f4f6f9;
-margin:0;
-text-align:center;
+/* ── HEADER ─────────────────────────────────── */
+.page-header {
+  background: linear-gradient(135deg, var(--navy) 0%, #012a70 50%, #0a3a6e 100%);
+  color: white; padding: 22px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: relative; overflow: hidden;
+}
+.page-header::before {
+  content: ''; position: absolute; top: -40px; right: -40px;
+  width: 180px; height: 180px; border-radius: 50%;
+  background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.15);
+}
+.header-left { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; }
+.header-icon {
+  width: 48px; height: 48px; border-radius: 14px;
+  background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+  display: flex; align-items: center; justify-content: center; font-size: 24px;
+}
+.header-title { font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700; }
+.header-sub { font-size: 13px; opacity: 0.7; margin-top: 2px; }
+.header-actions { display: flex; gap: 10px; position: relative; z-index: 1; }
+.btn-header {
+  padding: 9px 18px; border-radius: 50px; cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; font-size: 13px;
+  border: none; transition: all 0.2s; display: flex; align-items: center; gap: 6px;
+}
+.btn-back    { background: rgba(255,255,255,0.12); color: white; border: 1.5px solid rgba(255,255,255,0.25); }
+.btn-back:hover { background: rgba(255,255,255,0.22); }
+.btn-refresh { background: rgba(255,255,255,0.92); color: var(--navy); }
+.btn-refresh:hover { background: white; transform: translateY(-1px); }
+
+/* ── CONTROLS ─────────────────────────────────── */
+.controls-panel {
+  background: white; border-bottom: 1px solid #E2E8F0;
+  padding: 18px 24px;
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: center;
+}
+.select-label {
+  font-size: 13px; font-weight: 600; color: var(--text-muted);
+  display: flex; align-items: center; gap: 6px;
+}
+select#termSelect {
+  padding: 11px 18px; border-radius: 10px;
+  border: 1.5px solid #E2E8F0; font-size: 14px;
+  font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 500;
+  color: var(--text); background: #F8FAFC;
+  min-width: 220px; cursor: pointer; outline: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: all 0.2s;
+}
+select#termSelect:focus { border-color: var(--blue); background: white; box-shadow: 0 0 0 3px rgba(21,101,192,0.1); }
+
+/* ── MAIN ─────────────────────────────────── */
+main { padding: 24px 20px 32px; }
+
+.section-title {
+  font-family: 'Sora', sans-serif; font-size: 17px; font-weight: 700;
+  color: var(--navy); text-align: center; margin-bottom: 16px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
 }
 
-.header{
-background:#002147;
-color:white;
-padding:20px;
+#noData {
+  display: none; text-align: center; padding: 40px;
+  color: #EF4444; font-size: 14px; font-weight: 500;
+  background: #FEF2F2; border-radius: 12px; border: 1px solid #FECACA;
 }
 
-.section{
-margin-top:40px;
+#pdfFrame {
+  width: 100%; max-width: 1000px; height: 660px;
+  border: none; border-radius: 16px; display: block; margin: 0 auto;
+  box-shadow: var(--shadow-lg); background: #F8FAFC;
 }
 
-button{
-padding:12px 20px;
-margin:10px;
-border:none;
-background:#1b3a6b;
-color:white;
-cursor:pointer;
-border-radius:6px;
-}
-
-button:hover{
-background:#002147;
-}
-
-table{
-margin:auto;
-margin-top:30px;
-border-collapse:collapse;
-width:90%;
-background:white;
-}
-
-th,td{
-border:1px solid #ccc;
-padding:10px;
-}
-
-th{
-background:#002147;
-color:white;
-}
-
-th:nth-child(4),
-th:nth-child(7){
-background:#ddd;
-font-style:italic;
-}
-
-.breakCell{
-writing-mode: vertical-rl;
-text-align:center;
-vertical-align:middle;
-font-weight:bold;
-background:#ffeeba;
-color:#856404;
-letter-spacing:2px;
-}
-table{
-margin:auto;
-margin-top:30px;
-border-collapse:collapse;
-width:90%;
-background:white;
-border-radius:15px;
-overflow:hidden;
-box-shadow:0 10px 25px rgba(0,0,0,0.2);
-}
-
-td{
-padding:12px;
-}
-
-tr:hover{
-background:#eef5ff;
-transition:0.2s;
-}
-
-th{
-background:linear-gradient(135deg,#002147,#1b3a6b);
-color:white;
+@media (max-width: 600px) {
+  #pdfFrame { height: 420px; }
+  .page-header { flex-wrap: wrap; gap: 12px; }
+  .header-title { font-size: 16px; }
+  .controls-panel { flex-direction: column; }
+  select#termSelect { width: 100%; }
 }
 </style>
-
 </head>
-
 <body>
 
-<div class="header">
-<h1>Previous Year Timetable</h1>
-</div>
-<div style="
-display:flex;
-flex-direction:column;
-align-items:center;
-margin-top:25px;
-">
-
-<!-- BUTTON ROW -->
-<div style="
-display:flex;
-gap:15px;
-flex-wrap:wrap;
-justify-content:center;
-margin-bottom:10px;
-">
-
-<button onclick="window.location.href='admin.html'" style="
-padding:10px 22px;
-background:#6c757d;
-color:white;
-border:none;
-border-radius:10px;
-font-weight:bold;
-cursor:pointer;
-box-shadow:0 4px 10px rgba(0,0,0,0.2);
-transition:0.3s;
-"
-onmouseover="this.style.transform='scale(1.05)'"
-onmouseout="this.style.transform='scale(1)'"
->
-⬅ Back
-</button>
-
-<button onclick="refreshData()" style="
-padding:10px 22px;
-background:#007bff;
-color:white;
-border:none;
-border-radius:10px;
-font-weight:bold;
-cursor:pointer;
-box-shadow:0 4px 10px rgba(0,0,0,0.2);
-"
->
-🔄 Refresh
-</button>
-
+<!-- ── HEADER ──────────────────────────────── -->
+<div class="page-header">
+  <div class="header-left">
+    <div class="header-icon">📚</div>
+    <div>
+      <div class="header-title">Previous Year Timetables</div>
+      <div class="header-sub">Archive of past academic schedules</div>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="btn-header btn-back" onclick="window.location.href='admin.html'">⬅ Back</button>
+    <button class="btn-header btn-refresh" onclick="location.reload()">🔄 Refresh</button>
+  </div>
 </div>
 
-<!-- NOTE -->
-<p style="
-font-size:13px;
-color:#777;
-background:#fff3cd;
-padding:8px 15px;
-border-radius:8px;
-">
-⚠ Do not include s3 (BREAK) and s6 (LUNCH)
-</p>
-
+<!-- ── CONTROLS ──────────────────────────────── -->
+<div class="controls-panel">
+  <span class="select-label">📅 Select Term:</span>
+  <select id="termSelect" onchange="loadPDF()">
+    <option value="">Choose a term...</option>
+  </select>
 </div>
 
-</div>
-
-
-
-
-</div>
-
-
-<h2 style="margin-top:30px;">📄 Previous Timetables</h2>
-
-<select id="termSelect" onchange="loadPDF()" style="
-padding:12px;
-border-radius:8px;
-margin:15px;
-min-width:200px;
-">
-<option value="">Select Term</option>
-</select>
-
-<iframe id="pdfFrame"
-width="90%"
-height="600px"
-style="border:none; border-radius:10px;">
-</iframe>
-
+<!-- ── MAIN ──────────────────────────────── -->
+<main>
+  <div class="section-title">📄 Timetable Preview</div>
+  <div id="noData">⚠️ No PDF found for this term.</div>
+  <iframe id="pdfFrame" title="Timetable PDF"></iframe>
+</main>
 
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
 
 const firebaseConfig = {
-
-apiKey: "AIzaSyAXNrkME8ssbzJxfUrEpzSNDCa7MEpOgrY",
+  apiKey: "AIzaSyAXNrkME8ssbzJxfUrEpzSNDCa7MEpOgrY",
   authDomain: "sample-final-proj.firebaseapp.com",
   databaseURL: "https://sample-final-proj-default-rtdb.asia-southeast1.firebasedatabase.app/",
   projectId: "sample-final-proj",
   storageBucket: "sample-final-proj.firebasestorage.app",
   messagingSenderId: "215816969558",
   appId: "1:215816969558:web:efe3040d393e5ee26a0af7",
-
 };
-
 const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+const db  = getDatabase(app);
 
-
-
-
-import { onValue } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
-
-
-
-window.refreshData = function(){
-location.reload();
-}
-
-// 🔹 Load terms from DB
-onValue(ref(db,"timetable_pdf/previous"), (snapshot)=>{
-
-const select = document.getElementById("termSelect");
-
-select.innerHTML = "<option value=''>Select Term</option>";
-
-if(snapshot.exists()){
+onValue(ref(db, "timetable_pdf/previous"), (snapshot) => {
+  const select = document.getElementById("termSelect");
+  select.innerHTML = "<option value=''>Choose a term...</option>";
+  if (!snapshot.exists()) {
+    select.innerHTML += "<option disabled>No terms uploaded</option>";
+    return;
+  }
   let firstTerm = null;
-
-  snapshot.forEach(child=>{
-    if(!firstTerm) firstTerm = child.key;
-
+  snapshot.forEach(child => {
+    if (!firstTerm) firstTerm = child.key;
     select.innerHTML += `<option value="${child.key}">${child.key}</option>`;
   });
-
-  // 🔥 AUTO LOAD FIRST TERM
-  if(firstTerm){
-    select.value = firstTerm;
-    loadPDF();
-  }
-}
-
+  if (firstTerm) { select.value = firstTerm; loadPDF(); }
 });
 
-// 🔹 Load selected PDF
-window.loadPDF = async function(){
-
-const term = document.getElementById("termSelect").value;
-
-if(!term) return;
-
-const snap = await get(ref(db,"timetable_pdf/previous/" + term));
-
-if(snap.exists()){
-  document.getElementById("pdfFrame").src = snap.val();
-}else{
-  alert("No PDF found");
-}
-
-}
+window.loadPDF = async function() {
+  const term = document.getElementById("termSelect").value;
+  if (!term) return;
+  const snap = await get(ref(db, "timetable_pdf/previous/" + term));
+  const noData = document.getElementById("noData");
+  const frame  = document.getElementById("pdfFrame");
+  if (snap.exists()) {
+    frame.src = snap.val();
+    noData.style.display = "none";
+    frame.style.display  = "block";
+  } else {
+    frame.src = "";
+    frame.style.display  = "none";
+    noData.style.display = "block";
+  }
+};
 </script>
-
 </body>
 </html>

@@ -1,340 +1,174 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <title>Teacher Dashboard</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-
-body{
-font-family:Arial;
-margin:0;
-background:#f4f6f9;
+:root {
+  --navy: #001a3a; --navy-mid: #002554;
+  --blue: #1565C0; --blue-light: #EFF6FF;
+  --accent: #F59E0B;
+  --green: #10B981; --red: #EF4444; --yellow: #F59E0B;
+  --surface: #ffffff; --bg: #EFF3F8; --text: #1e293b;
+  --text-muted: #64748b; --border: #E2E8F0;
+  --radius: 14px; --shadow: 0 4px 20px rgba(0,26,58,0.1);
+  --shadow-lg: 0 8px 36px rgba(0,26,58,0.16);
 }
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
 
-header{
-background:#002147;
-color:white;
-padding:20px;
-text-align:center;
-position:relative;
-}
+#toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(80px); background:#1e293b; color:white; padding:13px 26px; border-radius:50px; font-size:14px; font-weight:500; z-index:9999; opacity:0; transition:all 0.35s cubic-bezier(0.34,1.56,0.64,1); white-space:nowrap; box-shadow:0 8px 32px rgba(0,0,0,0.3); }
+#toast.show    { opacity:1; transform:translateX(-50%) translateY(0); }
+#toast.success { background:#059669; }
+#toast.error   { background:#DC2626; }
+#toast.info    { background:var(--blue); }
 
-.logoutBtn{
-position:absolute;
-right:20px;
-top:20px;
-padding:8px 15px;
-border:none;
-background:white;
-color:#002147;
-cursor:pointer;
-border-radius:5px;
-font-weight:bold;
-}
+header { background:linear-gradient(135deg,var(--navy) 0%,#012a70 55%,#0a3a6e 100%); color:white; padding:20px 24px; display:flex; align-items:center; justify-content:space-between; position:relative; overflow:hidden; }
+header::before { content:''; position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%; background:rgba(245,158,11,0.07); border:1px solid rgba(245,158,11,0.12); }
+.header-left { display:flex; align-items:center; gap:14px; position:relative; z-index:1; }
+.header-avatar { width:52px; height:52px; border-radius:50%; overflow:hidden; border:2px solid rgba(255,255,255,0.3); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; }
+.header-avatar img { width:100%; height:100%; object-fit:cover; }
+.header-title { font-family:'Sora',sans-serif; font-size:18px; font-weight:700; }
+#teacherName { font-size:13px; opacity:0.75; margin-top:3px; }
 
-.logoutBtn:hover{
-background:#1b3a6b;
-color:white;
-}
+.logoutBtn { position:relative; z-index:1; padding:10px 20px; border:none; border-radius:50px; background:rgba(239,68,68,0.85); color:white; font-weight:600; cursor:pointer; transition:all 0.2s; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; display:flex; align-items:center; gap:7px; border:1.5px solid rgba(239,68,68,0.3); }
+.logoutBtn:hover { background:#DC2626; transform:translateY(-1px); }
 
-.menu{
-display:flex;
-justify-content:center;
-gap:20px;
-margin-top:20px;
-}
+.navbar { background:white; border-bottom:1px solid var(--border); padding:12px 16px; display:flex; justify-content:center; flex-wrap:wrap; gap:8px; }
+.navbar button { padding:9px 16px; border:1.5px solid var(--border); border-radius:50px; background:white; color:var(--navy); font-size:13px; font-weight:600; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.04); transition:all 0.22s; font-family:'Plus Jakarta Sans',sans-serif; display:flex; align-items:center; gap:6px; }
+.navbar button:hover { background:var(--blue); color:white; border-color:var(--blue); transform:translateY(-2px); box-shadow:0 5px 16px rgba(21,101,192,0.22); }
+.navbar button:active { transform:scale(0.96); }
 
-.menu button{
-padding:10px 20px;
-margin:5px;
-border:none;
-background:white;
-color:#002147;
-cursor:pointer;
-border-radius:5px;
-font-weight:bold;
-}
+#content { padding:28px 20px; max-width:1100px; margin:0 auto; }
+.content-welcome { text-align:center; padding:60px 20px; color:var(--text-muted); }
+.content-welcome .welcome-icon { font-size:52px; margin-bottom:16px; }
+.content-welcome h3 { font-family:'Sora',sans-serif; font-size:20px; color:var(--navy); margin-bottom:8px; }
 
-.menu button:hover{
-background:#002147;
-color:white;
-}
+.section-title { font-family:'Sora',sans-serif; font-size:19px; font-weight:700; color:var(--navy); margin-bottom:20px; display:flex; align-items:center; gap:10px; }
 
-.menu button:hover{
-background:#0056b3;
-}
+.cards-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px; }
+.card { background:linear-gradient(135deg,#1976D2,#1251A0); color:white; padding:20px 22px; border-radius:var(--radius); box-shadow:0 6px 24px rgba(21,101,192,0.25); transition:all 0.25s; animation:cardIn 0.35s ease both; }
+@keyframes cardIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+.card:hover { transform:translateY(-3px); box-shadow:0 10px 32px rgba(21,101,192,0.32); }
+.card-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; opacity:0.75; margin-bottom:6px; }
+.card-value { font-family:'Sora',sans-serif; font-size:16px; font-weight:700; }
+.card-sub { font-size:13px; opacity:0.8; margin-top:4px; }
 
-#content{
-padding:40px;
-text-align:center;
-}
+.form-panel { background:white; padding:28px; border-radius:18px; box-shadow:var(--shadow); width:460px; max-width:95vw; margin:0 auto; border:1px solid var(--border); }
+.form-panel select, .form-panel input, .form-panel textarea { width:100%; padding:12px 15px; margin-bottom:14px; border-radius:10px; border:1.5px solid var(--border); font-size:14px; font-family:'Plus Jakarta Sans',sans-serif; background:#F8FAFC; outline:none; transition:all 0.2s; color:var(--text); }
+.form-panel select:focus, .form-panel input:focus, .form-panel textarea:focus { border-color:var(--blue); background:white; box-shadow:0 0 0 3px rgba(21,101,192,0.1); }
+.form-panel textarea { height:80px; resize:none; }
+.form-panel label { display:block; font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.7px; margin-bottom:6px; }
 
-/* 🔥 FINAL IMAGE MATCH UI */
-.marks-table{
-width:100%;
-border-collapse:collapse;
-margin-top:15px;
-font-size:16px;
-background:white;
-border-radius:15px;
-overflow:hidden;
-box-shadow:0 6px 18px rgba(0,0,0,0.1);
-table-layout:fixed;
-}
+.btn-main { width:100%; padding:13px; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; transition:all 0.2s; font-family:'Plus Jakarta Sans',sans-serif; margin-bottom:10px; display:flex; align-items:center; justify-content:center; gap:8px; }
+.btn-green  { background:linear-gradient(135deg,#10B981,#059669); color:white; box-shadow:0 4px 14px rgba(16,185,129,0.3); }
+.btn-green:hover  { transform:translateY(-1px); box-shadow:0 6px 20px rgba(16,185,129,0.4); }
+.btn-red    { background:linear-gradient(135deg,#EF4444,#DC2626); color:white; box-shadow:0 4px 14px rgba(239,68,68,0.3); }
+.btn-red:hover    { transform:translateY(-1px); }
+.btn-yellow { background:linear-gradient(135deg,#F59E0B,#D97706); color:white; box-shadow:0 4px 14px rgba(245,158,11,0.3); }
+.btn-yellow:hover { transform:translateY(-1px); }
+.btn-blue   { background:linear-gradient(135deg,#1565C0,#1251A0); color:white; box-shadow:0 4px 14px rgba(21,101,192,0.3); }
+.btn-blue:hover   { transform:translateY(-1px); }
+.btn-outline { background:white; color:var(--text-muted); border:1.5px solid var(--border) !important; box-shadow:none; }
 
-/* HEADER */
-.marks-table th{
-background:#002147;
-color:white;
-padding:16px;
-text-align:center;
-font-size:18px;
-}
+.form-msg { margin-top:4px; font-size:13px; font-weight:600; color:var(--green); text-align:center; }
 
-/* LEFT COLUMN */
-.marks-table th:first-child,
-.marks-table td:first-child{
-width:70%;
-text-align:left;
-padding:20px;
-border-right:2px solid #e0e0e0;
-}
+/* ── MARKS ─────────────────────── */
+.marks-table { width:100%; border-collapse:collapse; margin-top:15px; background:white; border-radius:12px; overflow:hidden; box-shadow:0 4px 16px rgba(0,0,0,0.06); }
+.marks-table th { background:var(--navy); color:white; padding:13px; text-align:center; font-size:13px; font-weight:600; }
+.marks-table td { padding:11px 14px; border-bottom:1px solid #F1F5F9; text-align:center; font-size:13px; }
+.marks-table tr:hover td { background:#EFF6FF; }
 
-/* RIGHT COLUMN (MARKS) */
+/* ── CANCEL LECTURE STYLES ─────── */
+.cancel-lec-card { background:white; border-radius:12px; border:1.5px solid var(--border); padding:14px 16px; margin-bottom:10px; cursor:pointer; transition:all 0.2s; display:flex; justify-content:space-between; align-items:center; }
+.cancel-lec-card:hover { border-color:var(--red); background:#FEF2F2; }
+.cancel-lec-card.selected { border-color:var(--red); background:#FEF2F2; box-shadow:0 0 0 2px rgba(239,68,68,0.15); }
+.cancel-confirm-box { background:#FEF2F2; border:1.5px solid #FECACA; border-radius:12px; padding:16px; margin-top:12px; display:none; }
+.cancel-confirm-box p { font-size:13px; color:#7F1D1D; margin-bottom:12px; font-weight:500; }
 
-.marks-table td:last-child{
-width:30%;
-text-align:center; /* 🔥 center */
-padding:20px;
-font-weight:500;
-color:#000; /* 🔥 normal black */
-}
-.marks-table th:last-child{
-color:white !important;
-}
+/* ── AVAILABILITY INDICATOR ────── */
+.avail-badge { padding:6px 14px; border-radius:50px; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:5px; margin-bottom:12px; }
+.avail-free { background:#D1FAE5; color:#065F46; }
+.avail-busy { background:#FEE2E2; color:#991B1B; }
+.avail-loading { background:#F1F5F9; color:#64748b; }
 
+/* ── NOTIFICATIONS ─────────────── */
+.notif-card { padding:16px; border-radius:12px; border-left:5px solid; margin-bottom:12px; animation:cardIn 0.3s ease; }
 
-/* ROW BACKGROUND */
-.marks-table tr:nth-child(2){
-background:#f5f5f5;
-}
+/* ── LOGOUT MODAL ──────────────── */
+#logoutModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); justify-content:center; align-items:center; z-index:999; }
+.logout-box { background:white; padding:32px; border-radius:20px; width:320px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.25); animation:modalIn 0.3s cubic-bezier(0.34,1.2,0.64,1); }
+@keyframes modalIn { from { opacity:0; transform:scale(0.88) translateY(16px); } to { opacity:1; transform:scale(1) translateY(0); } }
+.logout-box h3 { font-family:'Sora',sans-serif; font-size:17px; color:var(--navy); margin-bottom:10px; }
+.logout-box p  { color:var(--text-muted); margin-bottom:22px; font-size:14px; }
+.logout-actions { display:flex; justify-content:center; gap:12px; }
+.btn-logout-yes { padding:11px 22px; background:var(--red); color:white; border:none; border-radius:10px; cursor:pointer; font-weight:700; font-family:'Plus Jakarta Sans',sans-serif; transition:0.2s; }
+.btn-logout-yes:hover { background:#C82333; }
+.btn-logout-no  { padding:11px 22px; background:#F1F5F9; color:#475569; border:none; border-radius:10px; cursor:pointer; font-weight:600; font-family:'Plus Jakarta Sans',sans-serif; transition:0.2s; }
+.btn-logout-no:hover { background:#E2E8F0; }
 
-.marks-table tr:nth-child(3){
-background:#e9edf3;
-}
-
-/* REMOVE DEFAULT TD BG */
-.marks-table td{
-background:transparent;
-}
-
-/* ROW LINE */
-.marks-table tr{
-border-bottom:1px solid #ddd;
-}
-
-.marks-table tr:last-child{
-border-bottom:none;
-}
-.card{
-background: linear-gradient(135deg,#4fa2f5,#187eeb);
-color:white;
-padding:20px;
-margin:15px;
-border-radius:15px;
-box-shadow:0 8px 20px rgba(93, 181, 249, 0.312);
-display:inline-block;
-width:320px;
-text-align:left;
-}
-.card b{
-color:#ffffff;
-}
-/* NAVBAR */
-
-.navbar{
-background:#1b3a6b;
-padding:10px;
-text-align:center;
-}
-
-.navbar{
-background:#1b3a6b;
-padding:12px;
-display:flex;
-justify-content:center;
-flex-wrap:wrap;
-gap:12px;
-}
-
-.navbar button{
-padding:10px 18px;
-border:none;
-border-radius:10px; /* pill shape 🔥 */
-background:rgba(255,255,255,0.9);
-color:#002147;
-font-size:14px;
-font-weight:600;
-cursor:pointer;
-
-box-shadow:0 4px 10px rgba(0,0,0,0.15);
-transition:0.25s;
-}
-
-/* HOVER EFFECT */
-.navbar button:hover{
-background:#007bff;
-color:white;
-transform:translateY(-2px);
-box-shadow:0 6px 15px rgba(0,0,0,0.25);
-}
-
-/* CLICK EFFECT */
-.navbar button:active{
-transform:scale(0.95);
-}
-
-@keyframes fadeIn{
-from{opacity:0; transform:scale(0.9);}
-to{opacity:1; transform:scale(1);}
+@media (max-width:600px) {
+  .cards-grid { grid-template-columns:1fr; }
+  .navbar button { font-size:11px; padding:7px 11px; }
+  header { flex-wrap:wrap; gap:12px; }
 }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 </head>
-
 <body>
 
+<div id="toast"></div>
+
 <header>
-
-<img src="logo.png" style="height:70px; display:block; margin:auto;">
-
-<h2>Teacher Dashboard</h2>
-
-<h3 id="teacherName"></h3>
-
-<button class="logoutBtn" onclick="openLogoutModal()"style="padding:10px 20px;
-border:none;
-border-radius:8px;
-background:#fd0101;
-color:white;
-font-weight:bold;
-cursor:pointer;">Logout</button>
-
+  <div class="header-left">
+    <div class="header-avatar"><img src="logo.png" alt="Logo" onerror="this.parentElement.innerHTML='👨‍🏫'"></div>
+    <div>
+      <div class="header-title">Teacher Dashboard</div>
+      <div id="teacherName">Loading...</div>
+    </div>
+  </div>
+  <button class="logoutBtn" onclick="openLogoutModal()">🚪 Logout</button>
 </header>
 
-<!-- <div class="menu">
-
-<button onclick="goHome()">Home</button>
-
-<button onclick="showToday()">Today's Lectures</button>
-
-<button onclick="showWeekly()">Weekly Timetable</button>
-
-<button onclick="showCancel()">Cancel Lecture</button>
-
-<button onclick="showBooking()">Book Classroom</button>
-
-<button onclick="showLogs()">RFID Logs</button>
-
-<button onclick="logout()">Logout</button>
-
-</div> -->
-
 <div class="navbar">
-
-<button onclick="showToday()">Today's Lectures</button>
-
-<button onclick="showWeekly()">Weekly Timetable</button>
-
-<button onclick="showCancel()">Cancel Lecture</button>
-
-<button onclick="showLate()">Late</button>
-
-<button onclick="showBooking()">Book Classroom</button>
-
-<button onclick="showLogs()">RFID Logs</button>
-
-<button onclick="showMarksheet()">Marksheet</button>
-
-<button onclick="viewMarks()">View Marks</button>
-
-<button onclick="showNotifications()">Notifications</button>
-
-
-
+  <button onclick="showToday()">📅 Today's Lectures</button>
+  <button onclick="showWeekly()">📆 Weekly Timetable</button>
+  <button onclick="showCancel()">❌ Cancel Lecture</button>
+  <button onclick="showLate()">⏰ Late Notification</button>
+  <button onclick="showBooking()">🏫 Book Classroom</button>
+  <button onclick="showLogs()">📡 RFID Logs</button>
+  <button onclick="showMarksheet()">📄 Upload Marks</button>
+  <button onclick="viewMarks()">📊 View Marks</button>
+  <button onclick="showNotifications()">🔔 Notifications</button>
 </div>
 
 <div id="content">
-
-Select a menu
-
-</div>
-<div id="logoutModal" style="
-display:none;
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.5);
-justify-content:center;
-align-items:center;
-z-index:999;
-">
-
-<div style="
-background:white;
-padding:25px;
-border-radius:12px;
-width:320px;
-text-align:center;
-box-shadow:0 10px 25px rgba(0,0,0,0.3);
-animation:fadeIn 0.3s;
-">
-
-<h3 style="margin-bottom:15px;color:#002147;">
-⚠ Confirm Logout
-</h3>
-
-<p style="margin-bottom:20px;color:#555;">
-Are you sure you want to logout?
-</p>
-
-<div style="display:flex; justify-content:center; gap:15px;">
-
-<button onclick="confirmLogout()" style="
-padding:8px 18px;
-background:#dc3545;
-color:white;
-border:none;
-border-radius:6px;
-cursor:pointer;
-">
-Yes
-</button>
-
-<button onclick="closeLogoutModal()" style="
-padding:8px 18px;
-background:#6c757d;
-color:white;
-border:none;
-border-radius:6px;
-cursor:pointer;
-">
-Cancel
-</button>
-
+  <div class="content-welcome">
+    <div class="welcome-icon">👨‍🏫</div>
+    <h3>Welcome to your Dashboard</h3>
+    <p>Select a menu option above to get started.</p>
+  </div>
 </div>
 
+<div id="logoutModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); justify-content:center; align-items:center; z-index:999;">
+  <div class="logout-box">
+    <div style="font-size:40px; margin-bottom:14px;">⚠️</div>
+    <h3>Confirm Logout</h3>
+    <p>Are you sure you want to logout?</p>
+    <div class="logout-actions">
+      <button onclick="confirmLogout()" class="btn-logout-yes">Yes, Logout</button>
+      <button onclick="closeLogoutModal()" class="btn-logout-no">Cancel</button>
+    </div>
+  </div>
 </div>
-</div>
+
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+import { getDatabase, ref, get, set, remove, push, onValue } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
 
 const firebaseConfig = {
-apiKey: "AIzaSyAXNrkME8ssbzJxfUrEpzSNDCa7MEpOgrY",
+  apiKey: "AIzaSyAXNrkME8ssbzJxfUrEpzSNDCa7MEpOgrY",
   authDomain: "sample-final-proj.firebaseapp.com",
   databaseURL: "https://sample-final-proj-default-rtdb.asia-southeast1.firebasedatabase.app/",
   projectId: "sample-final-proj",
@@ -342,1326 +176,561 @@ apiKey: "AIzaSyAXNrkME8ssbzJxfUrEpzSNDCa7MEpOgrY",
   messagingSenderId: "215816969558",
   appId: "1:215816969558:web:efe3040d393e5ee26a0af7",
 };
-
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
-let cancelSubjectMap = {};
 
 const teacherID = localStorage.getItem("teacherID");
-if(!teacherID){
-  alert("Please login first");
-  window.location.replace("index.html");
-}
-
-const teacherRef = ref(database, "teachers/" + teacherID);
-
-get(teacherRef).then((snapshot) => {
-
-if(snapshot.exists()){
-
-const name = snapshot.val().name;
-
-document.getElementById("teacherName").innerText =
-"Welcome " + name;
-
-}
-else{
-
-document.getElementById("teacherName").innerText =
-"Welcome " + teacherID;
-
-}
-
-});
-
-function isSameTeacher(a,b){
-  return a && b && a.trim().toUpperCase() === b.trim().toUpperCase();
-}
-
-window.showToday = async function(){
-
-const teacher = localStorage.getItem("teacherID");
-const day = new Date().toLocaleString('en-US',{weekday:'long'});
-const todayDate = new Date().toISOString().split("T")[0];
-
-const snapshot = await get(ref(database,"classrooms"));
-
-let html = "<h3>Today's Lectures</h3>";
-
-if(!snapshot.exists()){
-document.getElementById("content").innerHTML = "No data";
-return;
-}
-
-const data = snapshot.val();
-
-for(let room in data){
-
-if(!data[room].timetable) continue;
-
-const dayData = data[room].timetable[day];
-if(!dayData) continue;
-
-for(let slot in dayData){
-
-const lec = dayData[slot];
-
-// ✅ CANCEL CHECK
-const cancelSnap = await get(ref(database,
-`cancelled_lectures/${todayDate}/${room}/${slot}`));
-
-if(cancelSnap.exists()) continue;
-
-if(lec.faculty && lec.faculty.trim().toUpperCase() === teacher.trim().toUpperCase()){
-
-html += `
-<div class="card">
-<b>Room:</b> ${room}<br>
-<b>Subject:</b> ${lec.subject}<br>
-<b>Slot:</b> ${slot}
-</div>
-`;
-
-}
-
-}
-
-}
-
-document.getElementById("content").innerHTML = html;
-
-}
-window.showWeekly = async function(){
-
-const teacher = localStorage.getItem("teacherID");
-
-const snapshot = await get(ref(database,"classrooms"));
-
-let html = "<h3>Weekly Lectures</h3>";
-
-if(!snapshot.exists()){
-document.getElementById("content").innerHTML = "No data";
-return;
-}
-
-const data = snapshot.val();
-
-for(let room in data){
-
-if(!data[room].timetable) continue;
-
-for(let day in data[room].timetable){
-
-for(let slot in data[room].timetable[day]){
-
-const lec = data[room].timetable[day][slot];
-
-if(lec.faculty && lec.faculty.trim().toUpperCase() === teacher.trim().toUpperCase()){
-
-html += `
-<div class="card">
-<b>Day:</b> ${day}<br>
-<b>Room:</b> ${room}<br>
-<b>Subject:</b> ${lec.subject}<br>
-<b>Slot:</b> ${slot}
-</div>
-`;
-
-}
-
-}
-
-}
-
-}
-
-document.getElementById("content").innerHTML = html;
-
-}
-
-window.showLogs = async function(){
-
-const teacher = localStorage.getItem("teacherID");
-
-const todayDate = new Date().toISOString().split("T")[0];
-
-const snapshot = await get(ref(database,"logs/" + todayDate));
-
-let html = "<h3>RFID Logs</h3>";
-
-if(!snapshot.exists()){
-document.getElementById("content").innerHTML = "No logs";
-return;
-}
-
-snapshot.forEach(child=>{
-
-const data = child.val();
-
-if(data.teacher === teacher){
-
-html += `
-<div class="card">
-<b>Room:</b> ${data.room}<br>
-<b>Time:</b> ${data.time}<br>
-<b>Status:</b> ${data.status}
-</div>
-`;
-
-}
-
-});
-
-document.getElementById("content").innerHTML = html;
-
-}
-window.showBooking = async function(){
-
-document.getElementById("content").innerHTML = `
-
-<h3 style="
-color:#002147;
-margin-bottom:20px;
-font-size:22px;
-">
-🏫 Classroom Booking
-</h3>
-
-<div style="
-display:flex;
-justify-content:center;
-">
-
-<div style="
-background:white;
-padding:30px;
-border-radius:15px;
-box-shadow:0 8px 20px rgba(0,0,0,0.1);
-width:330px;
-text-align:center;
-">
-
-<select id="room" style="
-width:100%;
-padding:12px;
-margin-bottom:15px;
-border-radius:8px;
-border:1px solid #ccc;
-">
-<option>LAB31</option>
-<option>CR125</option>
-<option>CR126</option>
-</select>
-
-<input type="date" id="date" style="
-width:100%;
-padding:12px;
-margin-bottom:15px;
-border-radius:8px;
-border:1px solid #ccc;
-">
-
-<select id="slot" style="
-width:100%;
-padding:12px;
-margin-bottom:15px;
-border-radius:8px;
-border:1px solid #ccc;
-">
-<option value="s1">8:30-9:30</option>
-<option value="s2">9:30-10:30</option>
-<option value="s3">10:40-11:40</option>
-<option value="s4">11:40-12:40</option>
-<option value="s5">1:20-2:20</option>
-<option value="s6">2:20-3:20</option>
-<option value="s7">3:20-4:20</option>
-</select>
-
-<select id="subjectSelect" style="
-width:100%;
-padding:12px;
-margin-bottom:15px;
-border-radius:8px;
-border:1px solid #ccc;
-">
-<option>Loading subjects...</option>
-</select>
-
-<textarea id="purpose" placeholder="Purpose" style="
-width:100%;
-padding:12px;
-margin-bottom:15px;
-border-radius:8px;
-border:1px solid #ccc;
-height:70px;
-resize:none;
-"></textarea>
-
-<button onclick="submitBooking()" style="
-width:100%;
-padding:12px;
-border:none;
-border-radius:10px;
-background:#28a745;
-color:white;
-font-size:16px;
-font-weight:bold;
-cursor:pointer;
-"
-onmouseover="this.style.background='#218838'"
-onmouseout="this.style.background='#28a745'"
->
-Request Booking
-</button>
-
-<p id="bookingMsg" style="
-margin-top:15px;
-font-weight:bold;
-color:#28a745;
-"></p>
-
-</div>
-
-</div>
-
-`;
-
-const teacher = localStorage.getItem("teacherID");
-
-
-const snapshot = await get(ref(database,"classrooms"));
-
-const select = document.getElementById("subjectSelect");
-
-select.innerHTML = "";
-
-let subjects = new Set();
-
-if(snapshot.exists()){
-
-const data = snapshot.val();
-
-for(let room in data){
-
-// ✅ TIMETABLE
-if(data[room].timetable){
-for(let day in data[room].timetable){
-for(let slot in data[room].timetable[day]){
-
-const lec = data[room].timetable[day][slot];
-
-if(isSameTeacher(lec.faculty, teacher)){
-subjects.add(lec.subject);
-}
-
-}
-}
-}
-
-// ✅ SPECIAL BOOKINGS
-if(data[room].specialBookings){
-for(let date in data[room].specialBookings){
-for(let slot in data[room].specialBookings[date]){
-
-const lec = data[room].specialBookings[date][slot];
-
-if(isSameTeacher(lec.faculty, teacher)){
-subjects.add(lec.subject);
-}
-
-}
-}
-}
-
-}
-
-}
-
-if(subjects.size === 0){
-select.innerHTML = "<option>No subjects found</option>";
-}else{
-subjects.forEach(sub=>{
-select.innerHTML += `<option>${sub}</option>`;
-
-});
-}
-}
-
-
-window.submitBooking = async function(){
-
-const room = document.getElementById("room").value;
-const date = document.getElementById("date").value;
-const slot = document.getElementById("slot").value;
-const subject = document.getElementById("subjectSelect").value;
-const purpose = document.getElementById("purpose").value;
-
-const teacher = localStorage.getItem("teacherID");
-
-const requestRef = ref(database, "booking_requests/" + Date.now());
-
-await set(requestRef,{
-
-teacher: teacher,
-room: room,
-date: date,
-slot: slot,
-subject: subject,
-purpose: purpose,
-status: "pending"
-
-});
-
-document.getElementById("bookingMsg").innerHTML =
-"Booking Request Sent";
-
-}
-window.goHome = function(){
-
-window.location.href = "index.html";
-
-}
-window.logout = function(){
-
-localStorage.removeItem("teacherID");
-
-window.location.href = "index.html";
-
-}
-window.showCancel = async function(){
-
-document.getElementById("content").innerHTML = `
-
-<h3 style="
-color:#002147;
-margin-bottom:20px;
-font-size:22px;
-">
-❌ Cancel Lecture
-</h3>
-
-<div style="
-display:flex;
-justify-content:center;
-">
-
-<div style="
-background:white;
-padding:30px;
-border-radius:15px;
-box-shadow:0 8px 20px rgba(0,0,0,0.1);
-width:330px;
-text-align:center;
-">
-
-<select id="cancelSubject" style="
-width:100%;
-padding:12px;
-margin-bottom:15px;
-border-radius:8px;
-border:1px solid #ccc;
-">
-<option>Loading subjects...</option>
-</select>
-
-<input type="date" id="cancelDate" style="
-width:100%;
-padding:12px;
-margin-bottom:20px;
-border-radius:8px;
-border:1px solid #ccc;
-">
-
-<select id="cancelSlot" style="
-width:100%;
-padding:12px;
-margin-bottom:15px;
-border-radius:8px;
-border:1px solid #ccc;
-">
-<option value="">Select Slot</option>
-<option value="s1">8:30-9:30</option>
-<option value="s2">9:30-10:30</option>
-<option value="s3">10:40-11:40</option>
-<option value="s4">11:40-12:40</option>
-<option value="s5">1:20-2:20</option>
-<option value="s6">2:20-3:20</option>
-<option value="s7">3:20-4:20</option>
-</select>
-
-<button onclick="cancelLecture()" style="
-width:100%;
-padding:12px;
-border:none;
-border-radius:10px;
-background:#dc3545;
-color:white;
-font-size:16px;
-font-weight:bold;
-cursor:pointer;
-"
-onmouseover="this.style.background='#c82333'"
-onmouseout="this.style.background='#dc3545'"
->
-Cancel Lecture
-</button>
-
-<p id="cancelMsg" style="
-margin-top:15px;
-font-weight:bold;
-color:#28a745;
-"></p>
-
-</div>
-
-</div>
-
-`;
-
-const teacher = localStorage.getItem("teacherID");
-
-document.getElementById("cancelDate").addEventListener("change", async function(){
-
-const selectedDate = this.value;
-if(!selectedDate) return;
-
-const day = new Date(selectedDate).toLocaleString('en-US',{weekday:'long'});
-const teacher = localStorage.getItem("teacherID");
-
-const snapshot = await get(ref(database,"classrooms"));
-
-const subjectSelect = document.getElementById("cancelSubject");
-const slotSelect = document.getElementById("cancelSlot");
-
-subjectSelect.innerHTML = "";
-slotSelect.innerHTML = "<option>Select Slot</option>";
-
-cancelSubjectMap = {};
-// 🔥 subject → slots mapping
-
-if(snapshot.exists()){
-  const data = snapshot.val();
-
-  for(let room in data){
-
-    const dayData = data[room].timetable?.[day];
-    if(!dayData) continue;
-
-    for(let slot in dayData){
-
-      const lec = dayData[slot];
-
-      if(lec.faculty === teacher){
-
-        // store subject
-if(!cancelSubjectMap[lec.subject]){
-  cancelSubjectMap[lec.subject] = [];
-}
-cancelSubjectMap[lec.subject].push(slot);
-      }
-    }
-  }
-}
-
-// 🔥 FILL SUBJECT DROPDOWN
-if(Object.keys(subjectMap).length === 0){
-  subjectSelect.innerHTML = "<option>No lectures</option>";
-}else{
-  for(let sub in cancelSubjectMap){
-    subjectSelect.innerHTML += `<option>${sub}</option>`;
-  }
-}
-
-// 🔥 WHEN SUBJECT CHANGES → UPDATE SLOTS
-document.addEventListener("change", function(e){
-
-  if(e.target.id === "cancelSubject"){
-
-    const selectedSub = e.target.value;
-    const slotSelect = document.getElementById("cancelSlot");
-
-    slotSelect.innerHTML = "<option>Select Slot</option>";
-
-    const slots = cancelSubjectMap[selectedSub] || [];
-
-    if(slots.length === 0){
-      slotSelect.innerHTML = "<option>No slots</option>";
-      return;
-    }
-
-    const slotMap = {
-      s1:"8:30-9:30",
-      s2:"9:30-10:30",
-      s3:"10:40-11:40",
-      s4:"11:40-12:40",
-      s5:"1:20-2:20",
-      s6:"2:20-3:20",
-      s7:"3:20-4:20"
-    };
-
-    slots.forEach(s=>{
-      slotSelect.innerHTML += `<option value="${s}">${slotMap[s]}</option>`;
-    });
-
-  }
-
-});
-});
-}
-
-window.cancelLecture = async function(){
-
-  const teacherID = localStorage.getItem("teacherID");
-  const date = document.getElementById("cancelDate").value;
-  const subject = document.getElementById("cancelSubject").value;
-  const slot = document.getElementById("cancelSlot").value;
-
-  if(!date || !subject || !slot){
-    alert("Select date, subject and slot");
-    return;
-  }
-
-  // 🔐 CONFIRMATION
-  const correctCode = "MX3042" + teacherID;
-  const enteredCode = prompt("Enter confirmation code:");
-
-  if(enteredCode !== correctCode){
-    alert("❌ Invalid Code");
-    return;
-  }
-
-  const day = new Date(date).toLocaleString('en-US',{weekday:'long'});
-  const snapshot = await get(ref(database,"classrooms"));
-
-  let found = null;
-
-  if(snapshot.exists()){
-    const data = snapshot.val();
-
-    for(let room in data){
-
-      const dayData = data[room].timetable?.[day];
-      if(!dayData) continue;
-
-      const lec = dayData[slot];
-
-      if(
-        lec &&
-        lec.faculty === teacherID &&
-        lec.subject === subject
-      ){
-        found = {
-          room,
-          slot,
-          subject: lec.subject
-        };
-      }
-    }
-  }
-
-  if(!found){
-    alert("No lecture found for selected slot");
-    return;
-  }
-
-  // 🔥 CHECK ALREADY CANCELLED
-  const already = await get(ref(database,
-    `cancelled_lectures/${date}/${found.room}/${found.slot}`
-  ));
-
-  if(already.exists()){
-    alert("Already cancelled");
-    return;
-  }
-
-  // 🔥 CANCEL ONLY THIS SLOT
-  await set(ref(database,
-    `cancelled_lectures/${date}/${found.room}/${found.slot}`),{
-      teacher: teacherID,
-      subject: found.subject,
-      slot: found.slot,
-      timestamp: Date.now()
-  });
-
-  // 🔥 LOG
-  await set(ref(database,"cancel_logs/" + Date.now()),{
-    teacher: teacherID,
-    subject: subject,
-    date: date,
-    slot: slot,
-    status: "cancelled_single"
-  });
-
-  document.getElementById("cancelMsg").innerHTML =
-  `✅ Lecture cancelled for ${slot}`;
-
+if (!teacherID) window.location.replace("index.html");
+
+window.showToast = function(msg, type="info", duration=3000) {
+  const t = document.getElementById("toast");
+  t.textContent=msg; t.className="show "+type;
+  setTimeout(()=>{ t.className=""; }, duration);
 };
-window.showLate = async function(){
-document.getElementById("content").innerHTML = `
-
-<h3 style="
-color:#002147;
-margin-bottom:20px;
-font-size:22px;
-">
-⏰ Teacher Late Notification
-</h3>
-
-<div style="
-display:flex;
-justify-content:center;
-">
-
-<div style="
-background:white;
-padding:30px;
-border-radius:15px;
-box-shadow:0 8px 20px rgba(0,0,0,0.1);
-width:330px;
-text-align:center;
-">
-
-<select id="lateSubject" style="
-width:100%;
-padding:12px;
-margin-bottom:15px;
-border-radius:8px;
-border:1px solid #ccc;
-">
-<option>Loading subjects...</option>
-</select>
-
-<input type="date" id="lateDate" style="
-width:100%;
-padding:12px;
-margin-bottom:15px;
-border-radius:8px;
-border:1px solid #ccc;
-">
-
-<input id="lateMinutes" placeholder="Late minutes" style="
-width:100%;
-padding:12px;
-margin-bottom:15px;
-border-radius:8px;
-border:1px solid #ccc;
-">
-
-<button onclick="submitLate()" style="
-width:100%;
-padding:12px;
-border:none;
-border-radius:10px;
-background:#ffc107;
-color:black;
-font-size:16px;
-font-weight:bold;
-cursor:pointer;
-"
-onmouseover="this.style.background='#e0a800'"
-onmouseout="this.style.background='#ffc107'"
->
-Submit Late
-</button>
-
-<p id="lateMsg" style="
-margin-top:15px;
-font-weight:bold;
-color:#28a745;
-"></p>
-
-</div>
-
-</div>
-
-`;
-
-const teacher = localStorage.getItem("teacherID");
-
-document.getElementById("lateDate").addEventListener("change", async function(){
-
-const selectedDate = this.value;
-if(!selectedDate) return;
-
-const day = new Date(selectedDate).toLocaleString('en-US',{weekday:'long'});
-
-const teacher = localStorage.getItem("teacherID");
-
-const snapshot = await get(ref(database,"classrooms"));
-
-const select = document.getElementById("lateSubject");
-
-select.innerHTML = "";
-
-let subjects = new Set();
-
-if(snapshot.exists()){
-
-const data = snapshot.val();
-
-for(let room in data){
-
-// ✅ TIMETABLE
-if(data[room].timetable){
-
-const dayData = data[room].timetable[day];
-
-if(dayData){
-
-for(let slot in dayData){
-
-const lec = dayData[slot];
-
-if(isSameTeacher(lec.faculty, teacher)){
-subjects.add(lec.subject);
-}
-}
-
-}
-
-}
-
-// ✅ SPECIAL BOOKINGS
-if(data[room].specialBookings){
-
-for(let date in data[room].specialBookings){
-
-for(let slot in data[room].specialBookings[date]){
-
-const lec = data[room].specialBookings[date][slot];
-
-if(isSameTeacher(lec.faculty, teacher)){
-subjects.add(lec.subject);
-}
-
-}
-
-}
-
-}
-} // ✅ for(let room in data) close
-
-} // ✅ if(snapshot.exists()) close
-
-// ✅ dropdown fill
-if(subjects.size === 0){
-  select.innerHTML = "<option>No subjects</option>";
-}else{
-  subjects.forEach(sub=>{
-    select.innerHTML += `<option>${sub}</option>`;
-  });
-}
-
-}); // ✅ EVENT LISTENER CLOSE
-
-} // ✅ showLate FUNCTION CLOSE
-// 🔥🔥 IMPORTANT: yeh closing bracket hona chahiye
-
-window.submitLate = async function(){
-
-  const subject = document.getElementById("lateSubject").value;
-  const date = document.getElementById("lateDate").value;
-  const minutes = document.getElementById("lateMinutes").value;
-  const teacher = localStorage.getItem("teacherID");
-
-  if(!date || !minutes){
-    alert("Fill all fields");
-    return;
-  }
-
-  if(minutes > 60){
-    alert("Too much delay");
-    return;
-  }
-
-  // Find lecture details
-  const day = new Date(date).toLocaleString('en-US',{weekday:'long'});
-  const snapshot = await get(ref(database,"classrooms"));
-
-  let found = null;
-
-  if(snapshot.exists()){
-    const data = snapshot.val();
-
-    for(let room in data){
-      const dayData = data[room].timetable?.[day];
-
-      if(!dayData) continue;
-
-      for(let slot in dayData){
-        const lec = dayData[slot];
-
-        if(lec.faculty === teacher && lec.subject === subject){
-          found = {room, slot};
-        }
-      }
-    }
-  }
-
-  if(!found){
-    alert("Lecture not found");
-    return;
-  }
-
-  // Save full data
-  await set(ref(database,"late_notifications/"+Date.now()),{
-    teacher: teacher,
-    subject: subject,
-    date: date,
-    minutes: minutes,
-    room: found.room,
-    slot: found.slot,
-    status: "late"
-  });
-
-  document.getElementById("lateMsg").innerHTML =
-  "✅ Late notification sent";
-
-}
-window.showMarksheet = async function(){
-
-document.getElementById("content").innerHTML = `
-
-<h3 style="color:#002147; margin-bottom:20px;">
-📄 Upload Excel Marksheet
-</h3>
-
-<div style="
-display:inline-block;
-background:white;
-padding:30px;
-border-radius:15px;
-box-shadow:0 8px 20px rgba(0,0,0,0.1);
-text-align:center;
-width:320px;
-">
-
-<select id="subjectSelectMarks" style="
-width:100%;
-padding:12px;
-margin-bottom:15px;
-border-radius:8px;
-border:1px solid #ccc;
-font-size:14px;
-">
-<option>Loading subjects...</option>
-</select>
-
-<input type="file" id="excelFile" accept=".xlsx, .xls" style="
-width:100%;
-padding:10px;
-margin-bottom:15px;
-border-radius:8px;
-border:1px solid #ccc;
-background:#f9f9f9;
-">
-
-<button onclick="uploadExcel()" style="
-width:100%;
-padding:12px;
-border:none;
-border-radius:10px;
-background:#007bff;
-color:white;
-font-size:16px;
-font-weight:bold;
-cursor:pointer;
-"
-onmouseover="this.style.background='#0056b3'"
-onmouseout="this.style.background='#007bff'"
->
-Upload & Save
-</button>
-
-<p id="marksMsg" style="
-margin-top:15px;
-font-weight:bold;
-color:green;
-"></p>
-
-</div>
-
-`;
-
-const teacher = localStorage.getItem("teacherID");
-
-const snapshot = await get(ref(database,"classrooms"));
-const select = document.getElementById("subjectSelectMarks");
-
-select.innerHTML = "";
-
-let subjects = new Set();
-
-if(snapshot.exists()){
-  const data = snapshot.val();
-
-  // ✅ TIMETABLE
-  for(let room in data){
-    if(data[room].timetable){
-      for(let day in data[room].timetable){
-        for(let slot in data[room].timetable[day]){
-
-          const lec = data[room].timetable[day][slot];
-
-          if(isSameTeacher(lec.faculty, teacher)){
-            subjects.add(lec.subject);
-          }
-
-        }
-      }
-    }
-  }
-
-  // ✅ BOOKING REQUESTS
-  const bookingSnap = await get(ref(database,"booking_requests"));
-  if(bookingSnap.exists()){
-    bookingSnap.forEach(child=>{
-      const b = child.val();
-      if(b.teacher === teacher){
-        subjects.add(b.subject);
-      }
-    });
-  }
-
-  // ✅ LATE NOTIFICATIONS
-  const lateSnap = await get(ref(database,"late_notifications"));
-  if(lateSnap.exists()){
-    lateSnap.forEach(child=>{
-      const l = child.val();
-      if(l.teacher === teacher){
-        subjects.add(l.subject);
-      }
-    });
-  }
-}
-
-// ✅ FILL DROPDOWN
-if(subjects.size === 0){
-  select.innerHTML = "<option>No subjects found</option>";
-}else{
-  subjects.forEach(sub=>{
-    select.innerHTML += `<option>${sub}</option>`;
-  });
-}
-
-
-};
-window.addRow = function(){
-
-const table = document.getElementById("marksTable");
-
-const row = document.createElement("tr");
-
-row.innerHTML = `
-<td><input placeholder="Student ID"></td>
-<td><input type="number" placeholder="Marks"></td>
-`;
-
-table.appendChild(row);
-
-};
-window.submitMarks = async function(){
-
-const subject = document.getElementById("subjectSelectMarks").value.trim().toUpperCase();
-const teacher = localStorage.getItem("teacherID");
-
-const rows = document.querySelectorAll("#marksTable tr");
-
-let count = 0;
-
-for(let row of rows){
-
-const inputs = row.querySelectorAll("input");
-
-const studentID = inputs[0].value;
-const marks = inputs[1].value;
-
-if(!studentID || !marks) continue;
-
-// validation
-if(marks > 30){
-alert("Max marks is 30");
-return;
-}
-
-await set(ref(database, "marks/" + subject + "/" + studentID),{
-midsem: marks,
-teacher: teacher,
-date: new Date().toISOString().split("T")[0]
-});
-
-count++;
-
-}
-
-document.getElementById("marksMsg").innerHTML =
-"✅ Saved " + count + " students marks";
-
-};
-window.uploadExcel = async function(){
-
-const file = document.getElementById("excelFile").files[0];
-
-if(!file){
-alert("Select Excel file");
-return;
-}
-
-const subject = document.getElementById("subjectSelectMarks").value;
-const teacher = localStorage.getItem("teacherID");
-
-const reader = new FileReader();
-
-reader.onload = async function(e){
-
-const data = new Uint8Array(e.target.result);
-const workbook = XLSX.read(data, {type: "array"});
-
-const sheetName = workbook.SheetNames[0];
-const sheet = workbook.Sheets[sheetName];
-
-// convert to JSON
-const jsonData = XLSX.utils.sheet_to_json(sheet);
-
-let count = 0;
-
-for(let row of jsonData){
-
-// Excel columns MUST be like this:
-// StudentID | Marks
-
-const studentID = row.StudentID;
-const marks = row.Marks;
-
-if(!studentID || !marks) continue;
-
-if(marks > 30){
-alert("Marks > 30 not allowed");
-return;
-}
-
-await set(ref(database, "marks/" + subject + "/" + studentID),{
-midsem: marks,
-teacher: teacher,
-date: new Date().toISOString().split("T")[0]
-});
-
-count++;
-}
-
-document.getElementById("marksMsg").innerHTML =
-"✅ Uploaded " + count + " students marks";
-
-};
-
-reader.readAsArrayBuffer(file);
-
-};
-window.viewMarks = async function(){
-
-document.getElementById("content").innerHTML = `
-<h3 style="color:#002147; margin-bottom:20px;">
-📊 View Marks
-</h3>
-
-<div style="display:flex; justify-content:center;">
-<div style="
-background:white;
-padding:30px;
-border-radius:15px;
-box-shadow:0 8px 20px rgba(0,0,0,0.1);
-width:350px;
-text-align:center;
-">
-
-<select id="viewSubject" style="
-width:100%;
-padding:12px;
-margin-bottom:20px;
-border-radius:8px;
-border:1px solid #ccc;
-">
-<option>Select Subject</option>
-</select>
-
-<div id="marksDisplay"></div>
-
-</div>
-</div>
-`;
-
-const teacher = localStorage.getItem("teacherID");
-
-const snapshot = await get(ref(database,"classrooms"));
-const select = document.getElementById("viewSubject");
-
-let subjects = new Set();
-
-if(snapshot.exists()){
-  const data = snapshot.val();
-
-  // ✅ TIMETABLE
-  for(let room in data){
-    if(data[room].timetable){
-      for(let day in data[room].timetable){
-        for(let slot in data[room].timetable[day]){
-
-          const lec = data[room].timetable[day][slot];
-
-          if(isSameTeacher(lec.faculty, teacher) && lec.subject){
-           subjects.add(lec.subject.trim().toUpperCase());
-          }
-
-        }
-      }
-    }
-  }
-
-  // ✅ BOOKING REQUESTS
-  const bookingSnap = await get(ref(database,"booking_requests"));
-  if(bookingSnap.exists()){
-    bookingSnap.forEach(child=>{
-      const b = child.val();
-      if(b.teacher === teacher && b.subject){
-        subjects.add(b.subject);
-      }
-    });
-  }
-
-  // ✅ LATE NOTIFICATIONS
-  const lateSnap = await get(ref(database,"late_notifications"));
-  if(lateSnap.exists()){
-    lateSnap.forEach(child=>{
-      const l = child.val();
-      if(l.teacher === teacher && l.subject){
-        subjects.add(l.subject);
-      }
-    });
-  }
-}
-
-// ✅ FILL DROPDOWN
-select.innerHTML = "<option>Select Subject</option>";
-
-subjects.forEach(sub=>{
-  select.innerHTML += `<option>${sub}</option>`;
-});
-
-// when subject selected
-select.addEventListener("change", async function(){
-
-const subject = this.value;
-
-const marksSnap = await get(ref(database,"marks/" + subject.trim()));
-
-let html = `
-<table class="marks-table">
-<tr style="background:#002147;color:white;">
-<th style="padding:10px;">Student ID</th>
-<th style="padding:10px;">Marks</th>
-</tr>
-`;
-
-if(marksSnap.exists()){
-  marksSnap.forEach(child=>{
-    const data = child.val();
-
-    html += `
-    <tr style="border-bottom:1px solid #ddd;">
-    <td style="padding:10px;">${child.key}</td>
-    <td style="padding:10px;">${data.midsem}</td>
-    </tr>
-    `;
-  });
-}else{
-  html += `<tr><td colspan="2">No data</td></tr>`;
-}
-
-html += "</table>";
-
-document.getElementById("marksDisplay").innerHTML = html;
-
-});
-
-};
-window.logout = function(){
-
-  // 🔥 LOGIN MODAL HIDE
-  const modal = document.getElementById("loginModal");
-  if(modal){
-    modal.style.display = "none";
-  }
-
-  localStorage.removeItem("teacherID");
-  window.location.href = "index.html";
-}
 
 window.history.pushState(null, null, window.location.href);
-window.onpopstate = function () {
-  window.location.href = "index.html";
+window.onpopstate = () => window.location.href="index.html";
+
+get(ref(database,"teachers/"+teacherID)).then(snap => {
+  document.getElementById("teacherName").innerText =
+    "Welcome, " + (snap.exists() ? snap.val().name : teacherID);
+});
+
+const slotMap = {
+  s1:"8:30-9:30", s2:"9:30-10:30", s3:"10:40-11:40", s4:"11:40-12:40",
+  s5:"1:20-2:20", s6:"2:20-3:20",  s7:"3:20-4:20",   s8:"4:20-5:20"
 };
 
-window.openLogoutModal = function(){
-document.getElementById("logoutModal").style.display = "flex";
-}
+function isSameTeacher(a,b) { return a && b && a.trim().toUpperCase()===b.trim().toUpperCase(); }
+function todayDate() { return new Date().toISOString().split("T")[0]; }
+function getDay(dateStr) { return new Date(dateStr+"T12:00:00").toLocaleString("en-US",{weekday:"long"}); }
 
-window.closeLogoutModal = function(){
-document.getElementById("logoutModal").style.display = "none";
-}
-
-window.confirmLogout = function(){
-localStorage.removeItem("teacherID");
-window.location.href = "index.html";
-}
-window.onload = function(){
-  const modal = document.getElementById("loginModal");
-  if(modal){
-    modal.style.display = "none";
-  }
-}
-
-import { onValue } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
-
-window.showNotifications = function(){
-
-const teacher = localStorage.getItem("teacherID");
-
-onValue(ref(database,"notifications"), (snapshot)=>{
-
-let html = "<h3>🔔 Notifications</h3>";
-
-if(!snapshot.exists()){
-  document.getElementById("content").innerHTML = "No notifications";
-  return;
-}
-
-const now = new Date();
-
-snapshot.forEach(child=>{
-  const data = child.val();
-
-  // ✅ FILTER: only for this teacher + not expired
-  if(data.teacher === teacher){
-
-    if(data.expiry && new Date(data.expiry) < now){
-      return; // skip expired
+/* ── TODAY'S LECTURES ─────────────────────────────── */
+window.showToday = async function() {
+  const day=getDay(todayDate()), date=todayDate();
+  const snap = await get(ref(database,"classrooms"));
+  let html=`<div class="section-title">📅 Today's Lectures</div><div class="cards-grid">`;
+  if (!snap.exists()) { document.getElementById("content").innerHTML="<p style='color:#888;'>No data available</p>"; return; }
+  const data=snap.val(); let found=false, idx=0;
+  for (const room in data) {
+    if (!data[room].timetable) continue;
+    const dayData=data[room].timetable[day]; if (!dayData) continue;
+    for (const slot in dayData) {
+      const lec=dayData[slot];
+      const cancelSnap=await get(ref(database,`cancelled_lectures/${date}/${room}/${slot}`));
+      if (!isSameTeacher(lec.faculty,teacherID)) continue;
+      found=true; idx++;
+      const cancelled=cancelSnap.exists();
+      html+=`<div class="card" style="animation-delay:${idx*0.06}s; ${cancelled?'opacity:0.6;':''}"">
+        <div class="card-label">🏫 Room</div><div class="card-value">${room}</div>
+        <hr style="border:none;border-top:1px solid rgba(255,255,255,0.15);margin:10px 0;">
+        <div class="card-label">📚 Subject</div><div class="card-value" style="${cancelled?'text-decoration:line-through;':''}}">${lec.subject}</div>
+        <hr style="border:none;border-top:1px solid rgba(255,255,255,0.15);margin:10px 0;">
+        <div class="card-label">⏰ Slot</div><div class="card-value">${slotMap[slot]||slot}</div>
+        ${cancelled ? '<div style="margin-top:8px;background:rgba(239,68,68,0.3);padding:4px 10px;border-radius:50px;font-size:11px;font-weight:700;">❌ CANCELLED</div>' : ''}
+      </div>`;
     }
+  }
+  if (!found) html+=`<p style="color:var(--text-muted);padding:40px;grid-column:1/-1;text-align:center;">No lectures today</p>`;
+  html+="</div>";
+  document.getElementById("content").innerHTML=html;
+};
 
-    html += `
-    <div class="card">
-      <b>${data.message}</b><br>
-      <small>${new Date(data.time).toLocaleString()}</small>
-    </div>
-    `;
+/* ── WEEKLY TIMETABLE ─────────────────────────────── */
+window.showWeekly = async function() {
+  const snap=await get(ref(database,"classrooms"));
+  let html=`<div class="section-title">📆 Weekly Lectures</div><div class="cards-grid">`;
+  if (!snap.exists()) { document.getElementById("content").innerHTML="<p>No data</p>"; return; }
+  const data=snap.val(); let found=false, idx=0;
+  for (const room in data) {
+    if (!data[room].timetable) continue;
+    for (const day in data[room].timetable) {
+      for (const slot in data[room].timetable[day]) {
+        const lec=data[room].timetable[day][slot];
+        if (!isSameTeacher(lec.faculty,teacherID)) continue;
+        found=true; idx++;
+        html+=`<div class="card" style="animation-delay:${idx*0.05}s">
+          <div class="card-label">📅 Day</div><div class="card-value">${day}</div>
+          <hr style="border:none;border-top:1px solid rgba(255,255,255,0.15);margin:10px 0;">
+          <div class="card-label">🏫 Room &amp; Subject</div><div class="card-value">${room}</div>
+          <div class="card-sub">${lec.subject}</div>
+          <hr style="border:none;border-top:1px solid rgba(255,255,255,0.15);margin:10px 0;">
+          <div class="card-label">⏰ Slot</div><div class="card-value">${slotMap[slot]||slot}</div>
+        </div>`;
+      }
+    }
+  }
+  if (!found) html+=`<p style="color:var(--text-muted);padding:40px;grid-column:1/-1;text-align:center;">No weekly lectures found</p>`;
+  html+="</div>";
+  document.getElementById("content").innerHTML=html;
+};
+
+/* ── RFID LOGS ─────────────────────────────────────── */
+window.showLogs = async function() {
+  const snap=await get(ref(database,"logs/"+todayDate()));
+  let html=`<div class="section-title">📡 RFID Logs — Today</div><div class="cards-grid">`;
+  if (!snap.exists()) { document.getElementById("content").innerHTML=html+"<p style='color:var(--text-muted);padding:40px;grid-column:1/-1;text-align:center;'>No logs today</p></div>"; return; }
+  let found=false, idx=0;
+  snap.forEach(child => {
+    const d=child.val(); if (d.teacher!==teacherID) return;
+    found=true; idx++;
+    html+=`<div class="card" style="animation-delay:${idx*0.06}s">
+      <div class="card-label">🏫 Room</div><div class="card-value">${d.room}</div>
+      <hr style="border:none;border-top:1px solid rgba(255,255,255,0.15);margin:10px 0;">
+      <div class="card-label">⏰ Time</div><div class="card-value">${d.time}</div>
+      <hr style="border:none;border-top:1px solid rgba(255,255,255,0.15);margin:10px 0;">
+      <div class="card-label">📌 Status</div><div class="card-value">${d.status}</div>
+    </div>`;
+  });
+  if (!found) html+=`<p style="color:var(--text-muted);padding:40px;grid-column:1/-1;text-align:center;">No logs for your ID today</p>`;
+  html+="</div>";
+  document.getElementById("content").innerHTML=html;
+};
+
+/* ═══════════════════════════════════════════════════
+   BOOK CLASSROOM — with real-time availability check
+════════════════════════════════════════════════════ */
+window.showBooking = async function() {
+  const classSnap=await get(ref(database,"classrooms"));
+  const rooms=classSnap.exists() ? Object.keys(classSnap.val()) : ["LAB31","CR125","CR126"];
+  const roomOptions=rooms.map(r=>`<option value="${r}">${r}</option>`).join("");
+  const slotOptions=Object.entries(slotMap).map(([k,v])=>`<option value="${k}">${v}</option>`).join("");
+
+  document.getElementById("content").innerHTML=`
+    <div class="section-title">🏫 Classroom Booking</div>
+    <div class="form-panel">
+      <label>Room</label>
+      <select id="bookRoom">${roomOptions}</select>
+      <label>Date</label>
+      <input type="date" id="bookDate" min="${todayDate()}">
+      <label>Time Slot</label>
+      <select id="bookSlot">${slotOptions}</select>
+      <div id="availBadge"></div>
+      <label>Subject</label>
+      <select id="subjectSelect"><option>Loading subjects...</option></select>
+      <label>Purpose</label>
+      <textarea id="purpose" placeholder="Reason / purpose of booking"></textarea>
+      <button class="btn-main btn-green" onclick="submitBooking()" id="submitBookBtn">📤 Submit Booking Request</button>
+      <p class="form-msg" id="bookingMsg"></p>
+    </div>`;
+
+  // Load subjects
+  const subjects=await getMySubjects();
+  const sel=document.getElementById("subjectSelect");
+  sel.innerHTML=subjects.size===0 ? "<option>No subjects found</option>" :
+    [...subjects].map(s=>`<option>${s}</option>`).join("");
+
+  // Availability check on change
+  async function checkAvailability() {
+    const room=document.getElementById("bookRoom")?.value;
+    const date=document.getElementById("bookDate")?.value;
+    const slot=document.getElementById("bookSlot")?.value;
+    const badge=document.getElementById("availBadge");
+    if (!room||!date||!slot||!badge) return;
+    badge.innerHTML=`<div class="avail-badge avail-loading">⏳ Checking availability...</div>`;
+    const day=getDay(date);
+    const [specSnap,ttSnap,reqSnap]=await Promise.all([
+      get(ref(database,`classrooms/${room}/specialBookings/${date}/${slot}`)),
+      get(ref(database,`classrooms/${room}/timetable/${day}/${slot}`)),
+      get(ref(database,`booking_requests`))
+    ]);
+    let takenBy="", takenReason="";
+    if (specSnap.exists()) {
+      takenBy=specSnap.val().faculty||"someone"; takenReason="special booking";
+    } else if (ttSnap.exists() && ttSnap.val().faculty) {
+      takenBy=ttSnap.val().faculty; takenReason="regular timetable";
+    } else if (reqSnap.exists()) {
+      reqSnap.forEach(child => {
+        const r=child.val();
+        if (r.room===room && r.date===date && r.slot===slot && r.status==="pending")
+          takenBy=r.teacher, takenReason="pending request";
+      });
+    }
+    if (takenBy) {
+      badge.innerHTML=`<div class="avail-badge avail-busy">🔴 Occupied — ${takenBy} (${takenReason})</div>`;
+    } else {
+      badge.innerHTML=`<div class="avail-badge avail-free">🟢 Available</div>`;
+    }
+  }
+  ["bookRoom","bookDate","bookSlot"].forEach(id => {
+    document.getElementById(id)?.addEventListener("change", checkAvailability);
+  });
+};
+
+window.submitBooking = async function() {
+  const room=document.getElementById("bookRoom").value;
+  const date=document.getElementById("bookDate").value;
+  const slot=document.getElementById("bookSlot").value;
+  const subject=document.getElementById("subjectSelect").value;
+  const purpose=document.getElementById("purpose").value;
+  if (!date||!slot||!subject) { showToast("Fill all fields","error"); return; }
+  if (!room) { showToast("Select a room","error"); return; }
+
+  // Final availability check before submit
+  const day=getDay(date);
+  const [specSnap,ttSnap]=await Promise.all([
+    get(ref(database,`classrooms/${room}/specialBookings/${date}/${slot}`)),
+    get(ref(database,`classrooms/${room}/timetable/${day}/${slot}`))
+  ]);
+  if (specSnap.exists()||ttSnap.exists()) {
+    showToast("⚠️ This slot is already taken — choose another","error"); return;
+  }
+  await set(ref(database,"booking_requests/"+Date.now()), {teacher:teacherID, room, date, slot, subject, purpose, status:"pending"});
+  showToast("✅ Booking request sent to admin","success");
+  document.getElementById("bookingMsg").innerHTML="✅ Request sent — awaiting admin approval";
+  document.getElementById("submitBookBtn").disabled=true;
+};
+
+/* ═══════════════════════════════════════════════════
+   CANCEL LECTURE — improved UI, no prompt(), live sync
+════════════════════════════════════════════════════ */
+let cancelSelection = null; // { room, slot, subject }
+
+window.showCancel = async function() {
+  cancelSelection = null;
+  document.getElementById("content").innerHTML=`
+    <div class="section-title">❌ Cancel Lecture</div>
+    <div class="form-panel" style="max-width:500px;">
+      <label>Select Date</label>
+      <input type="date" id="cancelDate" min="${todayDate()}">
+      <div id="cancelLecList" style="margin-top:4px;"></div>
+      <div class="cancel-confirm-box" id="cancelConfirmBox">
+        <p id="cancelConfirmText"></p>
+        <button class="btn-main btn-red" onclick="executeCancelLecture()" style="margin-bottom:6px;">❌ Yes, Cancel This Lecture</button>
+        <button class="btn-main btn-outline" onclick="clearCancelSelection()" style="background:white;color:var(--text-muted);border:1.5px solid var(--border) !important;">↩ Go Back</button>
+      </div>
+      <p class="form-msg" id="cancelMsg"></p>
+    </div>`;
+
+  document.getElementById("cancelDate").addEventListener("change", loadCancelLectures);
+};
+
+async function loadCancelLectures() {
+  const date=document.getElementById("cancelDate").value;
+  if (!date) return;
+  cancelSelection=null;
+  document.getElementById("cancelConfirmBox").style.display="none";
+  document.getElementById("cancelMsg").innerHTML="";
+  const listDiv=document.getElementById("cancelLecList");
+  listDiv.innerHTML=`<p style="color:var(--text-muted);font-size:13px;padding:12px 0;">Loading lectures...</p>`;
+
+  const day=getDay(date);
+  const snap=await get(ref(database,"classrooms"));
+  const found=[];
+
+  if (snap.exists()) {
+    const data=snap.val();
+    for (const room in data) {
+      // Check regular timetable
+      if (data[room].timetable?.[day]) {
+        for (const slot in data[room].timetable[day]) {
+          const lec=data[room].timetable[day][slot];
+          if (!isSameTeacher(lec.faculty,teacherID)) continue;
+          const cancelSnap=await get(ref(database,`cancelled_lectures/${date}/${room}/${slot}`));
+          found.push({ room, slot, subject:lec.subject, cancelled:cancelSnap.exists(), source:"regular" });
+        }
+      }
+      // Check special bookings for that date
+      if (data[room].specialBookings?.[date]) {
+        for (const slot in data[room].specialBookings[date]) {
+          const lec=data[room].specialBookings[date][slot];
+          if (!isSameTeacher(lec.faculty,teacherID)) continue;
+          const cancelSnap=await get(ref(database,`cancelled_lectures/${date}/${room}/${slot}`));
+          found.push({ room, slot, subject:lec.subject, cancelled:cancelSnap.exists(), source:"special" });
+        }
+      }
+    }
   }
 
-});
+  if (!found.length) {
+    listDiv.innerHTML=`<div style="text-align:center;padding:20px;color:var(--text-muted);background:#F8FAFC;border-radius:12px;font-size:13px;">No lectures on this day</div>`;
+    return;
+  }
 
-document.getElementById("content").innerHTML = html;
-
-});
+  let html=`<p style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-muted);margin-bottom:8px;">Select a lecture to cancel:</p>`;
+  found.forEach((lec,i) => {
+    const already=lec.cancelled;
+    html+=`<div class="cancel-lec-card ${already?'':'cursor-pointer'}" id="cancelCard_${i}"
+      style="${already?'opacity:0.5;cursor:not-allowed;':'cursor:pointer;'}"
+      onclick="${already ? '' : `selectCancel(${i},'${lec.room}','${lec.slot}','${lec.subject.replace(/'/g,"\\'")}')` }">
+      <div>
+        <div style="font-weight:700;color:var(--navy);font-size:14px;">${lec.subject}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:3px;">🏫 ${lec.room} &nbsp;|&nbsp; ⏰ ${slotMap[lec.slot]||lec.slot}
+          ${lec.source==='special' ? '&nbsp;|&nbsp; <span style="color:#7C3AED;font-weight:600;">Special</span>' : ''}
+        </div>
+      </div>
+      ${already ? '<span style="background:#FEE2E2;color:#DC2626;font-size:11px;font-weight:700;padding:3px 10px;border-radius:50px;">Already Cancelled</span>' : '<span style="font-size:18px;">›</span>'}
+    </div>`;
+  });
+  listDiv.innerHTML=html;
+  // store found for later use
+  window._cancelLectures=found;
 }
-</script>
 
+window.selectCancel=function(i, room, slot, subject) {
+  // Remove previous selection
+  document.querySelectorAll(".cancel-lec-card").forEach(c=>c.classList.remove("selected"));
+  const card=document.getElementById("cancelCard_"+i);
+  if (card) card.classList.add("selected");
+  cancelSelection={room, slot, subject};
+  document.getElementById("cancelConfirmText").innerHTML=
+    `You are about to cancel:<br><strong>${subject}</strong><br>Room: <strong>${room}</strong> &nbsp;|&nbsp; Slot: <strong>${slotMap[slot]||slot}</strong><br><br>
+     <span style="color:#EF4444;font-size:12px;">⚠️ If you are currently inside this classroom, the live session will also be ended.</span>`;
+  document.getElementById("cancelConfirmBox").style.display="block";
+};
+window.clearCancelSelection=function() {
+  cancelSelection=null;
+  document.querySelectorAll(".cancel-lec-card").forEach(c=>c.classList.remove("selected"));
+  document.getElementById("cancelConfirmBox").style.display="none";
+};
+
+window.executeCancelLecture = async function() {
+  if (!cancelSelection) { showToast("No lecture selected","error"); return; }
+  const date=document.getElementById("cancelDate").value;
+  const {room, slot, subject}=cancelSelection;
+  if (!date) { showToast("Select a date","error"); return; }
+
+  const already=await get(ref(database,`cancelled_lectures/${date}/${room}/${slot}`));
+  if (already.exists()) { showToast("Already cancelled","error"); return; }
+
+  // Write cancellation
+  await set(ref(database,`cancelled_lectures/${date}/${room}/${slot}`),
+    {teacher:teacherID, subject, slot, timestamp:Date.now()});
+
+  // Sync: if this lecture is currently live (teacher is inside), end the live session
+  const liveSnap=await get(ref(database,`classrooms/${room}/live`));
+  if (liveSnap.exists()) {
+    const live=liveSnap.val();
+    if (live.slot===slot && isSameTeacher(live.faculty,teacherID)) {
+      // End the live session — mirrors ESP exit logic
+      await remove(ref(database,`classrooms/${room}/live`));
+      await set(ref(database,`classrooms/${room}/current_faculty`),"");
+      // Write an exit log
+      const now=new Date();
+      const tbuf=String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
+      await push(ref(database,`logs/${date}`),{teacher:teacherID, room, time:tbuf, status:"Exit"});
+      showToast("✅ Lecture cancelled — live session ended","success");
+    } else {
+      showToast("✅ Lecture cancelled","success");
+    }
+  } else {
+    showToast("✅ Lecture cancelled","success");
+  }
+
+  // Write cancel log
+  await push(ref(database,"cancel_logs/"+Date.now()),
+    {teacher:teacherID, subject, date, slot, room, status:"cancelled", timestamp:Date.now()});
+
+  document.getElementById("cancelMsg").innerHTML=`✅ Lecture cancelled for ${slotMap[slot]||slot}`;
+  document.getElementById("cancelConfirmBox").style.display="none";
+  cancelSelection=null;
+  // Refresh the list
+  await loadCancelLectures();
+};
+
+/* ═══════════════════════════════════════════════════
+   LATE NOTIFICATION
+════════════════════════════════════════════════════ */
+window.showLate = async function() {
+  document.getElementById("content").innerHTML=`
+    <div class="section-title">⏰ Late Notification</div>
+    <div class="form-panel">
+      <label>Pick the date first</label>
+      <input type="date" id="lateDate" min="${todayDate()}">
+      <div id="lateFields" style="display:none;">
+        <label style="margin-top:4px;">Subject</label>
+        <select id="lateSubject"></select>
+        <label>Minutes Late (max 60)</label>
+        <input id="lateMinutes" placeholder="e.g. 15" type="number" min="1" max="60">
+        <button id="lateBtn" class="btn-main btn-yellow" onclick="submitLate()">📤 Submit Late Notice</button>
+      </div>
+      <p class="form-msg" id="lateMsg"></p>
+    </div>`;
+
+  document.getElementById("lateDate").addEventListener("change", async function() {
+    const selectedDate=this.value; if (!selectedDate) return;
+    const day=getDay(selectedDate), snap=await get(ref(database,"classrooms"));
+    const subjects=new Set();
+    if (snap.exists()) {
+      const data=snap.val();
+      for (const room in data) {
+        const dayData=data[room]?.timetable?.[day];
+        if (dayData) { for (const slot in dayData) { const lec=dayData[slot]; if (isSameTeacher(lec.faculty,teacherID)) subjects.add(lec.subject); } }
+        const specDay=data[room]?.specialBookings?.[selectedDate];
+        if (specDay) { for (const slot in specDay) { const lec=specDay[slot]; if (isSameTeacher(lec.faculty,teacherID)) subjects.add(lec.subject); } }
+      }
+    }
+    const sel=document.getElementById("lateSubject");
+    sel.innerHTML=subjects.size===0 ? "<option>No lectures on this day</option>" : [...subjects].map(s=>`<option>${s}</option>`).join("");
+    document.getElementById("lateFields").style.display="block";
+  });
+};
+
+window.submitLate = async function() {
+  const subject=document.getElementById("lateSubject").value;
+  const date=document.getElementById("lateDate").value;
+  const minutes=parseInt(document.getElementById("lateMinutes").value);
+  if (!date||!subject||!minutes) { showToast("Fill all fields","error"); return; }
+  if (minutes>60) { showToast("Max 60 minutes late","error"); return; }
+  const day=getDay(date), snap=await get(ref(database,"classrooms")); let found=null;
+  if (snap.exists()) {
+    const data=snap.val();
+    for (const room in data) {
+      const dayData=data[room]?.timetable?.[day];
+      if (dayData) { for (const slot in dayData) { const lec=dayData[slot]; if (isSameTeacher(lec.faculty,teacherID)&&lec.subject===subject) { found={room,slot}; } } }
+      const specDay=data[room]?.specialBookings?.[date];
+      if (specDay&&!found) { for (const slot in specDay) { const lec=specDay[slot]; if (isSameTeacher(lec.faculty,teacherID)&&lec.subject===subject) { found={room,slot}; } } }
+    }
+  }
+  if (!found) { showToast("Lecture not found in timetable","error"); return; }
+  await set(ref(database,"late_notifications/"+Date.now()),
+    {teacher:teacherID, subject, date, minutes, room:found.room, slot:found.slot, status:"late"});
+  showToast("✅ Late notification sent","success");
+  document.getElementById("lateMsg").innerHTML="✅ Notified: "+minutes+" min late for "+slotMap[found.slot];
+};
+
+/* ── HELPER: get teacher's subjects ─────────────── */
+async function getMySubjects() {
+  const subjects=new Set(), snap=await get(ref(database,"classrooms"));
+  if (!snap.exists()) return subjects;
+  const data=snap.val();
+  for (const room in data) {
+    if (data[room].timetable) {
+      for (const day in data[room].timetable)
+        for (const slot in data[room].timetable[day]) {
+          const lec=data[room].timetable[day][slot];
+          if (isSameTeacher(lec.faculty,teacherID)) subjects.add(lec.subject);
+        }
+    }
+    if (data[room].specialBookings) {
+      for (const d in data[room].specialBookings)
+        for (const s in data[room].specialBookings[d]) {
+          const lec=data[room].specialBookings[d][s];
+          if (isSameTeacher(lec.faculty,teacherID)) subjects.add(lec.subject);
+        }
+    }
+  }
+  return subjects;
+}
+
+/* ═══════════════════════════════════════════════════
+   UPLOAD MARKS — subject only, no semester
+════════════════════════════════════════════════════ */
+window.showMarksheet = async function() {
+  document.getElementById("content").innerHTML=`
+    <div class="section-title">📄 Upload Marks</div>
+    <div class="form-panel">
+      <label>Subject</label>
+      <select id="subjectSelectMarks"><option value="">Loading subjects...</option></select>
+      <label>Excel File (.xlsx / .xls)</label>
+      <div style="background:#F0F9FF;border:1.5px dashed #BAE6FD;border-radius:10px;padding:12px;margin-bottom:14px;font-size:12px;color:#0369A1;">
+        <strong>Required columns:</strong> <code>StudentID</code> and <code>Marks</code> (max 30 per student)
+      </div>
+      <input type="file" id="excelFile" accept=".xlsx,.xls" style="cursor:pointer; margin-bottom:14px;">
+      <button class="btn-main btn-blue" onclick="uploadExcel()">📤 Upload &amp; Save Marks</button>
+      <p class="form-msg" id="marksMsg"></p>
+    </div>`;
+
+  const subjects=await getMySubjects();
+  const sel=document.getElementById("subjectSelectMarks");
+  sel.innerHTML=subjects.size===0 ? "<option value=''>No subjects found</option>" :
+    "<option value=''>Select Subject</option>" + [...subjects].map(s=>`<option value="${s}">${s}</option>`).join("");
+};
+
+window.uploadExcel = async function() {
+  const file=document.getElementById("excelFile").files[0];
+  const subject=document.getElementById("subjectSelectMarks").value;
+  if (!subject) { showToast("Select a subject first","error"); return; }
+  if (!file) { showToast("Select an Excel file","error"); return; }
+
+  const reader=new FileReader();
+  reader.onload=async function(e) {
+    const data=new Uint8Array(e.target.result), wb=XLSX.read(data,{type:"array"});
+    const sheet=wb.Sheets[wb.SheetNames[0]], jsonData=XLSX.utils.sheet_to_json(sheet);
+    let count=0, errors=[];
+    for (const row of jsonData) {
+      const { StudentID, Marks }=row;
+      if (!StudentID) continue;
+      if (Marks===undefined||Marks===null) { errors.push(`${StudentID}: Missing marks`); continue; }
+      if (Number(Marks)>30) { errors.push(`${StudentID}: Marks ${Marks} exceeds limit of 30`); continue; }
+      await set(ref(database,"marks/"+subject+"/"+StudentID), {midsem:Number(Marks), teacher:teacherID, date:todayDate()});
+      count++;
+    }
+    let msg=`✅ Uploaded marks for ${count} student${count!==1?'s':''}`;
+    if (errors.length) msg+=` | ⚠️ ${errors.length} skipped`;
+    showToast(msg, errors.length?"info":"success");
+    document.getElementById("marksMsg").innerHTML=msg+(errors.length?`<br><span style="font-size:12px;color:var(--red);">${errors.slice(0,3).join(", ")}${errors.length>3?` +${errors.length-3} more`:""}</span>`:"");
+  };
+  reader.readAsArrayBuffer(file);
+};
+
+/* ═══════════════════════════════════════════════════
+   VIEW MARKS — subject only, no semester
+════════════════════════════════════════════════════ */
+window.viewMarks = async function() {
+  document.getElementById("content").innerHTML=`
+    <div class="section-title">📊 View Marks</div>
+    <div class="form-panel">
+      <label>Select Subject</label>
+      <select id="viewSubject"><option value="">Select Subject</option></select>
+      <label>Filter by Student ID (optional)</label>
+      <input id="viewStudentID" placeholder="Leave blank to show all students">
+      <button class="btn-main btn-blue" onclick="fetchMarksView()" id="marksViewBtn" style="margin-bottom:8px;">🔍 Load Marks</button>
+      <div id="marksDisplay" style="margin-top:10px;"></div>
+    </div>`;
+
+  const subjects=await getMySubjects();
+  const sel=document.getElementById("viewSubject");
+  subjects.forEach(sub => { sel.innerHTML+=`<option value="${sub}">${sub}</option>`; });
+};
+
+window.fetchMarksView = async function() {
+  const sub=document.getElementById("viewSubject").value.trim();
+  const studentFilter=document.getElementById("viewStudentID").value.trim().toUpperCase();
+  if (!sub) { showToast("Select a subject","error"); return; }
+  const snap=await get(ref(database,"marks/"+sub));
+  let rows="", count=0;
+  if (snap.exists()) {
+    snap.forEach(child => {
+      if (studentFilter && child.key.toUpperCase()!==studentFilter) return;
+      const d=child.val();
+      rows+=`<tr><td><strong>${child.key}</strong></td><td>${d.midsem??'–'}</td><td style="font-size:11px;color:var(--text-muted);">${d.date||'–'}</td></tr>`;
+      count++;
+    });
+  }
+  let html=`<div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">${count} record${count!==1?'s':''} found</div>`;
+  html+=`<table class="marks-table"><thead><tr><th>Student ID</th><th>Marks (/30)</th><th>Date</th></tr></thead><tbody>`;
+  html+=rows||`<tr><td colspan="3" style="color:#94A3B8;">No data</td></tr>`;
+  html+="</tbody></table>";
+  document.getElementById("marksDisplay").innerHTML=html;
+};
+
+/* ── NOTIFICATIONS ─────────────────────────────── */
+window.showNotifications = function() {
+  onValue(ref(database,"notifications"), snap => {
+    let html=`<div class="section-title">🔔 Notifications</div><div style="max-width:600px;margin:0 auto;">`;
+    if (!snap.exists()) { document.getElementById("content").innerHTML=html+"<p style='color:var(--text-muted);text-align:center;padding:40px;'>No notifications</p></div>"; return; }
+    const now=new Date(); let found=false;
+    snap.forEach(child => {
+      const d=child.val(); if (d.teacher!==teacherID) return;
+      if (d.expiry&&new Date(d.expiry)<now) return;
+      found=true;
+      const borderColor=d.status==="approved"?"#10B981":d.status==="rejected"?"#EF4444":"#F59E0B";
+      const bg=d.status==="approved"?"#ECFDF5":d.status==="rejected"?"#FEF2F2":"#FFFBEB";
+      html+=`<div class="notif-card" style="border-color:${borderColor}; background:${bg};">
+        <div style="font-weight:700;color:var(--navy);margin-bottom:4px;">${d.message}</div>
+        <div style="font-size:12px;color:var(--text-muted);">${new Date(d.time).toLocaleString()}</div>
+      </div>`;
+    });
+    if (!found) html+=`<p style="color:var(--text-muted);text-align:center;padding:40px;">No active notifications</p>`;
+    html+="</div>";
+    document.getElementById("content").innerHTML=html;
+  });
+};
+
+window.openLogoutModal  = () => { document.getElementById("logoutModal").style.display="flex"; };
+window.closeLogoutModal = () => { document.getElementById("logoutModal").style.display="none"; };
+window.confirmLogout    = () => { localStorage.removeItem("teacherID"); window.location.href="index.html"; };
+</script>
 </body>
 </html>

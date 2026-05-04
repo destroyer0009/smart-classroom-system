@@ -1,1172 +1,644 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Smart Classroom Allocation System</title>
-
-  <style>
-
-.noticeBar{
-background:#ffefc2;
-overflow:hidden;
-padding:10px;
-font-weight:bold;
-width:100%;
+<title>Smart Classroom Allocation System</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #001a3a; --navy-mid: #002554; --navy-light: #0a3a6e;
+  --blue: #1565C0; --blue-light: #1976D2;
+  --accent: #F59E0B; --accent-light: #FCD34D;
+  --green: #10B981; --red: #EF4444; --yellow: #F59E0B;
+  --glass: rgba(255,255,255,0.07); --glass-border: rgba(255,255,255,0.12);
+  --surface: #ffffff; --bg: #EFF3F8; --text: #1e293b;
+  --text-muted: #64748b; --border: #E2E8F0;
+  --radius: 16px; --shadow: 0 4px 24px rgba(0,26,58,0.12);
+  --shadow-lg: 0 8px 40px rgba(0,26,58,0.18);
 }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-.time-box{
-  position:absolute;
-  top:200px;   /* adjust if needed */
-  left:20px;
-
-  background:#ffffff;
-  padding:8px 15px;
-
-  border-radius:8px;
-  font-size:16px;
-  font-weight:bold;
-  color:#002147;
-
-  box-shadow:0 3px 10px rgba(0,0,0,0.15);
-
-  border-left:4px solid #002147;
+#toast {
+  position: fixed; bottom: 30px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: #1e293b; color: white;
+  padding: 14px 28px; border-radius: 50px;
+  font-size: 14px; font-weight: 500; z-index: 9999;
+  opacity: 0; transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  white-space: nowrap; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
 }
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+#toast.success { background: #059669; }
+#toast.error   { background: #DC2626; }
+#toast.info    { background: var(--blue); }
 
-#currentTime{
-  font-size:16px;
-  font-weight:bold;
-  color:#002147;
+.site-header {
+  background: linear-gradient(135deg, var(--navy) 0%, #012a70 50%, var(--navy-light) 100%);
+  color: white; padding: 28px 20px 24px;
+  text-align: center; position: relative; overflow: hidden;
 }
-
-#currentDate{
-  font-size:12px;
-  color:#666;
-  margin-top:4px;
-  line-height:1.3;
+.site-header::before {
+  content: ''; position: absolute; top: -60px; right: -60px;
+  width: 220px; height: 220px; border-radius: 50%;
+  background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.15);
 }
-
-.noticeSlider{
-display:inline-block;
-white-space:nowrap;
-cursor:pointer;
-animation:slideNotice 40s linear infinite;
+.site-header::after {
+  content: ''; position: absolute; bottom: -80px; left: -40px;
+  width: 180px; height: 180px; border-radius: 50%;
+  background: rgba(21,101,192,0.12); border: 1px solid rgba(21,101,192,0.2);
 }
+.header-inner { position: relative; z-index: 1; }
+.site-header img { height: 80px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3)); animation: logoFade 0.8s ease; }
+@keyframes logoFade { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
+.site-header h1 { font-family:'Sora',sans-serif; margin:12px 0 4px; font-size:clamp(14px,2.5vw,22px); font-weight:700; }
+.site-header h3 { margin:0; font-weight:400; font-size:clamp(12px,1.8vw,15px); opacity:0.75; }
+.header-badge { display:inline-block; margin-top:10px; background:rgba(245,158,11,0.2); border:1px solid rgba(245,158,11,0.4); color:#FCD34D; padding:4px 14px; border-radius:50px; font-size:12px; }
 
-.noticeSlider span{
-margin-right:80px;
-}
+.time-strip { background:white; border-bottom:1px solid #e2e8f0; padding:10px 20px; display:flex; align-items:center; justify-content:center; gap:20px; flex-wrap:wrap; }
+.time-box { display:flex; align-items:center; gap:10px; background:linear-gradient(135deg,#EFF6FF,#DBEAFE); padding:8px 18px; border-radius:50px; border:1px solid #BFDBFE; box-shadow:0 2px 8px rgba(21,101,192,0.08); }
+.time-icon { font-size:18px; }
+#currentTime { font-size:16px; font-weight:700; color:var(--navy); font-family:'Sora',sans-serif; }
+#currentDate { font-size:12px; color:var(--text-muted); font-weight:500; }
 
-@keyframes slideNotice{
+.noticeBar { background:linear-gradient(90deg,#FFFBEB,#FEF3C7); overflow:hidden; padding:10px 0; border-top:1px solid #FDE68A; border-bottom:1px solid #FDE68A; position:relative; }
+.noticeBar::before { content:'📢'; position:absolute; left:12px; top:50%; transform:translateY(-50%); font-size:16px; z-index:1; }
+.noticeSlider { display:inline-block; white-space:nowrap; cursor:pointer; animation:slideNotice 40s linear infinite; font-weight:600; color:#92400E; font-size:13px; }
+.noticeSlider span { margin-right:80px; }
+@keyframes slideNotice { 0% { transform:translateX(100vw); } 100% { transform:translateX(-100%); } }
 
-0%{
-transform:translateX(100%);
-}
+.top-actions { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; padding:20px; background:white; border-bottom:1px solid #e2e8f0; }
+.top-actions button { padding:11px 22px; border:none; border-radius:50px; font-weight:600; cursor:pointer; transition:all 0.25s; font-size:13px; font-family:'Plus Jakarta Sans',sans-serif; display:flex; align-items:center; gap:7px; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
+.top-actions button:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,0.18); }
 
-100%{
-transform:translateX(-100%);
-}
+#loadingSpinner { text-align:center; padding:60px; color:var(--text-muted); font-size:15px; font-weight:500; }
+.spinner { width:44px; height:44px; border:3px solid #E2E8F0; border-top-color:var(--blue); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 16px; }
+@keyframes spin { to { transform:rotate(360deg); } }
 
-}
-/* OVERLAY */
-.login-overlay{
-display:none;
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.5);
-justify-content:center;
-align-items:center;
-z-index:999;
-}
+.section-header { padding:28px 20px 10px; display:flex; align-items:center; gap:12px; }
+.section-header h2 { font-family:'Sora',sans-serif; font-size:20px; font-weight:700; color:var(--navy); }
+.section-divider { flex:1; height:1px; background:linear-gradient(90deg,#CBD5E1,transparent); }
 
-/* BOX */
-.login-box{
-background:white;
-padding:30px;
-border-radius:15px;
-width:320px;
-text-align:center;
-box-shadow:0 10px 30px rgba(0,0,0,0.3);
-animation:fadeIn 0.3s;
-}
+#roomsContainer { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); padding:10px 20px 30px; gap:18px; max-width:1200px; margin:0 auto; }
+.room-card { background:white; border-radius:var(--radius); box-shadow:var(--shadow); cursor:pointer; transition:all 0.3s cubic-bezier(0.34,1.1,0.64,1); overflow:hidden; position:relative; border:1px solid #E2E8F0; animation:cardIn 0.4s ease both; }
+@keyframes cardIn { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+.room-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-lg); border-color:#BFDBFE; }
+.room-card-top { padding:18px 18px 14px; display:flex; justify-content:space-between; align-items:flex-start; }
+.room-name { font-family:'Sora',sans-serif; font-size:20px; font-weight:700; color:var(--navy); display:flex; align-items:center; gap:8px; }
+.status-badge { padding:5px 12px; border-radius:50px; font-size:12px; font-weight:600; display:flex; align-items:center; gap:5px; }
+.status-dot { width:7px; height:7px; border-radius:50%; }
+.status-ongoing { background:#FEE2E2; color:#DC2626; }
+.status-ongoing .status-dot { background:#EF4444; animation:pulse 1.2s ease infinite; }
+.status-free    { background:#D1FAE5; color:#065F46; }
+.status-free .status-dot { background:#10B981; }
+.status-waiting { background:#FEF9C3; color:#854D0E; }
+.status-waiting .status-dot { background:#F59E0B; animation:pulse 2s ease infinite; }
+.status-break   { background:#F1F5F9; color:#475569; }
+.status-break .status-dot { background:#94A3B8; }
+@keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(0.8); } }
+.room-card-divider { height:1px; background:#F1F5F9; margin:0 18px; }
+.room-card-body { padding:14px 18px; }
+.room-info-row { display:flex; gap:6px; align-items:flex-start; margin-bottom:6px; font-size:13px; }
+.room-info-label { color:var(--text-muted); font-weight:500; min-width:64px; }
+.room-info-value { color:var(--text); font-weight:600; flex:1; }
+.room-card-footer { padding:10px 18px 14px; background:#F8FAFC; border-top:1px solid #F1F5F9; }
+.next-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-muted); margin-bottom:5px; }
+.room-card-strip { position:absolute; top:0; left:0; width:4px; height:100%; border-radius:16px 0 0 16px; }
 
-/* TITLE */
-.login-box h2{
-margin-bottom:20px;
-color:#002147;
-display:flex;
-align-items:center;
-justify-content:center;
-gap:10px;
-}
+.overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); justify-content:center; align-items:center; z-index:999; }
+.modal-box { background:white; padding:32px; border-radius:20px; width:360px; max-width:92vw; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.25); animation:modalIn 0.3s cubic-bezier(0.34,1.2,0.64,1); }
+@keyframes modalIn { from { opacity:0; transform:scale(0.88) translateY(16px); } to { opacity:1; transform:scale(1) translateY(0); } }
+.modal-box h2 { margin-bottom:22px; color:var(--navy); font-family:'Sora',sans-serif; font-size:18px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; }
+.modal-logo { width:44px; height:44px; border-radius:12px; background:linear-gradient(135deg,#EFF6FF,#DBEAFE); display:flex; align-items:center; justify-content:center; font-size:22px; margin:0 auto 18px; }
+.modal-box input, .modal-box select { width:100%; padding:13px 16px; margin-bottom:14px; border-radius:10px; border:1.5px solid #E2E8F0; font-size:14px; font-family:'Plus Jakarta Sans',sans-serif; outline:none; transition:all 0.2s; background:#F8FAFC; }
+.modal-box input:focus, .modal-box select:focus { border-color:var(--blue); background:white; box-shadow:0 0 0 3px rgba(21,101,192,0.1); }
+.login-actions { display:flex; justify-content:center; gap:10px; margin-top:10px; }
+.btn { padding:11px 22px; border:none; border-radius:10px; cursor:pointer; font-weight:600; font-size:14px; transition:all 0.2s; font-family:'Plus Jakarta Sans',sans-serif; }
+.primary { background:var(--blue); color:white; }
+.primary:hover { background:#1251A0; }
+.secondary { background:#F1F5F9; color:#475569; }
+.secondary:hover { background:#E2E8F0; }
+.login-msg { margin-top:10px; color:var(--red); font-size:13px; font-weight:500; }
 
-/* INPUT */
-.login-box input{
-width:100%;
-padding:12px;
-box-sizing:border-box; /* 🔥 IMPORTANT FIX */
-margin-bottom:15px;
-border-radius:8px;
-border:1px solid #ccc;
-font-size:14px;
-outline:none;
-transition:0.2s;
-}
+#noticeModal .modal-box { width:520px; max-height:80vh; overflow-y:auto; text-align:left; }
+#roomModal .modal-box   { width:460px; max-height:82vh; overflow-y:auto; text-align:left; }
+#marksModal .modal-box  { width:500px; max-height:85vh; overflow-y:auto; }
 
-.login-box input:focus{
-border-color:#007bff;
-box-shadow:0 0 5px rgba(0,123,255,0.3);
-}
+.marks-table { width:100%; border-collapse:collapse; margin-top:15px; border-radius:10px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.06); }
+.marks-table th { background:var(--navy); color:white; padding:13px; text-align:center; font-size:13px; }
+.marks-table td { padding:11px 14px; border-bottom:1px solid #F1F5F9; text-align:center; font-size:13px; }
+.marks-table tr:hover td { background:#EFF6FF; }
 
-/* BUTTONS */
-.login-actions{
-display:flex;
-justify-content:center;
-gap:12px;
-margin-top:10px;
-}
+.lecture-row { padding:13px 16px; margin:8px 0; border-radius:12px; border-left:5px solid #CBD5E1; background:#F8FAFC; font-size:13px; }
+.lecture-row .slot-time { font-weight:700; color:var(--navy); font-size:14px; display:flex; align-items:center; justify-content:space-between; }
+.lecture-row .slot-sub  { color:var(--text-muted); margin-top:3px; }
+.badge-cancelled { background:#FEE2E2; color:#DC2626; font-size:11px; font-weight:700; padding:2px 8px; border-radius:50px; white-space:nowrap; }
+.badge-special   { background:#F3E8FF; color:#7C3AED; font-size:11px; font-weight:700; padding:2px 8px; border-radius:50px; white-space:nowrap; }
+.badge-ongoing   { background:#FEF9C3; color:#854D0E; font-size:11px; font-weight:700; padding:2px 8px; border-radius:50px; animation:pulse 1.5s ease infinite; }
 
+.notice-item { padding:12px 0; border-bottom:1px solid #F1F5F9; display:flex; gap:12px; align-items:flex-start; }
+.notice-icon { font-size:18px; margin-top:2px; }
+.notice-text { flex:1; font-size:14px; color:var(--text); font-weight:500; }
+.notice-expiry { font-size:11px; color:var(--text-muted); margin-top:3px; }
 
+.marks-search-row { display:flex; gap:8px; margin-bottom:4px; }
+.marks-search-row input { flex:1; padding:11px 14px; border-radius:10px; border:1.5px solid #E2E8F0; font-size:14px; font-family:'Plus Jakarta Sans',sans-serif; background:#F8FAFC; outline:none; margin-bottom:0; }
+.marks-search-row input:focus { border-color:var(--blue); background:white; }
 
-.btn{
-padding:10px 18px;
-border:none;
-border-radius:8px;
-cursor:pointer;
-font-weight:600;
-transition:0.2s;
-}
-
-.primary{
-background:#007bff;
-color:white;
-}
-
-.primary:hover{
-background:#0056b3;
-}
-
-.secondary{
-background:#6c757d;
-color:white;
-}
-
-.secondary:hover{
-background:#545b62;
-}
-
-/* ERROR TEXT */
-.login-msg{
-margin-top:10px;
-color:red;
-font-size:13px;
-}
-#loginSection button{
-  padding:10px 20px;
-  border:none;
-  border-radius:8px;
-  font-weight:bold;
-  cursor:pointer;
-
-  transition:0.3s;
-}
-
-/* HOVER EFFECT */
-#loginSection button:hover{
-  transform:translateY(-3px);
-  box-shadow:0 6px 15px rgba(0,0,0,0.25);
-  opacity:0.9;
-}
-#loginSection button:active{
-  transform:scale(0.95);
-}
-/* ANIMATION */
-@keyframes fadeIn{
-from{opacity:0; transform:scale(0.9);}
-to{opacity:1; transform:scale(1);}
+@media (max-width: 600px) {
+  #roomsContainer { grid-template-columns:1fr; padding:10px 12px 20px; }
+  .top-actions button { font-size:12px; padding:9px 14px; }
+  .site-header h1 { font-size:14px; }
 }
 </style>
-
 </head>
+<body>
 
-<body style="margin:0; font-family: Arial; background-color:#f4f6f9;">
+<div id="toast"></div>
 
-<div style="background-color:#002147; color:white; padding:40px; text-align:center;">
-  <img src="logo.png" style="height:80px;">
-  <h1>Loknete Shamrao Peje Govt. College of Engineering, Ratnagiri</h1>
-  <h3>Smart Classroom Allocation & Booking System</h3>
+<div class="site-header">
+  <div class="header-inner">
+    <img src="logo.png" alt="College Logo">
+    <h1>Loknete Shamrao Peje Govt. College of Engineering, Ratnagiri</h1>
+    <h3>Smart Classroom Allocation &amp; Booking System</h3>
+  </div>
 </div>
-<div class="time-box">
-  <div id="currentTime"></div>
-  <div id="currentDate"></div>
+
+<div class="time-strip">
+  <div class="time-box">
+    <span class="time-icon">🕐</span>
+    <div>
+      <div id="currentTime"></div>
+      <div id="currentDate"></div>
+    </div>
+  </div>
 </div>
+
 <div class="noticeBar">
-
-<div class="noticeSlider" id="noticeSlider" onclick="openNoticeBoard()">
-
-<span>Loading notices...</span>
-
+  <div class="noticeSlider" id="noticeSlider" onclick="openNoticeBoard()">
+    <span>Loading notices...</span>
+  </div>
 </div>
 
+<div class="top-actions" id="loginSection">
+  <button onclick="window.location.href='timetable.html'" style="background:#1565C0; color:white;">📅 Weekly Timetable</button>
+  <button onclick="openMarksModal()" style="background:#0891B2; color:white;">📊 View Result</button>
+  <button onclick="openLogin()" style="background:#7C3AED; color:white;">👨‍🏫 Teacher Login</button>
+  <button onclick="openAdminLogin()" style="background:#DC2626; color:white;">👨‍💼 Admin Login</button>
 </div>
 
-<div id="loginSection" style="position:absolute; right:20px; top:240px; display:flex; gap:10px;">
-
-<button onclick="window.location.href='timetable.html'" style="
-padding:10px 20px;
-border:none;
-border-radius:8px;
-background:#007bff;
-color:white;
-font-weight:bold;
-cursor:pointer;
-">
-Weekly Timetable
-</button>
-
-<button onclick="showStudentMarks()"
-style="padding:10px 20px;
-border:none;
-border-radius:8px;
-background:#1ea3ef;
-color:white;
-font-weight:bold;
-cursor:pointer;">
-View Result
-</button>
-
-<button onclick="openLogin()"
-style="padding:10px 20px;
-border:none;
-border-radius:8px;
-background:#36a4e3;
-color:white;
-font-weight:bold;
-cursor:pointer;">
-Teacher Login
-</button>
-
-<button onclick="openAdminLogin()"
-style="padding:10px 20px;
-border:none;
-border-radius:8px;
-background:#4053fc;
-color:white;
-font-weight:bold;
-cursor:pointer;">
-Admin Login
-</button>
-
+<div id="loadingSpinner"><div class="spinner"></div>Loading classrooms...</div>
+<div class="section-header" id="roomsHeader" style="display:none;">
+  <h2>🏫 Classrooms</h2><div class="section-divider"></div>
 </div>
-
-<div style="padding:40px; text-align:center;">
 <div id="roomsContainer"></div>
+
+<!-- Teacher Login -->
+<div id="loginModal" class="overlay">
+  <div class="modal-box">
+    <div class="modal-logo">👨‍🏫</div>
+    <h2>Teacher Login</h2>
+    <input id="teacherID" placeholder="Enter Teacher ID">
+    <input id="teacherPass" type="password" placeholder="Enter Password">
+    <div class="login-actions">
+      <button onclick="login()" class="btn primary">Login</button>
+      <button onclick="closeLogin()" class="btn secondary">Cancel</button>
+    </div>
+    <p id="loginMsg" class="login-msg"></p>
+  </div>
 </div>
 
-<!-- TEACHER LOGIN MODAL -->
-
-<div id="loginModal" class="login-overlay">
-
-<div class="login-box">
-
-<h2>👨‍🏫 Teacher Login</h2>
-
-<input id="teacherID" placeholder="Enter Teacher ID">
-
-<input id="teacherPass" type="password" placeholder="Enter Password">
-
-<div class="login-actions">
-<button onclick="login()" class="btn primary">Login</button>
-<button onclick="closeLogin()" class="btn secondary">Cancel</button>
+<!-- Admin Login -->
+<div id="adminLoginModal" class="overlay">
+  <div class="modal-box">
+    <div class="modal-logo">👨‍💼</div>
+    <h2>Admin Login</h2>
+    <input id="adminID" placeholder="Enter Admin ID">
+    <input id="adminPass" type="password" placeholder="Enter Password">
+    <div class="login-actions">
+      <button onclick="adminLogin()" class="btn primary">Login</button>
+      <button onclick="closeAdminLogin()" class="btn secondary">Cancel</button>
+    </div>
+    <p id="adminMsg" class="login-msg"></p>
+  </div>
 </div>
 
-<p id="loginMsg" class="login-msg"></p>
-
+<!-- Room Schedule Modal -->
+<div id="roomModal" class="overlay">
+  <div class="modal-box">
+    <h2 id="roomTitle" style="color:var(--navy);"></h2>
+    <div id="futureLectures"></div>
+    <br>
+    <button onclick="closeRoom()" class="btn secondary" style="width:100%;">Close</button>
+  </div>
 </div>
 
+<!-- Notice Board Modal -->
+<div id="noticeModal" class="overlay">
+  <div class="modal-box">
+    <h2>📢 All Notices</h2>
+    <div id="allNotices"></div>
+    <br>
+    <button onclick="closeNoticeBoard()" class="btn secondary" style="width:100%;">Close</button>
+  </div>
 </div>
 
-
-
-
-<!-- ADMIN LOGIN MODAL -->
-
-<div id="adminLoginModal" class="login-overlay">
-
-<div class="login-box">
-
-<h2>👨‍💼 Admin Login</h2>
-
-<input id="adminID" placeholder="Enter Admin ID">
-
-<input id="adminPass" type="password" placeholder="Enter Password">
-
-<div class="login-actions">
-<button onclick="adminLogin()" class="btn primary">Login</button>
-<button onclick="closeAdminLogin()" class="btn secondary">Cancel</button>
+<!-- Marks Modal — no semester, subject only + optional student ID -->
+<div id="marksModal" class="overlay">
+  <div class="modal-box">
+    <div class="modal-logo">📊</div>
+    <h2>Check Your Result</h2>
+    <select id="marksSubject">
+      <option value="">Select Subject</option>
+    </select>
+    <div class="marks-search-row">
+      <input id="studentIDFilter" placeholder="Student ID (optional — leave blank for all)" style="margin-bottom:14px;">
+    </div>
+    <button onclick="getStudentMarks()" class="btn primary" style="width:100%; padding:13px; font-size:15px; border-radius:10px; margin-bottom:10px;">Check Result</button>
+    <div id="marksResult" style="margin-top:5px;"></div>
+    <br>
+    <button onclick="closeMarksModal()" class="btn secondary" style="width:100%; margin-top:5px;">Close</button>
+  </div>
 </div>
-
-<p id="adminMsg" class="login-msg"></p>
-
-</div>
-
-</div>
-<!-- ROOM FUTURE LECTURES MODAL -->
-
-<div id="roomModal" 
-style="display:none; position:fixed; top:0; left:0;
-width:100%; height:100%; background:rgba(0,0,0,0.5);
-justify-content:center; align-items:center;">
-
-<div style="background:white; padding:30px; border-radius:10px; width:400px;">
-
-<h2 id="roomTitle"></h2>
-
-<div id="futureLectures"></div>
-
-<br>
-<button onclick="closeRoom()">Close</button>
-
-</div>
-
-</div>
-
-<!-- NOTICE POPUP -->
-
-<div id="noticeModal"
-style="display:none; position:fixed; top:0; left:0;
-width:100%; height:100%; background:rgba(0,0,0,0.5);
-justify-content:center; align-items:center; z-index:999;">
-
-<div style="background:white; padding:30px; border-radius:10px;
-width:500px; max-height:400px; overflow:auto;">
-
-<h2>📢 All Notices</h2>
-
-<div id="allNotices"></div>
-
-<br>
-
-<button onclick="closeNoticeBoard()">Close</button>
-
-</div>
-
-</div>
-
-<div id="userSection" style="display:none;">
-  <button onclick="window.location.href='teacher.html'">Dashboard</button>
-  
-</div>
-
-<div id="adminSection" style="display:none;">
-  <button onclick="window.location.href='admin.html'">Admin Panel</button>
-</div>
-
 
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
 import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
 
 const firebaseConfig = {
-
-// apiKey: "AIzaSyAFSLRyN4W5VRg4atDPq7Pae0Kl8-RVP30",
-// authDomain: "smart-classroom-allocation.firebaseapp.com",
-// databaseURL: "https://smart-classroom-allocation-default-rtdb.asia-southeast1.firebasedatabase.app",
-// projectId: "smart-classroom-allocation",
-// storageBucket: "smart-classroom-allocation.firebasestorage.app",
-// messagingSenderId: "31952362079",
-// appId: "1:31952362079:web:16fab8d8b9c29390fad9ea"
   apiKey: "AIzaSyAXNrkME8ssbzJxfUrEpzSNDCa7MEpOgrY",
   authDomain: "sample-final-proj.firebaseapp.com",
-  databaseURL: "https://sample-final-proj-default-rtdb.asia-southeast1.firebasedatabase.app/",
+  databaseURL: "https://sample-final-proj-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "sample-final-proj",
   storageBucket: "sample-final-proj.firebasestorage.app",
   messagingSenderId: "215816969558",
   appId: "1:215816969558:web:efe3040d393e5ee26a0af7",
-
 };
-
-const app = initializeApp(firebaseConfig);
+const app      = initializeApp(firebaseConfig);
 const database = getDatabase(app);
-/* LIVE NOTICE FROM FIREBASE */
 
-const teacher = localStorage.getItem("teacherID");
-const admin = localStorage.getItem("adminLoggedIn");
-
-// if(admin === "true"){
-
-//   // Hide ONLY Admin Login button (not whole section)
-//   document.querySelectorAll("#loginSection button")[3].style.display = "none";
-
-//   // Add Admin Panel + Logout
-//   document.getElementById("loginSection").innerHTML += `
-//     <button onclick="window.location.href='admin.html'" style="padding:10px 20px;
-// border:none;
-// border-radius:8px;
-// background:#fd0101;
-// color:white;
-// font-weight:bold;
-// cursor:pointer;">Admin Panel</button>
-//   `;
-// }
-
-
-// TEACHER
-if(teacher){
-
- const buttons = document.querySelectorAll("#loginSection button");
-if(buttons[2]) buttons[2].style.display = "none";
-if(buttons[3]) buttons[3].style.display = "none"; // Teacher Login
-
-
-  document.getElementById("loginSection").innerHTML += `
-    <button onclick="window.location.href='teacher.html'"style="padding:10px 20px;
-border:none;
-border-radius:8px;
-background:#fd0101;
-color:white;
-font-weight:bold;
-cursor:pointer;">Dashboard</button>
-    
-  `;
-}
-
-// ADMIN
-if(admin === "true"){
-
-  document.querySelectorAll("#loginSection button")[3].style.display = "none";
-
-  document.getElementById("loginSection").innerHTML += `
-    <button onclick="window.location.href='admin.html'"style="padding:10px 20px;
-border:none;
-border-radius:8px;
-background:#fd0101;
-color:white;
-font-weight:bold;
-cursor:pointer;">Admin Panel</button>
-  `;
-}
-
-const noticeRef = ref(database,"notice/current");
-
-onValue(noticeRef,(snapshot)=>{
-
-const container=document.getElementById("noticeSlider");
-
-container.innerHTML="";
-
-if(!snapshot.exists()){
-container.innerHTML="<span>No Notice</span>";
-return;
-}
-
-const now=new Date();
-
-snapshot.forEach(child=>{
-
-const data=child.val();
-
-const expiry=new Date(data.expiry);
-
-if(now < expiry){
-
-container.innerHTML += `<span>📢 ${data.message} | </span>`;
-
-}
-
-});
-
-});
-const rooms = ["LAB31","CR125","CR126"];
-
-const slots = [
-"s1","s2","s3","s4","s5","s6","s7","s8"
-];
-const slotMap = {
-"s1":"8:30-9:30",
-"s2":"9:30-10:30",
-"s3":"10:40-11:40",
-"s4":"11:40-12:40",
-"s5":"1:20-2:20",
-"s6":"2:20-3:20",
-"s7":"3:20-4:20",
-"s8":"4:20-5:20"
+window.showToast = function(msg, type="info", duration=3000) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.className = "show " + type;
+  setTimeout(() => { t.className = ""; }, duration);
 };
 
-
-function getCurrentDay(){
-
-const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-
-return days[new Date().getDay()];
-
+function updateTime() { document.getElementById("currentTime").innerText = new Date().toLocaleTimeString(); }
+function updateDate() {
+  document.getElementById("currentDate").innerText = new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 }
+updateDate(); updateTime(); setInterval(updateTime, 1000);
 
+onValue(ref(database,"notice/current"), snap => {
+  const container = document.getElementById("noticeSlider");
+  container.innerHTML = "";
+  if (!snap.exists()) { container.innerHTML = "<span>No active notices</span>"; return; }
+  const now = new Date();
+  snap.forEach(child => {
+    const data = child.val();
+    if (now < new Date(data.expiry)) container.innerHTML += `<span>📢 ${data.message} | </span>`;
+  });
+  if (!container.innerHTML) container.innerHTML = "<span>No active notices</span>";
+});
 
-function getCurrentTimeSlot(){
-
-  const now=new Date();
-  const current=now.getHours()*60+now.getMinutes();
-
-  const slotRanges=[
-  ["s1",510,570],
-  ["s2",570,630],
-  ["s3",640,700],
-  ["s4",700,760],
-  ["s5",800,860],
-  ["s6",860,920],
-  ["s7",920,980],
-  ["s8",980,1040]
+const slotMap = {
+  s1:"8:30–9:30", s2:"9:30–10:30", s3:"10:40–11:40", s4:"11:40–12:40",
+  s5:"1:20–2:20", s6:"2:20–3:20",  s7:"3:20–4:20",   s8:"4:20–5:20"
+};
+const slots = ["s1","s2","s3","s4","s5","s6","s7","s8"];
+const slotRanges = [
+  ["s1",510,570],["s2",570,630],["s3",640,700],["s4",700,760],
+  ["s5",800,860],["s6",860,920],["s7",920,980],["s8",980,1040],
 ];
-
-  for(let slot of slotRanges){
-    if(current >= slot[1] && current < slot[2]){
-      return slot[0];
-    }
-  }
-
-  // 🔥 fallback: return last slot before current time
-  for(let i=slotRanges.length-1;i>=0;i--){
-    if(current > slotRanges[i][1]){
-      return slotRanges[i][0];
-    }
-  }
-
+function getCurrentDay() { return ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date().getDay()]; }
+function getCurrentTimeSlot() {
+  const cur = new Date().getHours()*60+new Date().getMinutes();
+  for (const [name,start,end] of slotRanges) { if (cur>=start && cur<end) return name; }
+  for (let i=slotRanges.length-1; i>=0; i--) { if (cur>slotRanges[i][1]) return slotRanges[i][0]; }
   return null;
 }
-
-
-function getNextSlot(currentSlot){
-
-if(!currentSlot) return slots[0];
-
-const index=slots.indexOf(currentSlot);
-
-if(index!==-1 && index<slots.length-1){
-return slots[index+1];
+function isActiveSlotTime() {
+  const cur = new Date().getHours()*60+new Date().getMinutes();
+  return slotRanges.some(([,s,e]) => cur>=s && cur<e);
+}
+function getTodayDate() {
+  const now = new Date();
+  return now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0");
+}
+function getNextSlot(current) {
+  if (!current) return slots[0];
+  const idx = slots.indexOf(current);
+  return idx!==-1 && idx<slots.length-1 ? slots[idx+1] : null;
+}
+function getStatusClass(status) {
+  if (status==="Ongoing") return "status-ongoing";
+  if (status==="Free")    return "status-free";
+  if (status==="Waiting") return "status-waiting";
+  return "status-break";
+}
+function getStripColor(status) {
+  if (status==="Ongoing") return "#EF4444";
+  if (status==="Free")    return "#10B981";
+  if (status==="Waiting") return "#F59E0B";
+  return "#94A3B8";
 }
 
-return null;
+async function loadRooms() {
+  const day=getCurrentDay(), currentSlot=getCurrentTimeSlot();
+  const todayDate=getTodayDate(), isRealSlot=isActiveSlotTime(), nextSlot=getNextSlot(currentSlot);
 
-}
-
-
-async function loadRooms(){
-
-const container=document.getElementById("roomsContainer");
-container.innerHTML="";
-
-const day=getCurrentDay();
-const currentSlot=getCurrentTimeSlot();
-
-const nowMinutes = new Date().getHours()*60 + new Date().getMinutes();
-
-const isRealSlot =
-  (nowMinutes >= 510 && nowMinutes < 570) ||
-  (nowMinutes >= 570 && nowMinutes < 640) ||
-  (nowMinutes >= 640 && nowMinutes < 700) ||
-  (nowMinutes >= 700 && nowMinutes < 760) ||
-  (nowMinutes >= 800 && nowMinutes < 860) ||
-  (nowMinutes >= 860 && nowMinutes < 920) ||
-  (nowMinutes >= 920 && nowMinutes < 980) ||
-  (nowMinutes >= 980 && nowMinutes < 1040);
-
-const now = new Date();
-const todayDate = now.getFullYear() + "-" +
-String(now.getMonth()+1).padStart(2,'0') + "-" +
-String(now.getDate()).padStart(2,'0');
-
-for(let room of rooms){
-
-let lecture = null;
-let nextLecture = null;
-
-// 🔥 1. GET CURRENT LECTURE (SPECIAL FIRST)
-if(currentSlot){
-
-const specialSnap = await get(ref(database,
-`classrooms/${room}/specialBookings/${todayDate}/${currentSlot}`));
-
-if(specialSnap.exists()){
-  lecture = specialSnap.val();
-}else{
-  const normalSnap = await get(ref(database,
-  `classrooms/${room}/timetable/${day}/${currentSlot}`));
-
-  if(normalSnap.exists()){
-    lecture = normalSnap.val();
-  }
-}
-}
-
-// 🔥 2. GET NEXT SLOT
-const nextSlot = getNextSlot(currentSlot);
-
-if(nextSlot){
-
-const specialNextSnap = await get(ref(database,
-`classrooms/${room}/specialBookings/${todayDate}/${nextSlot}`));
-
-if(specialNextSnap.exists()){
-  nextLecture = specialNextSnap.val();
-}else{
-  const normalNextSnap = await get(ref(database,
-  `classrooms/${room}/timetable/${day}/${nextSlot}`));
-
-  if(normalNextSnap.exists()){
-    nextLecture = normalNextSnap.val();
-  }
-}
-}
-
-// 🔥 DEFAULT VALUES
-let currentSubject = lecture ? lecture.subject : "No Lecture";
-let currentFaculty = lecture ? lecture.faculty : "-";
-
-let nextSubject = (isRealSlot && nextLecture) ? nextLecture.subject : "-";
-let nextFaculty = (isRealSlot && nextLecture) ? nextLecture.faculty : "-";
-
-// 🔥 STATUS LOGIC (CLEAN)
-let status = "Free";
-let color = "#d4edda";
-
-// 🔥 BREAK TIME CHECK
-if(!isRealSlot){
-  status = "Break";
-  color = "#e2e3e5";
-}// green
-
-const liveSnap = await get(ref(database,`classrooms/${room}/live`));
-
-if(isRealSlot){
-
-  if(liveSnap.exists()){
-
-    const live = liveSnap.val();
-    const nowTime = Date.now();
-
-    let ts = live.timestamp;
-
-    if(!ts){
-      console.log("❌ NO TIMESTAMP");
-      status = "Waiting";
-      color = "#ffeeba";
-    } else {
-
-      if(ts < 10000000000){
-        ts = ts * 1000;
-      }
-
-      console.log("LIVE:", live);
-      console.log("CURRENT SLOT:", currentSlot);
-
-      const isValid =
-        live.status === "Ongoing" &&
-        live.slot &&
-        currentSlot &&
-        live.slot.toLowerCase() === currentSlot.toLowerCase() &&
-        (nowTime - ts) < (70 * 60 * 1000);
-
-      if(isValid){
-        status = "Ongoing";
-        color = "#f8d7da";
-
-        currentSubject = live.subject || currentSubject;
-        currentFaculty = live.faculty || currentFaculty;
-
-      } else {
-        status = "Waiting";
-        color = "#ffeeba";
-      }
-
-    }
-
-  }
-  else if(lecture){
-    status = "Waiting";
-    color = "#ffeeba";
-  }
-}
-
-console.log("DAY:", day);
-console.log("SLOT:", currentSlot);
-console.log("ROOM:", room);
-// 🔥 UI
-container.innerHTML+=`
-<div onclick="openRoom('${room}')"
-style="
-display:inline-block;
-width:280px;
-margin:20px;
-padding:20px;
-border-radius:15px;
-background:${color};
-box-shadow:0 5px 15px rgba(0,0,0,0.2);
-cursor:pointer;
-transition:0.3s;
-"
-onmouseover="this.style.transform='scale(1.05)'"
-onmouseout="this.style.transform='scale(1)'">
-
-<h2>${room}</h2>
-
-<p><b>Status:</b> ${status}</p>
-
-<hr>
-
-<p><b>Current:</b> ${currentSubject}</p>
-<p><b>Faculty:</b> ${currentFaculty}</p>
-<p><b>Time:</b> ${isRealSlot ? slotMap[currentSlot] : "Break Time"}</p>
-
-<hr>
-
-<p><b>Next:</b> ${nextSubject}</p>
-<p><b>Faculty:</b> ${nextFaculty}</p>
-<p><b>Time:</b> ${isRealSlot && nextSlot ? slotMap[nextSlot] : "-"}</p>
-
-</div>
-`;
-console.log("LECTURE:", lecture);
-} // loop end
-
-}
-
-
-/* TEACHER LOGIN */
-
-window.openLogin = function(){
-
-  const teacher = localStorage.getItem("teacherID");
-
-  if(teacher){
-    window.location.href = "teacher.html";
-  }else{
-    document.getElementById("loginModal").style.display="flex";
-  }
-
-}
-
-window.closeLogin=function(){
-
-document.getElementById("loginModal").style.display="none";
-
-}
-
-window.login = async function(){
-
-  const id = document.getElementById("teacherID").value;
-  const pass = document.getElementById("teacherPass").value;
-
-  const snapshot = await get(ref(database,"teachers/" + id));
-
-  if(!snapshot.exists()){
-    document.getElementById("loginMsg").innerHTML = "Invalid ID";
+  const classroomsSnap = await get(ref(database,"classrooms"));
+  if (!classroomsSnap.exists()) {
+    document.getElementById("loadingSpinner").style.display="none";
+    document.getElementById("roomsContainer").innerHTML="<p style='text-align:center;color:#888;padding:40px;'>No classrooms configured.</p>";
     return;
   }
+  const roomList = Object.keys(classroomsSnap.val());
+  const container = document.getElementById("roomsContainer");
+  container.innerHTML="";
+  document.getElementById("loadingSpinner").style.display="none";
+  document.getElementById("roomsHeader").style.display="flex";
 
-  let dbPass = snapshot.val().password;
+  for (const [i,room] of roomList.entries()) {
+    let lecture=null, nextLecture=null, isCancelled=false;
 
-  try{
-    dbPass = atob(dbPass); // decode if encrypted
-  }catch(e){
-    // old password (not encoded)
+    if (currentSlot) {
+      // Check if current slot is cancelled
+      const cancelSnap = await get(ref(database,`cancelled_lectures/${todayDate}/${room}/${currentSlot}`));
+      isCancelled = cancelSnap.exists();
+
+      if (!isCancelled) {
+        const specSnap = await get(ref(database,`classrooms/${room}/specialBookings/${todayDate}/${currentSlot}`));
+        if (specSnap.exists()) { lecture = specSnap.val(); }
+        else {
+          const normSnap = await get(ref(database,`classrooms/${room}/timetable/${day}/${currentSlot}`));
+          if (normSnap.exists()) lecture = normSnap.val();
+        }
+      }
+    }
+    if (nextSlot) {
+      const specNext = await get(ref(database,`classrooms/${room}/specialBookings/${todayDate}/${nextSlot}`));
+      if (specNext.exists()) { nextLecture = specNext.val(); }
+      else {
+        const normNext = await get(ref(database,`classrooms/${room}/timetable/${day}/${nextSlot}`));
+        if (normNext.exists()) nextLecture = normNext.val();
+      }
+    }
+
+    let currentSubject = isCancelled ? "Lecture Cancelled" : (lecture ? lecture.subject : "No Lecture");
+    let currentFaculty = isCancelled ? "–" : (lecture ? lecture.faculty : "–");
+    let nextSubject = (isRealSlot && nextLecture) ? nextLecture.subject : "–";
+    let nextFaculty = (isRealSlot && nextLecture) ? nextLecture.faculty : "–";
+    let status = "Free";
+
+    if (!isRealSlot) { status = "Break"; }
+    else if (isCancelled) { status = "Free"; }
+    else {
+      const liveSnap = await get(ref(database,`classrooms/${room}/live`));
+      if (liveSnap.exists()) {
+        const live = liveSnap.val(); let ts = live.timestamp||0;
+        if (ts<10000000000) ts*=1000;
+        const isValid = live.status==="Ongoing" && live.slot && currentSlot &&
+          live.slot.toLowerCase()===currentSlot.toLowerCase() && (Date.now()-ts)<70*60*1000;
+        if (isValid) {
+          status="Ongoing";
+          currentSubject=live.subject||currentSubject;
+          currentFaculty=live.faculty||currentFaculty;
+        } else { status = lecture ? "Waiting" : "Free"; }
+      } else if (lecture) { status="Waiting"; }
+    }
+
+    const card = document.createElement("div");
+    card.className="room-card"; card.style.animationDelay=`${i*0.06}s`;
+    card.onclick=() => openRoom(room);
+    const stripColor=getStripColor(status), statusCls=getStatusClass(status);
+    card.innerHTML=`
+      <div class="room-card-strip" style="background:${stripColor};"></div>
+      <div class="room-card-top">
+        <div class="room-name"><span class="room-icon">🏫</span>${room}</div>
+        <div class="status-badge ${statusCls}">
+          <div class="status-dot"></div>${status}
+        </div>
+      </div>
+      <div class="room-card-divider"></div>
+      <div class="room-card-body">
+        <div class="room-info-row">
+          <span class="room-info-label">📚 Subject</span>
+          <span class="room-info-value" style="${isCancelled ? 'color:#EF4444;text-decoration:line-through;' : ''}">${currentSubject}</span>
+        </div>
+        <div class="room-info-row">
+          <span class="room-info-label">👤 Faculty</span>
+          <span class="room-info-value">${currentFaculty}</span>
+        </div>
+        <div class="room-info-row">
+          <span class="room-info-label">⏰ Time</span>
+          <span class="room-info-value">${isRealSlot ? slotMap[currentSlot] : "Break Time"}</span>
+        </div>
+      </div>
+      <div class="room-card-footer">
+        <div class="next-label">⏭ Next Up</div>
+        <div class="room-info-row" style="margin-bottom:3px;">
+          <span class="room-info-label">Subject</span>
+          <span class="room-info-value">${nextSubject}</span>
+        </div>
+        <div class="room-info-row">
+          <span class="room-info-label">Time</span>
+          <span class="room-info-value">${isRealSlot&&nextSlot ? slotMap[nextSlot] : "–"}</span>
+        </div>
+      </div>`;
+    container.appendChild(card);
   }
+}
 
-  if(dbPass === pass){
-    localStorage.setItem("teacherID", id);
-    window.location.href = "teacher.html";
-  }else{
-    document.getElementById("loginMsg").innerHTML = "Wrong Password";
+/* ── AUTH ─────────────────────────────────── */
+const teacher = localStorage.getItem("teacherID");
+const admin   = localStorage.getItem("adminLoggedIn");
+if (teacher) {
+  const btns = document.querySelectorAll(".top-actions button");
+  if (btns[2]) btns[2].style.display="none";
+  if (btns[3]) btns[3].style.display="none";
+  const dash = document.createElement("button");
+  dash.innerHTML="🖥 Dashboard"; dash.style.cssText="background:#7C3AED; color:white; padding:11px 22px; border:none; border-radius:50px; font-weight:600; cursor:pointer; font-size:13px;";
+  dash.onclick=() => window.location.href="teacher.html";
+  document.getElementById("loginSection").appendChild(dash);
+}
+if (admin==="true") {
+  const btns = document.querySelectorAll(".top-actions button");
+  if (btns[3]) btns[3].style.display="none";
+  const panel = document.createElement("button");
+  panel.innerHTML="⚙ Admin Panel"; panel.style.cssText="background:#DC2626; color:white; padding:11px 22px; border:none; border-radius:50px; font-weight:600; cursor:pointer; font-size:13px;";
+  panel.onclick=() => window.location.href="admin.html";
+  document.getElementById("loginSection").appendChild(panel);
+}
+
+/* ── LOGIN ─────────────────────────────────── */
+window.openLogin=function() {
+  if (localStorage.getItem("teacherID")) { window.location.href="teacher.html"; }
+  else { document.getElementById("loginModal").style.display="flex"; }
+};
+window.closeLogin=function() { document.getElementById("loginModal").style.display="none"; };
+window.login=async function() {
+  const id=document.getElementById("teacherID").value.trim();
+  const pass=document.getElementById("teacherPass").value;
+  const snap=await get(ref(database,"teachers/"+id));
+  if (!snap.exists()) { document.getElementById("loginMsg").innerText="Invalid ID"; return; }
+  let dbPass=snap.val().password;
+  try { dbPass=atob(dbPass); } catch(e){}
+  if (dbPass===pass) { localStorage.setItem("teacherID",id); window.location.href="teacher.html"; }
+  else { document.getElementById("loginMsg").innerText="Wrong Password"; }
+};
+window.openAdminLogin=function() {
+  if (localStorage.getItem("adminLoggedIn")==="true") { window.location.href="admin.html"; }
+  else { document.getElementById("adminLoginModal").style.display="flex"; }
+};
+window.closeAdminLogin=function() { document.getElementById("adminLoginModal").style.display="none"; };
+window.adminLogin=async function() {
+  const id=document.getElementById("adminID").value.trim();
+  const pass=document.getElementById("adminPass").value;
+  try {
+    const snap=await get(ref(database,"admin/"+id));
+    if (!snap.exists()) { document.getElementById("adminMsg").innerText="Invalid Admin ID"; return; }
+    let dbPass=snap.val().password;
+    try { dbPass=atob(dbPass); } catch(e){}
+    if (dbPass===pass) { localStorage.setItem("adminLoggedIn","true"); window.location.href="admin.html"; }
+    else { document.getElementById("adminMsg").innerText="Wrong Password"; }
+  } catch(e) {
+    if (id==="admin"&&pass==="admin123") { localStorage.setItem("adminLoggedIn","true"); window.location.href="admin.html"; }
+    else { document.getElementById("adminMsg").innerText="Invalid Admin Credentials"; }
   }
+};
 
-}
+/* ── ROOM POPUP — shows cancelled badges, live status ── */
+window.openRoom=async function(room) {
+  document.getElementById("roomModal").style.display="flex";
+  document.getElementById("roomTitle").innerHTML=`🏫 ${room} — Today's Schedule`;
+  const container=document.getElementById("futureLectures");
+  container.innerHTML="<p style='color:#94A3B8;text-align:center;padding:20px;'>Loading...</p>";
+  const day=getCurrentDay(), todayDate=getTodayDate(), currentSlot=getCurrentTimeSlot();
 
-/* ADMIN LOGIN */
+  const [ttSnap,specSnap,cancelSnap,liveSnap]=await Promise.all([
+    get(ref(database,`classrooms/${room}/timetable/${day}`)),
+    get(ref(database,`classrooms/${room}/specialBookings/${todayDate}`)),
+    get(ref(database,`cancelled_lectures/${todayDate}/${room}`)),
+    get(ref(database,`classrooms/${room}/live`))
+  ]);
+  const ttData    = ttSnap.exists()     ? ttSnap.val()     : {};
+  const specData  = specSnap.exists()   ? specSnap.val()   : {};
+  const cancelData= cancelSnap.exists() ? cancelSnap.val() : {};
+  const liveData  = liveSnap.exists()   ? liveSnap.val()   : null;
 
-window.openAdminLogin = function(){
+  container.innerHTML="";
+  let hasLecture=false;
+  for (const slot of slots) {
+    let lecture=null, isSpecial=false;
+    if (specData[slot])  { lecture=specData[slot]; isSpecial=true; }
+    else if (ttData[slot]) { lecture=ttData[slot]; }
+    if (!lecture) continue;
+    hasLecture=true;
 
-  const admin = localStorage.getItem("adminLoggedIn");
+    const isCancelled = !!cancelData[slot];
+    const slotIdx=slots.indexOf(slot), curIdx=slots.indexOf(currentSlot);
+    let borderColor="#CBD5E1", bg="#F8FAFC";
+    if (isCancelled) { borderColor="#EF4444"; bg="#FEF2F2"; }
+    else if (slot===currentSlot) { borderColor="#F59E0B"; bg="#FFFBEB"; }
+    else if (slotIdx>curIdx) { borderColor="#60A5FA"; bg="#EFF6FF"; }
+    if (isSpecial && !isCancelled) borderColor="#8B5CF6";
 
-  if(admin === "true"){
-    // already logged in → go directly
-    window.location.href = "admin.html";
-  }else{
-    // not logged in → show popup
-    document.getElementById("adminLoginModal").style.display="flex";
+    // Check if this slot is currently live
+    let ts=liveData?.timestamp||0;
+    if (ts<10000000000) ts*=1000;
+    const isLive = !isCancelled && liveData && liveData.status==="Ongoing" &&
+                   liveData.slot?.toLowerCase()===slot.toLowerCase() &&
+                   (Date.now()-ts)<70*60*1000;
+
+    const badges=[];
+    if (isCancelled)  badges.push(`<span class="badge-cancelled">CANCELLED</span>`);
+    if (isSpecial && !isCancelled) badges.push(`<span class="badge-special">Special</span>`);
+    if (isLive)       badges.push(`<span class="badge-ongoing">🔴 Live</span>`);
+
+    container.innerHTML+=`
+      <div class="lecture-row" style="border-left-color:${borderColor}; background:${bg}; ${isCancelled ? 'opacity:0.7;' : ''}">
+        <div class="slot-time">
+          <span>⏰ ${slotMap[slot]}</span>
+          <span style="display:flex;gap:4px;align-items:center;">${badges.join("")}</span>
+        </div>
+        <div class="slot-sub" style="${isCancelled ? 'text-decoration:line-through;' : ''}">
+          ${lecture.subject} &bull; ${lecture.faculty}
+        </div>
+      </div>`;
   }
-
-}
-
-window.closeAdminLogin=function(){
-
-document.getElementById("adminLoginModal").style.display="none";
-
-}
-
-window.adminLogin=function(){
-
-const id=document.getElementById("adminID").value;
-
-const pass=document.getElementById("adminPass").value;
-
-if(id==="admin" && pass==="admin123"){
-  localStorage.setItem("adminLoggedIn", "true");
-  window.location.href="admin.html";
-}
-
-else{
-
-document.getElementById("adminMsg").innerHTML="Invalid Admin Credentials";
-
-}
-
-}
-/* ROOM FUTURE LECTURES */
-
-window.openRoom = async function(room){
-
-document.getElementById("roomModal").style.display="flex";
-document.getElementById("roomTitle").innerHTML = room + " Today's Lectures";
-
-const container = document.getElementById("futureLectures");
-container.innerHTML = "Loading...";
-
-const day = getCurrentDay();
-const now = new Date();
-
-const todayDate = now.getFullYear() + "-" +
-String(now.getMonth()+1).padStart(2,'0') + "-" +
-String(now.getDate()).padStart(2,'0');
-
-const currentSlot = getCurrentTimeSlot();
-
-// 🔹 Fetch data
-const timetableSnap = await get(ref(database,
-`classrooms/${room}/timetable/${day}`));
-
-const specialSnap = await get(ref(database,
-`classrooms/${room}/specialBookings/${todayDate}`));
-
-const timetableData = timetableSnap.exists() ? timetableSnap.val() : {};
-const specialData = specialSnap.exists() ? specialSnap.val() : {};
-
-container.innerHTML = "";
-
-const slotOrder = ["s1","s2","s3","s4","s5","s6","s7","s8"];
-
-let hasLecture = false;
-
-// 🔥 LOOP
-for(let slot of slotOrder){
-
-let lecture = null;
-let isSpecial = false;
-
-// ✅ PRIORITY: special
-if(specialData[slot]){
-  lecture = specialData[slot];
-  isSpecial = true;
-}
-else if(timetableData[slot]){
-  lecture = timetableData[slot];
-}
-
-// ❌ skip if no lecture
-if(!lecture) continue;
-
-hasLecture = true;
-
-// 🔥 STYLE BASED ON TIME
-let bg = "#e9ecef"; // past
-let border = "#6c757d";
-
-if(slot === currentSlot){
-  bg = "#fff3cd";        // 🟡 current
-  border = "#ffc107";
-}
-else if(slotOrder.indexOf(slot) > slotOrder.indexOf(currentSlot)){
-  bg = "#d1ecf1";        // 🔵 future
-  border = "#17a2b8";
-}
-
-// 🔥 SPECIAL OVERRIDE STYLE
-if(isSpecial){
-  border = "#6f42c1";   // 🟣 purple
-}
-
-// 🔥 UI
-container.innerHTML += `
-<div style="
-padding:12px;
-margin:8px;
-border-radius:8px;
-background:${bg};
-border-left:6px solid ${border};
-transition:0.2s;
-">
-
-<b>${slotMap[slot]}</b><br>
-${lecture.subject} (${lecture.faculty})
-
-${isSpecial ? `<div style="color:#6f42c1; font-size:12px;">Special Booking</div>` : ""}
-
-</div>
-`;
-}
-
-// 🔥 EMPTY
-if(!hasLecture){
-container.innerHTML = "No lectures scheduled today";
-}
-
-}
-
-window.closeRoom=function(){
-
-document.getElementById("roomModal").style.display="none";
-
-}
-
-/* OPEN NOTICE BOARD */
-
-window.openNoticeBoard = function(){
-
-document.getElementById("noticeModal").style.display="flex";
-
-const container=document.getElementById("allNotices");
-container.innerHTML="Loading...";
-
-const noticeRef = ref(database,"notice/current");
-
-get(noticeRef).then((snapshot)=>{
-
-container.innerHTML="";
-
-if(!snapshot.exists()){
-container.innerHTML="No notices available";
-return;
-}
-
-const now=new Date();
-
-snapshot.forEach(child=>{
-
-const data=child.val();
-const expiry=new Date(data.expiry);
-
-if(now < expiry){
-
-container.innerHTML += `
-
-<div style="padding:10px; border-bottom:1px solid #ccc; margin-bottom:10px;">
-📢 ${data.message}
-<br>
-<small>Valid Until: ${data.expiry}</small>
-</div>
-
-`;
-
-}
-
-});
-
-});
-
-}
-
-
-/* CLOSE NOTICE BOARD */
-
-window.closeNoticeBoard=function(){
-
-document.getElementById("noticeModal").style.display="none";
-
-}
-
-function updateTime(){
-  document.getElementById("currentTime").innerText =
-    new Date().toLocaleTimeString();
-}
-function updateDate(){
-  const now = new Date();
-
-  document.getElementById("currentDate").innerText =
-    now.toLocaleDateString(undefined, {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
+  if (!hasLecture) container.innerHTML="<p style='color:#94A3B8;text-align:center;padding:20px;'>No lectures scheduled today.</p>";
+};
+window.closeRoom=function() { document.getElementById("roomModal").style.display="none"; };
+
+/* ── NOTICE BOARD ─────────────────────────── */
+window.openNoticeBoard=function() {
+  document.getElementById("noticeModal").style.display="flex";
+  const container=document.getElementById("allNotices");
+  container.innerHTML="<p style='color:#94A3B8;text-align:center;padding:20px;'>Loading...</p>";
+  get(ref(database,"notice/current")).then(snap => {
+    container.innerHTML="";
+    if (!snap.exists()) { container.innerHTML="<p style='color:#94A3B8;'>No notices.</p>"; return; }
+    const now=new Date();
+    snap.forEach(child => {
+      const d=child.val();
+      if (now<new Date(d.expiry)) {
+        container.innerHTML+=`
+          <div class="notice-item">
+            <span class="notice-icon">📢</span>
+            <div><div class="notice-text">${d.message}</div>
+            <div class="notice-expiry">Valid until: ${new Date(d.expiry).toLocaleString()}</div></div>
+          </div>`;
+      }
     });
-}
-
-// run once
-updateDate();
-
-// run every second
-setInterval(updateTime, 1000);
-
-// run immediately (important)
-updateTime();
-
-(async () => {
-  const test = await get(ref(database,"classrooms"));
-  console.log(test.val());
-})();
-
-window.showStudentMarks = async function(){
-
-// 🔥 FULL PAGE REPLACE (new screen)
-document.body.innerHTML = `
-
-
-
-<div style="background:#002147; color:white; padding:20px; text-align:center; position:relative;">
-
-<h2>Check Your Marks</h2>
-
-<button onclick="goHome()" style="
-position:absolute;
-right:20px;
-top:15px;
-padding:10px 22px;
-background:white;
-border:none;
-border-radius:12px;
-font-weight:bold;
-color:#002147;
-cursor:pointer;
-box-shadow:0 4px 10px rgba(0,0,0,0.2);
-transition:0.3s;
-">
-Home
-</button>
-
-</div>
-
-<div style="display:flex; justify-content:center; margin-top:50px;">
-
-<div style="
-background:white;
-padding:30px;
-border-radius:15px;
-box-shadow:0 8px 20px rgba(0,0,0,0.1);
-width:320px;
-text-align:center;
-">
-
-<h3 style="margin-bottom:20px; color:#002147;">Select Details</h3>
-
-<select id="sem" style="
-width:100%;
-padding:12px;
-margin-bottom:15px;
-border-radius:8px;
-border:1px solid #ccc;
-">
-<option>Select Semester</option>
-<option>SEM 3</option>
-<option>SEM 5</option>
-<option>SEM 7</option>
-</select>
-
-<select id="subject" style="
-width:100%;
-padding:12px;
-margin-bottom:15px;
-border-radius:8px;
-border:1px solid #ccc;
-">
-<option>Select Subject</option>
-</select>
-
-<button onclick="getStudentMarks()" style="
-width:100%;
-padding:12px;
-border:none;
-border-radius:8px;
-background:#007bff;
-color:white;
-font-size:16px;
-font-weight:bold;
-cursor:pointer;
-">
-Check Result
-</button>
-
-<div id="result" style="margin-top:20px;"></div>
-
-</div>
-
-</div>
-`;
-
-const snapshot = await get(ref(database,"marks"));
-const select = document.getElementById("subject");
-
-// Load subjects
-if(snapshot.exists()){
-const data = snapshot.val();
-
-for(let subject in data){
-select.innerHTML += `<option>${subject}</option>`;
-}
-}
-
-
+    if (!container.innerHTML) container.innerHTML="<p style='color:#94A3B8;'>No active notices.</p>";
+  });
 };
-window.getStudentMarks = async function(){
+window.closeNoticeBoard=function() { document.getElementById("noticeModal").style.display="none"; };
 
-const subject = document.getElementById("subject").value;
+/* ── MARKS — no semester, subject + optional student ID ── */
+window.openMarksModal=async function() {
+  document.getElementById("marksResult").innerHTML="";
+  document.getElementById("studentIDFilter").value="";
+  const sel=document.getElementById("marksSubject");
+  sel.innerHTML="<option value=''>Select Subject</option>";
+  document.getElementById("marksModal").style.display="flex";
+  const snap=await get(ref(database,"marks"));
+  if (snap.exists()) {
+    for (const sub in snap.val()) sel.innerHTML+=`<option value="${sub}">${sub}</option>`;
+  }
+};
+window.closeMarksModal=function() { document.getElementById("marksModal").style.display="none"; };
+window.getStudentMarks=async function() {
+  const subject=document.getElementById("marksSubject").value;
+  const studentFilter=document.getElementById("studentIDFilter").value.trim().toUpperCase();
+  if (!subject) { showToast("Please select a subject","error"); return; }
+  const snap=await get(ref(database,"marks/"+subject));
+  if (!snap.exists()) {
+    document.getElementById("marksResult").innerHTML=`<div style="color:#94A3B8;padding:16px;text-align:center;">No marks found for this subject.</div>`;
+    return;
+  }
+  let rows="", count=0;
+  snap.forEach(child => {
+    if (studentFilter && child.key.toUpperCase()!==studentFilter) return;
+    const d=child.val();
+    rows+=`<tr><td><strong>${child.key}</strong></td><td>${d.midsem??'–'}</td></tr>`;
+    count++;
+  });
+  if (!rows) {
+    document.getElementById("marksResult").innerHTML=`<div style="color:#94A3B8;padding:16px;text-align:center;">No records found${studentFilter ? " for Student ID: "+studentFilter : ""}.</div>`;
+    return;
+  }
+  document.getElementById("marksResult").innerHTML=`
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">${count} record${count!==1?'s':''} found</div>
+    <table class="marks-table"><thead><tr><th>Student ID</th><th>Marks</th></tr></thead><tbody>${rows}</tbody></table>`;
+};
 
-if(!subject){
-alert("Select subject");
-return;
-}
-
-const snap = await get(ref(database, "marks/" + subject));
-
-let html = `
-<table border="1" style="margin:auto; border-collapse:collapse;">
-<tr style="background:#002147; color:white;">
-<th>Student ID</th>
-<th>Marks</th>
-</tr>
-`;
-
-if(snap.exists()){
-snap.forEach(child=>{
-const data = child.val();
-
-html += `
-<tr>
-<td>${child.key}</td>
-<td>${data.midsem}</td>
-</tr>
-`;
+document.querySelectorAll(".overlay").forEach(overlay => {
+  overlay.addEventListener("click", e => { if (e.target===overlay) overlay.style.display="none"; });
 });
-}else{
-html += `<tr><td colspan="2">No data</td></tr>`;
-}
 
-html += "</table>";
-
-document.getElementById("result").innerHTML = html;
-
-};
-window.goHome = function(){
-location.reload(); // reloads original home page
-};
-window.logoutAdmin = function(){
-  localStorage.removeItem("adminLoggedIn");
-  location.reload();
-}
-window.addEventListener("DOMContentLoaded", () => {
-  loadRooms();
-  setInterval(loadRooms,10000);
-});
+window.addEventListener("DOMContentLoaded", () => { loadRooms(); setInterval(loadRooms,10000); });
 </script>
-
 </body>
 </html>

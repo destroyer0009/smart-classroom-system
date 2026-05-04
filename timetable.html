@@ -1,88 +1,121 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
 <title>College Timetable</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #001a3a;
+  --blue: #1565C0;
+  --accent: #F59E0B;
+  --bg: #EFF3F8;
+  --surface: #ffffff;
+  --shadow: 0 4px 24px rgba(0,26,58,0.1);
+  --shadow-lg: 0 8px 40px rgba(0,26,58,0.16);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); min-height: 100vh; }
+
+/* ── HEADER ─────────────────────────────────── */
+.page-header {
+  background: linear-gradient(135deg, var(--navy) 0%, #012a70 50%, #0a3a6e 100%);
+  color: white; padding: 22px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: relative; overflow: hidden;
+}
+.page-header::before {
+  content: ''; position: absolute; top: -40px; right: -40px;
+  width: 160px; height: 160px; border-radius: 50%;
+  background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.15);
+}
+.header-left { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; }
+.header-icon {
+  width: 48px; height: 48px; border-radius: 14px;
+  background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+  display: flex; align-items: center; justify-content: center; font-size: 24px;
+}
+.header-title { font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700; }
+.header-sub { font-size: 13px; opacity: 0.7; margin-top: 2px; }
+
+.btn-home {
+  position: relative; z-index: 1;
+  padding: 10px 20px; background: rgba(255,255,255,0.12);
+  color: white; border: 1.5px solid rgba(255,255,255,0.25);
+  border-radius: 50px; cursor: pointer; font-weight: 600;
+  font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px;
+  transition: all 0.2s; text-decoration: none; display: flex; align-items: center; gap: 7px;
+}
+.btn-home:hover { background: rgba(255,255,255,0.22); transform: translateY(-1px); }
+
+/* ── MAIN ─────────────────────────────────── */
+main {
+  display: flex; justify-content: center; align-items: flex-start;
+  padding: 32px 20px; min-height: calc(100vh - 90px);
+}
+.card {
+  width: 100%; max-width: 1020px;
+  background: var(--surface); border-radius: 20px;
+  box-shadow: var(--shadow-lg); overflow: hidden;
+  border: 1px solid #E2E8F0;
+}
+.card-header {
+  padding: 22px 26px; border-bottom: 1px solid #F1F5F9;
+  display: flex; align-items: center; gap: 12px;
+}
+.card-header h3 {
+  font-family: 'Sora', sans-serif; font-size: 17px; font-weight: 700; color: var(--navy);
+}
+.card-badge {
+  background: #EFF6FF; color: var(--blue);
+  padding: 4px 12px; border-radius: 50px; font-size: 12px; font-weight: 600;
+}
+
+#pdfFrame {
+  width: 100%; height: 680px; border: none;
+  background: #F8FAFC; display: block;
+}
+
+.no-tt {
+  padding: 60px 20px; text-align: center; color: #94A3B8;
+}
+.no-tt .no-icon { font-size: 48px; margin-bottom: 12px; }
+.no-tt p { font-size: 15px; font-weight: 500; }
+
+@media (max-width: 600px) {
+  #pdfFrame { height: 420px; }
+  .page-header { flex-wrap: wrap; gap: 12px; }
+  .header-title { font-size: 16px; }
+}
+</style>
 </head>
+<body>
 
-<body style="margin:0; font-family:Arial; background:#f4f6f9;">
-
-<!-- HEADER -->
-<div style="
-background:#002147;
-color:white;
-padding:20px;
-text-align:center;
-position:relative;
-box-shadow:0 4px 10px rgba(0,0,0,0.2);
-">
-
-<h2 style="margin:0;">📄 College Timetable</h2>
-
-<button onclick="window.location.href='index.html'" style="
-position:absolute;
-right:20px;
-top:15px;
-padding:8px 18px;
-background:white;
-color:#002147;
-border:none;
-border-radius:8px;
-cursor:pointer;
-font-weight:bold;
-box-shadow:0 3px 8px rgba(0,0,0,0.2);
-transition:0.2s;
-">
-Home
-</button>
-
+<!-- ── HEADER ──────────────────────────────── -->
+<div class="page-header">
+  <div class="header-left">
+    <div class="header-icon">📄</div>
+    <div>
+      <div class="header-title">College Timetable</div>
+      <div class="header-sub">Official Academic Schedule</div>
+    </div>
+  </div>
+  <a href="index.html" class="btn-home">🏠 Home</a>
 </div>
 
-<!-- MAIN SECTION -->
-<div style="
-display:flex;
-justify-content:center;
-align-items:center;
-padding:40px 20px;
-">
-
-<!-- CARD -->
-<div style="
-width:95%;
-max-width:1000px;
-background:white;
-padding:25px;
-border-radius:15px;
-box-shadow:0 8px 25px rgba(0,0,0,0.1);
-text-align:center;
-">
-
-<h3 style="
-color:#002147;
-margin-bottom:20px;
-font-size:20px;
-">
-📘 Official Timetable
-</h3>
-
-<!-- PDF FRAME -->
-<iframe id="pdfFrame"
-style="
-width:100%;
-height:650px;
-border:none;
-border-radius:10px;
-box-shadow:0 4px 15px rgba(0,0,0,0.15);
-background:#f8f9fa;
-">
-</iframe>
-
-</div>
-
-</div>
+<!-- ── MAIN ──────────────────────────────── -->
+<main>
+  <div class="card">
+    <div class="card-header">
+      <span style="font-size:20px;">📘</span>
+      <h3>Official Timetable</h3>
+      <span class="card-badge">Current Academic Year</span>
+    </div>
+    <iframe id="pdfFrame" title="Timetable PDF"></iframe>
+  </div>
+</main>
 
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
 import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
 
@@ -92,19 +125,18 @@ const firebaseConfig = {
   databaseURL: "https://sample-final-proj-default-rtdb.asia-southeast1.firebasedatabase.app/",
   projectId: "sample-final-proj",
 };
-
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-
-const snap = await get(ref(db,"timetable_pdf/academic"));
-
-if(snap.exists()){
+const snap = await get(ref(db, "timetable_pdf/academic"));
+if (snap.exists()) {
   document.getElementById("pdfFrame").src = snap.val();
-}else{
-  document.body.innerHTML += "<p style='text-align:center; color:red;'>No timetable uploaded</p>";
+} else {
+  document.getElementById("pdfFrame").outerHTML = `
+    <div class="no-tt">
+      <div class="no-icon">📭</div>
+      <p>No timetable has been uploaded yet.</p>
+    </div>`;
 }
-
 </script>
-
 </body>
 </html>
