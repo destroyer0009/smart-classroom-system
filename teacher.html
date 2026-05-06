@@ -699,7 +699,7 @@ window.fetchMarksView = async function() {
     });
   }
   let html=`<div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">${count} record${count!==1?'s':''} found</div>`;
-  html+=`<table class="marks-table"><thead><tr><th>Student ID</th><th>Marks (/30)</th><th>Date</th></tr></thead><tbody>`;
+  html+=`<table class="marks-table"><thead><tr><th>Student ID</th><th>Marks </th><th>Date</th></tr></thead><tbody>`;
   html+=rows||`<tr><td colspan="3" style="color:#94A3B8;">No data</td></tr>`;
   html+="</tbody></table>";
   document.getElementById("marksDisplay").innerHTML=html;

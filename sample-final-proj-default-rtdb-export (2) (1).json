@@ -1,4 +1,12 @@
 {
+  "admin": {
+    "admin1": {
+      "password": "YWRtaW4xMjM="
+    },
+    "sarosh": {
+      "password": "cGFzc3dvcmQ="
+    }
+  },
   "booking_requests": {
     "1775510782474": {
       "date": "2026-04-07",
@@ -20,6 +28,13 @@
       "date": "2026-03-30",
       "status": "cancelled",
       "teacher": "CRJ"
+    },
+    "1777586029055": {
+      "date": "2026-05-01",
+      "slot": "s4",
+      "status": "cancelled_single",
+      "subject": "CAM",
+      "teacher": "NAB"
     }
   },
   "cancel_requests": {
@@ -38,13 +53,20 @@
         "s3": "Auto Cancelled",
         "s4": "Auto Cancelled"
       }
+    },
+    "2026-05-01": {
+      "LAB31": {
+        "s4": {
+          "slot": "s4",
+          "subject": "CAM",
+          "teacher": "NAB",
+          "timestamp": 1777586028969
+        }
+      }
     }
   },
   "classrooms": {
     "CR125": {
-      "live": {
-        "status": "Free"
-      },
       "timetable": {
         "Friday": {
           "s2": {
@@ -263,14 +285,19 @@
       }
     },
     "LAB31": {
+      "current_faculty": "RRM",
       "live": {
-        "status": "Free"
+        "faculty": "RRM",
+        "slot": "s3",
+        "status": "Ongoing",
+        "subject": "RBS",
+        "timestamp": 1778045843000
       },
       "specialBookings": {
-        "2026-04-24": {
-          "s7": {
-            "faculty": "CRJ",
-            "subject": "MT"
+        "2026-05-01": {
+          "s2": {
+            "faculty": "NAB",
+            "subject": "CAD"
           }
         }
       },
@@ -357,7 +384,7 @@
             "subject": "RBS"
           },
           "s4": {
-            "faculty": "B3",
+            "faculty": "NAB",
             "subject": "CAM"
           },
           "s5": {
@@ -410,6 +437,24 @@
       "status": "late",
       "subject": "DSP",
       "teacher": "SSK"
+    },
+    "1777444685792": {
+      "date": "2026-04-30",
+      "minutes": "15",
+      "room": "CR126",
+      "slot": "s7",
+      "status": "late",
+      "subject": "MP",
+      "teacher": "NGP"
+    },
+    "1777445460961": {
+      "date": "2026-04-30",
+      "minutes": "10",
+      "room": "CR126",
+      "slot": "s7",
+      "status": "late",
+      "subject": "MP",
+      "teacher": "NGP"
     }
   },
   "logs": {
@@ -431,6 +476,122 @@
         "status": "Entry",
         "teacher": "NAB",
         "time": "11:56"
+      }
+    },
+    "2026-04-27": {
+      "-OrDAhXkhkucuotRqaCa": {
+        "room": "CR126",
+        "status": "Entry",
+        "teacher": "SVB",
+        "time": "14:34"
+      },
+      "-OrDAp1RoIzbe4YSfvlG": {
+        "room": "CR126",
+        "status": "Exit",
+        "teacher": "SVB",
+        "time": "14:34"
+      },
+      "-OrDDYAhgga9w6PS0nvd": {
+        "room": "CR125",
+        "status": "Entry",
+        "teacher": "RKA",
+        "time": "14:46"
+      }
+    },
+    "2026-04-28": {
+      "-OrHWAcRDfPwLHeKN1eL": {
+        "room": "LAB31",
+        "status": "Entry",
+        "teacher": "RRM",
+        "time": "10:46"
+      },
+      "-OrHYuAblvda3n0bLRIu": {
+        "room": "LAB31",
+        "status": "Entry",
+        "teacher": "RRM",
+        "time": "10:58"
+      },
+      "-OrHm2RdZby5BTiYCUXh": {
+        "room": "LAB31",
+        "status": "Entry",
+        "teacher": "NAB",
+        "time": "12:00"
+      }
+    },
+    "2026-04-29": {
+      "-OrMizTvaK8E43pApltn": {
+        "room": "LAB31",
+        "status": "Invalid",
+        "teacher": "Unknown Card",
+        "time": "11:5"
+      },
+      "-OrMj1N5UIZ7GervYV6S": {
+        "room": "LAB31",
+        "status": "Invalid",
+        "teacher": "Unknown Card",
+        "time": "11:5"
+      },
+      "-OrMjXTJnjzyb5uR0XM2": {
+        "room": "LAB31",
+        "status": "Entry",
+        "teacher": "RRM",
+        "time": "11:07"
+      },
+      "-OrMkMCkhTlZuu0ulynG": {
+        "room": "LAB31",
+        "status": "Exit",
+        "teacher": "RRM",
+        "time": "11:11"
+      },
+      "-OrMwaksNMBVC63QWJxG": {
+        "room": "LAB31",
+        "status": "Entry",
+        "teacher": "NAB",
+        "time": "12:04"
+      },
+      "-OrMwlfndxQOqKuGXINk": {
+        "room": "LAB31",
+        "status": "Exit",
+        "teacher": "NAB",
+        "time": "12:5"
+      },
+      "-OrMwycs_Rut89wI1Q5M": {
+        "room": "CR126",
+        "status": "Entry",
+        "teacher": "NGP",
+        "time": "12:06"
+      },
+      "-OrNJUZArj0yKYEmeRrC": {
+        "room": "CR126",
+        "status": "Invalid",
+        "teacher": "Unknown Card",
+        "time": "13:49"
+      },
+      "-OrNJnIxnyuw7MXGBRS3": {
+        "room": "CR126",
+        "status": "Entry",
+        "teacher": "CRJ",
+        "time": "13:50"
+      }
+    },
+    "2026-05-06": {
+      "-OrvkpQgcR1a14Nbx15z": {
+        "room": "LAB31",
+        "status": "Entry",
+        "teacher": "RRM",
+        "time": "10:59"
+      },
+      "-OrvlscIu-E6DIPbxPWo": {
+        "room": "LAB31",
+        "status": "Exit",
+        "teacher": "RRM",
+        "time": "11:04"
+      },
+      "-Orvmc18NHf6QgKr7qQ8": {
+        "room": "LAB31",
+        "status": "Entry",
+        "teacher": "RRM",
+        "time": "11:07"
       }
     }
   },
@@ -506,6 +667,22 @@
         "expiry": "2026-04-24T19:03",
         "message": "Hello students"
       },
+      "-OrMzzNtaOogLAl9tGXI": {
+        "expiry": "2026-04-29T12:25",
+        "message": "hello everyone!!!"
+      },
+      "-OrN2I1CxAcGOl57WU0L": {
+        "expiry": "2026-04-29T12:50",
+        "message": "HELLO EVERYONE!!!"
+      },
+      "-OrVLccRmEtRoOXn8UxB": {
+        "expiry": "2026-05-01T03:19",
+        "message": "hello everyone!!!"
+      },
+      "-OrjigTWr_N4iqz5qUvg": {
+        "expiry": "2026-05-04T02:57",
+        "message": "hello"
+      },
       "expiry": "2026-03-16T14:25",
       "message": "gffgfghfghfghfghfghfgfhgfgfghfgf"
     }
@@ -559,6 +736,111 @@
       "status": "approved",
       "teacher": "CRJ",
       "time": "2026-04-23T20:11:05.726Z"
+    },
+    "1777231577090": {
+      "expiry": "2026-04-28T19:26:17.090Z",
+      "message": "✅ Your booking for LAB31 (MT) is APPROVED",
+      "status": "approved",
+      "teacher": "CRJ",
+      "time": "2026-04-26T19:26:17.090Z"
+    },
+    "1777431171405": {
+      "expiry": "2026-05-01T02:52:51.405Z",
+      "message": "❌ Your booking for LAB31 is REJECTED",
+      "status": "rejected",
+      "teacher": "CRJ",
+      "time": "2026-04-29T02:52:51.405Z"
+    },
+    "1777431177829": {
+      "expiry": "2026-05-01T02:52:57.829Z",
+      "message": "✅ Your booking for LAB31 (MT) is APPROVED",
+      "status": "approved",
+      "teacher": "CRJ",
+      "time": "2026-04-29T02:52:57.829Z"
+    },
+    "1777431182367": {
+      "expiry": "2026-05-01T02:53:02.367Z",
+      "message": "✅ Your booking for LAB31 (MT) is APPROVED",
+      "status": "approved",
+      "teacher": "CRJ",
+      "time": "2026-04-29T02:53:02.367Z"
+    },
+    "1777431378371": {
+      "expiry": "2026-05-01T02:56:18.371Z",
+      "message": "✅ Your booking for CR125 (CAM) is APPROVED",
+      "status": "approved",
+      "teacher": "NAB",
+      "time": "2026-04-29T02:56:18.371Z"
+    },
+    "1777431382256": {
+      "expiry": "2026-05-01T02:56:22.256Z",
+      "message": "✅ Your booking for CR125 (CAD) is APPROVED",
+      "status": "approved",
+      "teacher": "NAB",
+      "time": "2026-04-29T02:56:22.256Z"
+    },
+    "1777441658291": {
+      "expiry": "2026-05-01T05:47:38.291Z",
+      "message": "✅ Your booking for LAB31 (MP) is APPROVED",
+      "status": "approved",
+      "teacher": "NGP",
+      "time": "2026-04-29T05:47:38.291Z"
+    },
+    "1777441661715": {
+      "expiry": "2026-05-01T05:47:41.715Z",
+      "message": "❌ Your booking for CR126 is REJECTED",
+      "status": "rejected",
+      "teacher": "NGP",
+      "time": "2026-04-29T05:47:41.715Z"
+    },
+    "1777441665103": {
+      "expiry": "2026-05-01T05:47:45.103Z",
+      "message": "✅ Your booking for LAB31 (ADE) is APPROVED",
+      "status": "approved",
+      "teacher": "NGP",
+      "time": "2026-04-29T05:47:45.103Z"
+    },
+    "1777441761646": {
+      "expiry": "2026-05-01T05:49:21.646Z",
+      "message": "✅ Your booking for CR126 (MP) is APPROVED",
+      "status": "approved",
+      "teacher": "NGP",
+      "time": "2026-04-29T05:49:21.646Z"
+    },
+    "1777441765429": {
+      "expiry": "2026-05-01T05:49:25.429Z",
+      "message": "✅ Your booking for CR126 (ADE) is APPROVED",
+      "status": "approved",
+      "teacher": "NGP",
+      "time": "2026-04-29T05:49:25.429Z"
+    },
+    "1777441769223": {
+      "expiry": "2026-05-01T05:49:29.223Z",
+      "message": "❌ Your booking for CR126 is REJECTED",
+      "status": "rejected",
+      "teacher": "NGP",
+      "time": "2026-04-29T05:49:29.223Z"
+    },
+    "1777445518355": {
+      "expiry": "2026-05-01T06:51:58.355Z",
+      "message": "✅ Your booking for CR125 (ADE) is APPROVED",
+      "status": "approved",
+      "teacher": "NGP",
+      "time": "2026-04-29T06:51:58.355Z"
+    },
+    "1777585650770": {
+      "expiry": "2026-05-02T21:47:30.676Z",
+      "message": "✅ Your booking for LAB31 (CAD) on 2026-05-01 is APPROVED",
+      "status": "approved",
+      "teacher": "NAB",
+      "time": "2026-04-30T21:47:30.676Z"
+    },
+    "1777585654060": {
+      "expiry": "2026-05-02T21:47:34.060Z",
+      "message": "❌ Your booking for CR126 (MP) on 2026-04-29 is REJECTED",
+      "status": "rejected",
+      "teacher": "NGP",
+      "time": "2026-04-30T21:47:34.060Z"
     }
   },
   "teachers": {
@@ -574,7 +856,7 @@
     },
     "EDP": {
       "name": "Mrs. E. Devi Priya",
-      "password": "Nzg5MTIz",
+      "password": "MTIzNDU2",
       "rfid": "3C28FB05"
     },
     "NAB": {
@@ -584,7 +866,7 @@
     },
     "NGP": {
       "name": "Prof. N. G. Pardeshi",
-      "password": "Nzg2NTIz",
+      "password": "MTIzNDU2",
       "rfid": "713F3E06"
     },
     "RKA": {
@@ -600,7 +882,7 @@
     "RRM": {
       "name": "Mrs. R. R. Mukadam",
       "password": "OTg3MTIz",
-      "rfid": "1DBC7CB2101080"
+      "rfid": "9C032903"
     },
     "SGA": {
       "name": "Dr. S. G. Akojwar",

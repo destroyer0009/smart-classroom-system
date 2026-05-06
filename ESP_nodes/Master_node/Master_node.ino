@@ -72,10 +72,9 @@ void updateLCD(String l1, String l2) {
 
 // ── SLAVE MACs ───────────────────────────────────────────
 uint8_t slaveMACs[][6] = {
-  {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0x01},  // CR101
-  {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0x02},  // CR102
-  {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0x03},  // CR125
-  {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0x04},  // CR201
+  {0xD4, 0xE9, 0xF4, 0xBC, 0x56, 0x68},  // CR125
+  {0x00, 0x70, 0x07, 0xE1, 0xFD, 0x9C},  // CR126
+  {0x28, 0x05, 0xA5, 0x6E, 0x6F, 0x88},  // LAB31
 };
 #define SLAVE_COUNT (sizeof(slaveMACs) / sizeof(slaveMACs[0]))
 
@@ -528,7 +527,7 @@ void setup() {
   time_t now = time(nullptr); int t = 0;
   while (now < 100000 && t++ < 30) { delay(500); now = time(nullptr); }
 
-  const char* roomNames[] = { "CR101", "CR102", "CR125", "CR201" };
+  const char* roomNames[] = { "CR125", "CR126", "LAB31" };
   for (int i = 0; i < 4; i++) {
     RoomState* r = getRoom(roomNames[i]);
     if (r) recoverState(r);

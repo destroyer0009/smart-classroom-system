@@ -22,6 +22,7 @@
 
 #include <WiFi.h>
 #include <esp_now.h>
+#include <esp_wifi.h>
 #include <SPI.h>
 #include <MFRC522.h>
 #include <Wire.h>
@@ -32,7 +33,7 @@
 
 // ── MASTER MAC ──────────────────────────────────────────
 //  Get this by reading Serial on the master at boot
-uint8_t masterMAC[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0x00};
+uint8_t masterMAC[] = {0x00, 0x70, 0x07, 0x3A, 0x76, 0xBC};
 
 // ── PINS ────────────────────────────────────────────────
 #define SS_PIN     5
@@ -106,7 +107,7 @@ void updateLCD(String l1, String l2) {
 volatile bool   hasResponse   = false;
 volatile ResponsePacket pendingResponse;
 
-void onDataReceive(const uint8_t* mac, const uint8_t* data, int len) {
+void onDataReceive(const esp_now_recv_info_t* info, const uint8_t* data, int len) {
   if (len != sizeof(ResponsePacket)) return;
   memcpy((void*)&pendingResponse, data, sizeof(ResponsePacket));
   hasResponse = true;

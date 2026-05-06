@@ -5,16 +5,20 @@
   ========================================================
 
   FIXES:
-  [1] findFacultyByUID — iteratorEnd() now called before early return (was causing memory leak / crash)
-  [2] time_t nowTime — removed duplicate outer declaration (was shadowed and unused)
-  [3] WiFi loss — now delays + attempts reconnect instead of rapid-spinning
-  [4] scanMode — reset to false on WiFi loss and lunch/none early exits
-  [5] Button press — pre-checks slot before activating scanMode
-  [6] Boot recovery — reads Firebase live node on startup to restore isInside state
-  [7] Teachers cache — auto-refreshes every 30 minutes
-  [8] Exit log time — now uses sprintf (consistent zero-padding like entry log)
-  [9] delay(200) — added on all early-return paths to prevent CPU spinning
+  [1]  findFacultyByUID — iteratorEnd() now called before early return (was causing memory leak / crash)
+  [2]  time_t nowTime — removed duplicate outer declaration (was shadowed and unused)
+  [3]  WiFi loss — now delays + attempts reconnect instead of rapid-spinning
+  [4]  scanMode — reset to false on WiFi loss and lunch/none early exits
+  [5]  Button press — pre-checks slot before activating scanMode
+  [6]  Boot recovery — reads Firebase live node on startup to restore isInside state
+  [7]  Teachers cache — auto-refreshes every 30 minutes
+  [8]  Exit log time — now uses sprintf (consistent zero-padding like entry log)
+  [9]  delay(200) — added on all early-return paths to prevent CPU spinning
   [10] day variable — refreshed inside loop from current time (midnight-safe)
+  [11] BUG FIX — recoverStateFromFirebase() now validates stored slot vs current slot
+       (stale live node from a previous slot/reboot is now properly cleaned up)
+  [12] BUG FIX — current_faculty in Firebase is now cleared on slot change AND
+       during lunch/none, not only on explicit faculty exit scan
 */
 
 #include <WiFi.h>
@@ -47,12 +51,12 @@ FirebaseConfig config;
 #define BUZZER_PIN 2
 
 // ── HARDWARE ────────────────────────────────────────────
-MFRC522          mfrc522(SS_PIN, RST_PIN);
+MFRC522           mfrc522(SS_PIN, RST_PIN);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 // ── STATE ───────────────────────────────────────────────
-bool   scanMode      = false;
-bool   isInside      = false;
+bool   scanMode       = false;
+bool   isInside       = false;
 String currentFaculty = "";
 String currentSubject = "";
 
@@ -62,11 +66,11 @@ String lastLine2 = "";
 
 // ── FIREBASE CACHE ──────────────────────────────────────
 FirebaseJson teachersCache;
-bool   teachersLoaded     = false;
-unsigned long teachersCacheTime = 0;          // FIX [7]: track when cache was loaded
-const  unsigned long TEACHERS_REFRESH_MS = 1800000UL; // 30 minutes
+bool          teachersLoaded    = false;
+unsigned long teachersCacheTime = 0;
+const unsigned long TEACHERS_REFRESH_MS = 1800000UL; // 30 minutes
 
-FirebaseJson lateJson;
+FirebaseJson  lateJson;
 unsigned long lastLateFetch = 0;
 
 String cachedSlot    = "";
@@ -75,8 +79,20 @@ String cachedSubject = "";
 String cachedDate    = "";
 
 // ── TIMING ──────────────────────────────────────────────
-unsigned long lastScanTime    = 0;
-static unsigned long lastButtonPress = 0;
+unsigned long lastScanTime   = 0;
+unsigned long lastButtonPress = 0;
+
+// ═══════════════════════════════════════════════════════
+//  HELPER — clear both live node and current_faculty
+// ═══════════════════════════════════════════════════════
+void clearRoomState() {
+  Firebase.RTDB.deleteNode(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live");
+  Firebase.RTDB.setString(&fbdo,
+    "classrooms/" + String(ROOM_NAME) + "/current_faculty", "");
+  isInside       = false;
+  currentFaculty = "";
+  currentSubject = "";
+}
 
 // ═══════════════════════════════════════════════════════
 //  BUZZER
@@ -168,7 +184,6 @@ int getSlotStartMinutes(String slot) {
 //  FIX [1]: iteratorEnd() is now called before every return
 // ═══════════════════════════════════════════════════════
 String findFacultyByUID(String uid) {
-  // FIX [7]: force refresh if cache is older than 30 minutes
   bool shouldRefresh = !teachersLoaded ||
                        (millis() - teachersCacheTime > TEACHERS_REFRESH_MS);
 
@@ -199,7 +214,7 @@ String findFacultyByUID(String uid) {
       subObj.get(rfidData, "rfid");
 
       if (rfidData.stringValue == uid) {
-        json.iteratorEnd();  // FIX [1]: MUST call before returning
+        json.iteratorEnd(); // FIX [1]: MUST call before returning
         return key;
       }
     }
@@ -211,11 +226,35 @@ String findFacultyByUID(String uid) {
 
 // ═══════════════════════════════════════════════════════
 //  BOOT STATE RECOVERY
-//  FIX [6]: On reboot, sync isInside/currentFaculty from Firebase
+//  FIX [6] + FIX [11]:
+//   — Reads live node on startup to restore isInside
+//   — NEW: validates stored slot against current slot
+//     so stale live data from a previous session is
+//     cleaned up instead of blindly restored
 // ═══════════════════════════════════════════════════════
 void recoverStateFromFirebase() {
-  String livePath = "classrooms/" + String(ROOM_NAME) + "/live/status";
-  if (Firebase.RTDB.getString(&fbdo, livePath) && fbdo.stringData() == "Ongoing") {
+  String statusPath = "classrooms/" + String(ROOM_NAME) + "/live/status";
+
+  if (Firebase.RTDB.getString(&fbdo, statusPath) && fbdo.stringData() == "Ongoing") {
+
+    // ── FIX [11]: validate that stored slot == current slot ──
+    String storedSlot = "";
+    String slotPath   = "classrooms/" + String(ROOM_NAME) + "/live/slot";
+    if (Firebase.RTDB.getString(&fbdo, slotPath)) {
+      storedSlot = fbdo.stringData();
+    }
+
+    String currentSlotNow = getCurrentSlot();
+
+    if (storedSlot == "" || storedSlot != currentSlotNow) {
+      // Slot has changed or is unknown — live node is stale, clean everything
+      Serial.println("Boot recovery: stale live node detected (stored=" +
+                     storedSlot + " current=" + currentSlotNow + "). Clearing.");
+      clearRoomState();
+      return;
+    }
+
+    // Slot still matches — safe to restore state
     isInside = true;
 
     String facPath = "classrooms/" + String(ROOM_NAME) + "/live/faculty";
@@ -226,11 +265,12 @@ void recoverStateFromFirebase() {
     if (Firebase.RTDB.getString(&fbdo, subPath)) {
       currentSubject = fbdo.stringData();
     }
-    Serial.println("State recovered — isInside: " + currentFaculty + " / " + currentSubject);
+    Serial.println("State recovered — faculty: " + currentFaculty +
+                   " subject: " + currentSubject + " slot: " + storedSlot);
+
   } else {
-    // Make sure live node is clean on fresh boot
-    Firebase.RTDB.deleteNode(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live");
-    isInside = false;
+    // No live session — ensure Firebase is clean on fresh boot
+    clearRoomState();
   }
 }
 
@@ -296,7 +336,7 @@ void setup() {
   }
 
   // ── Recover state ─────────────────────────────────
-  // FIX [6]: Check if a lecture was already in progress before reboot
+  // FIX [6] + FIX [11]: validates slot before restoring
   recoverStateFromFirebase();
 
   updateLCD(ROOM_NAME, "Ready");
@@ -309,18 +349,18 @@ void setup() {
 void loop() {
 
   // ── WiFi check ──────────────────────────────────────
-  // FIX [3]: Was spinning at full speed + not resetting scanMode
+  // FIX [3]: delay + reconnect instead of rapid-spinning
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println("WiFi Lost - Attempting reconnect...");
     updateLCD("WiFi Lost", "Reconnecting...");
-    scanMode = false;  // FIX [4]: reset scanMode on WiFi loss
+    scanMode = false; // FIX [4]
     WiFi.reconnect();
     delay(3000);
     return;
   }
 
   // ── Current time context ─────────────────────────────
-  // FIX [10]: day is re-evaluated each loop (midnight-safe)
+  // FIX [10]: re-evaluated each loop (midnight-safe)
   String day       = getCurrentDay();
   String slot      = getCurrentSlot();
   String todayDate = getTodayDate();
@@ -328,27 +368,25 @@ void loop() {
   Serial.println("DAY: " + day + " | SLOT: " + slot + " | DATE: " + todayDate);
 
   // ── Outside active hours ─────────────────────────────
+  // FIX [12]: clearRoomState() now also clears current_faculty in Firebase
   if (slot == "lunch" || slot == "none") {
     updateLCD(ROOM_NAME, slot == "lunch" ? "Lunch Break" : "No Active Slot");
-    scanMode = false;  // FIX [4]: ensure scanMode is off
+    scanMode = false; // FIX [4]
 
-    // Clean up stale live node outside of hours
-    Firebase.RTDB.deleteNode(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live");
-    isInside       = false;
-    currentFaculty = "";
-    currentSubject = "";
+    // FIX [12]: was only deleting live node — current_faculty was left behind
+    clearRoomState();
 
-    delay(200);  // FIX [9]: prevent CPU spinning
+    delay(200); // FIX [9]
     return;
   }
 
   // ── Detect slot change → clear live data ─────────────
   static String lastSlot = "";
   if (slot != lastSlot && lastSlot != "") {
-    Firebase.RTDB.deleteNode(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live");
-    isInside       = false;
-    currentFaculty = "";
-    currentSubject = "";
+    Serial.println("Slot changed: " + lastSlot + " → " + slot + ". Clearing room state.");
+
+    // FIX [12]: was only deleting live node — current_faculty was left behind
+    clearRoomState();
   }
   lastSlot = slot;
 
@@ -418,17 +456,17 @@ void loop() {
 
   // ── SCAN MODE ─────────────────────────────────────────
   if (scanMode) {
-    slot = getCurrentSlot();  // re-check (time may have passed)
+    slot = getCurrentSlot(); // re-check (time may have passed)
 
     if (slot == "lunch" || slot == "none") {
       updateLCD("Outside", "Lecture Hours");
       scanMode = false;
-      delay(200);  // FIX [9]
+      delay(200); // FIX [9]
       return;
     }
 
     if (!mfrc522.PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) {
-      delay(50);   // FIX [9]: small yield when polling
+      delay(50); // FIX [9]: small yield when polling
       return;
     }
 
@@ -451,7 +489,7 @@ void loop() {
     updateLCD("Checking...", "Please Wait");
 
     // Current time for slot-timing checks
-    time_t nowTime = time(nullptr);   // FIX [2]: single declaration (no outer shadow)
+    time_t nowTime = time(nullptr); // FIX [2]: single declaration (no outer shadow)
     struct tm *tNow = localtime(&nowTime);
     int currentMinutes = tNow->tm_hour * 60 + tNow->tm_min;
     int slotStart      = getSlotStartMinutes(slot);
@@ -519,7 +557,6 @@ void loop() {
       updateLCD("Access", "Unknown Card");
       beepInvalid();
 
-      // Log the unknown scan
       FirebaseJson logJson;
       time_t t1 = time(nullptr);
       struct tm *lt1 = localtime(&t1);
@@ -561,14 +598,14 @@ void loop() {
       // Slot window expired (30-min grace) unless late is allowed
       if (currentMinutes > slotStart + 30 && !isLateAllowed) {
         updateLCD("Slot", "Over");
-        Firebase.RTDB.deleteNode(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live");
+        clearRoomState(); // FIX [12]: clears both live + current_faculty
         scanMode = false;
         delay(1500);
         return;
       }
 
       // ✅ Valid entry
-      Firebase.RTDB.deleteNode(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live");
+      clearRoomState(); // reset any leftover state before writing fresh
       updateLCD("Lecture", "Started");
       beepValid();
       delay(1500);
@@ -581,16 +618,16 @@ void loop() {
       String basePath = String("classrooms/") + ROOM_NAME + "/live/";
       long long ts    = (long long)time(nullptr) * 1000;
 
-      Firebase.RTDB.setString(&fbdo, basePath + "status",  "Ongoing");
-      Firebase.RTDB.setString(&fbdo, basePath + "subject",  currentSubject);
-      Firebase.RTDB.setString(&fbdo, basePath + "faculty",  scannedFaculty);
-      Firebase.RTDB.setString(&fbdo, basePath + "slot",     slot);
+      Firebase.RTDB.setString(&fbdo, basePath + "status",    "Ongoing");
+      Firebase.RTDB.setString(&fbdo, basePath + "subject",   currentSubject);
+      Firebase.RTDB.setString(&fbdo, basePath + "faculty",   scannedFaculty);
+      Firebase.RTDB.setString(&fbdo, basePath + "slot",      slot);
       Firebase.RTDB.setDouble(&fbdo, basePath + "timestamp", (double)ts);
 
       Firebase.RTDB.setString(&fbdo,
         "classrooms/" + String(ROOM_NAME) + "/current_faculty", scannedFaculty);
 
-      // Log Entry — FIX [8]: consistent sprintf zero-padding
+      // Log Entry
       FirebaseJson logJson;
       time_t t2 = time(nullptr);
       struct tm *lt2 = localtime(&t2);
@@ -625,25 +662,21 @@ void loop() {
         Serial.println("⚠ Teacher left early (< 30 min)");
       }
 
-      isInside       = false;
-      currentFaculty = "";
-      currentSubject = "";
-
-      Firebase.RTDB.deleteNode(&fbdo, "classrooms/" + String(ROOM_NAME) + "/live");
-      Firebase.RTDB.setString(&fbdo,
-        "classrooms/" + String(ROOM_NAME) + "/current_faculty", "");
-
-      // Log Exit — FIX [8]: consistent sprintf zero-padding
+      // Log Exit before clearing state (need scannedFaculty name)
       FirebaseJson logJson;
       time_t t3 = time(nullptr);
       struct tm *lt3 = localtime(&t3);
       char tbuf[6];
-      sprintf(tbuf, "%02d:%02d", lt3->tm_hour, lt3->tm_min);  // was missing sprintf here
+      sprintf(tbuf, "%02d:%02d", lt3->tm_hour, lt3->tm_min);
       logJson.set("teacher", scannedFaculty);
       logJson.set("room",    ROOM_NAME);
       logJson.set("time",    String(tbuf));
       logJson.set("status",  "Exit");
       Firebase.RTDB.pushJSON(&fbdo, "/logs/" + todayDate, &logJson);
+
+      // clearRoomState() sets isInside=false, currentFaculty="",
+      // deletes live node, and clears current_faculty in Firebase
+      clearRoomState();
 
       updateLCD(ROOM_NAME, "Room Free");
     }
@@ -657,7 +690,7 @@ void loop() {
       delay(1500);
     }
 
-    delay(2000);  // show result on LCD before resetting
+    delay(2000); // show result on LCD before resetting
     scanMode = false;
     mfrc522.PICC_HaltA();
 
@@ -666,5 +699,5 @@ void loop() {
     Serial.println("After scan: " + String(ctime(&debugNow)));
   }
 
-  delay(200);  // FIX [9]: prevent CPU hogging between loop iterations
+  delay(200); // FIX [9]: prevent CPU hogging between loop iterations
 }
