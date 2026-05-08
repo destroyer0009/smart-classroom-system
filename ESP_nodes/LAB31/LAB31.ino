@@ -428,15 +428,21 @@ void loop() {
   }
 
   // ── LCD display ───────────────────────────────────────
-  String line2 = "";
+  // Line1 = status label, Line2 = subject detail (≤16 chars)
   if (isInside) {
-    line2 = currentSubject.length() > 0 ? currentSubject : "Ongoing";
+    // Teacher scanned in — lecture running
+    String subDisplay = currentSubject.length() > 0
+                        ? currentSubject.substring(0, 16) : "In Progress";
+    updateLCD("Ongoing Lec", subDisplay);
   } else if (cachedFaculty != "") {
-    line2 = cachedSubject.length() > 0 ? cachedSubject : "Lecture";
+    // Lecture scheduled but teacher hasn't arrived yet
+    String subDisplay = cachedSubject.length() > 0
+                        ? cachedSubject.substring(0, 16) : ROOM_NAME;
+    updateLCD("Wait 4 Teacher", subDisplay);
   } else {
-    line2 = "No Lecture";
+    // No lecture scheduled in this slot
+    updateLCD(ROOM_NAME, "No Lec Today");
   }
-  updateLCD(ROOM_NAME, line2);
 
   // ── Button press → enable scan ────────────────────────
   // FIX [5]: pre-check slot before activating scanMode
@@ -639,7 +645,7 @@ void loop() {
       logJson.set("status",  "Entry");
       Firebase.RTDB.pushJSON(&fbdo, "/logs/" + todayDate, &logJson);
 
-      updateLCD("Ongoing", currentSubject.substring(0, 16));
+      updateLCD("Ongoing Lec", currentSubject.substring(0, 16));
     }
 
     // ══════════════════════════════════════════════════════
