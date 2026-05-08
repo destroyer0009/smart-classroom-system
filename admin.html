@@ -571,35 +571,113 @@ function renderLogs(snap,table) {
 }
 
 /* ═══════════════════════════════════════════════════
-   LIVE CLASSROOMS — with cancel/live sync
+   LIVE CLASSROOMS — status logic matches index.html
+   (checks timetable to distinguish Waiting vs Free)
 ════════════════════════════════════════════════════ */
+
+// ── Same slot-time helpers as index.html ──────────
+function getAdminCurrentSlot() {
+  const now=new Date(), h=now.getHours(), m=now.getMinutes(), mins=h*60+m;
+  if (mins>=510&&mins<570) return "s1";
+  if (mins>=570&&mins<630) return "s2";
+  if (mins>=640&&mins<700) return "s3";
+  if (mins>=700&&mins<760) return "s4";
+  if (mins>=760&&mins<800) return "lunch";
+  if (mins>=800&&mins<860) return "s5";
+  if (mins>=860&&mins<920) return "s6";
+  if (mins>=920&&mins<980) return "s7";
+  if (mins>=980&&mins<1040) return "s8";
+  return "none";
+}
+function getAdminIsRealSlot(slot) { return slot!=="lunch"&&slot!=="none"; }
+
 function loadDashboardStats() {
   get(ref(database,"classrooms")).then(classSnap => {
     if (!classSnap.exists()) return;
     const rooms=Object.keys(classSnap.val());
-    const statusMap={}, liveCardsDiv=document.getElementById("liveRoomCards");
+    const statusMap={}, subjectMap={}, facultyMap={};
+    const liveCardsDiv=document.getElementById("liveRoomCards");
 
     rooms.forEach(room => {
-      onValue(ref(database,"classrooms/"+room+"/live"), snap => {
-        statusMap[room]=snap.exists()?(snap.val().status||"Free"):"Free";
+      // Listen real-time on live node; recompute status with timetable context
+      onValue(ref(database,"classrooms/"+room+"/live"), async liveSnap => {
+        const slot      = getAdminCurrentSlot();
+        const isReal    = getAdminIsRealSlot(slot);
+        const todayDate = new Date().toISOString().split("T")[0];
+        const dayName   = new Date().toLocaleString("en-US",{weekday:"long"});
+
+        let status="Free", subject="–", faculty="–";
+
+        if (!isReal) {
+          status = "Break";
+        } else {
+          // Fetch timetable + cancel info for current slot
+          const [ttSnap, specSnap, cancelSnap] = await Promise.all([
+            get(ref(database,`classrooms/${room}/timetable/${dayName}/${slot}`)),
+            get(ref(database,`classrooms/${room}/specialBookings/${todayDate}/${slot}`)),
+            get(ref(database,`cancelled_lectures/${todayDate}/${room}/${slot}`))
+          ]);
+          const isCancelled = cancelSnap.exists();
+          const lecture = specSnap.exists() ? specSnap.val() : (ttSnap.exists() ? ttSnap.val() : null);
+
+          if (isCancelled) {
+            status = "Free";
+          } else if (liveSnap.exists()) {
+            const live = liveSnap.val();
+            let ts = live.timestamp||0;
+            if (ts < 10000000000) ts *= 1000;
+            const isValid = live.status==="Ongoing" && live.slot &&
+              live.slot.toLowerCase()===slot.toLowerCase() && (Date.now()-ts)<70*60*1000;
+            if (isValid) {
+              status  = "Ongoing";
+              subject = live.subject||"–";
+              faculty = live.faculty||"–";
+            } else {
+              status  = lecture ? "Waiting" : "Free";
+              subject = lecture ? (lecture.subject||"–") : "–";
+              faculty = lecture ? (lecture.faculty||"–") : "–";
+            }
+          } else if (lecture) {
+            status  = "Waiting";
+            subject = lecture.subject||"–";
+            faculty = lecture.faculty||"–";
+          }
+        }
+
+        statusMap[room]=status; subjectMap[room]=subject; facultyMap[room]=faculty;
+
+        // ── Recount stats ─────────────────────────────
         let total=rooms.length, free=0, ongoing=0, waiting=0;
         Object.values(statusMap).forEach(st => {
-          if (st==="Ongoing") ongoing++; else if (st==="Waiting") waiting++; else free++;
+          if (st==="Ongoing") ongoing++;
+          else if (st==="Waiting") waiting++;
+          else free++; // Free + Break both count as "free" for counter
         });
         document.getElementById("totalRooms").innerText=total;
         document.getElementById("freeRooms").innerText=free;
         document.getElementById("ongoingRooms").innerText=ongoing;
         document.getElementById("waitingRooms").innerText=waiting;
+
+        // ── Rebuild room cards ─────────────────────────
         liveCardsDiv.innerHTML="";
         rooms.forEach(r => {
           const st=statusMap[r]||"Free";
-          const c={Ongoing:{bg:"#FEE2E2",color:"#DC2626",dot:"#EF4444"},Waiting:{bg:"#FEF9C3",color:"#854D0E",dot:"#F59E0B"},Free:{bg:"#D1FAE5",color:"#065F46",dot:"#10B981"}}[st]||{bg:"#D1FAE5",color:"#065F46",dot:"#10B981"};
+          const sub=subjectMap[r]||"–";
+          const fac=facultyMap[r]||"–";
+          const c={
+            Ongoing:{bg:"#FEE2E2",color:"#DC2626",dot:"#EF4444"},
+            Waiting:{bg:"#FEF9C3",color:"#854D0E",dot:"#F59E0B"},
+            Break:  {bg:"#F1F5F9",color:"#475569",dot:"#94A3B8"},
+            Free:   {bg:"#D1FAE5",color:"#065F46",dot:"#10B981"}
+          }[st]||{bg:"#D1FAE5",color:"#065F46",dot:"#10B981"};
           liveCardsDiv.innerHTML+=`
-            <div class="live-room-card" onclick="filterRooms('${r}','room')">
+            <div class="live-room-card" onclick="filterRooms('${r}','room')" style="min-width:180px;">
               <div class="live-room-name">🏫 ${r}</div>
-              <div class="live-status-badge" style="background:${c.bg};color:${c.color};">
+              <div class="live-status-badge" style="background:${c.bg};color:${c.color};margin:6px 0;">
                 <div style="width:7px;height:7px;border-radius:50%;background:${c.dot};${st==='Ongoing'?'animation:pulse 1.2s infinite;':''}"></div>${st}
               </div>
+              <div style="font-size:11px;color:#64748b;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${sub}">📚 ${sub}</div>
+              <div style="font-size:11px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${fac}">👤 ${fac}</div>
             </div>`;
         });
       });
@@ -654,22 +732,38 @@ window.filterRooms=async function(typeOrRoom, mode="type") {
     return;
   }
 
-  // Filter by status type
+  // Filter by status type — uses same timetable-aware logic as index.html
   document.getElementById("popupTitle").innerText=typeOrRoom==="all"?"All Classrooms":`${typeOrRoom} Classrooms`;
   const classSnap=await get(ref(database,"classrooms"));
   if (!classSnap.exists()) { container.innerHTML="No rooms"; return; }
   const rooms=Object.keys(classSnap.val()); let html="";
+  const slot=getAdminCurrentSlot(), isReal=getAdminIsRealSlot(slot);
   for (const room of rooms) {
-    const [liveSnap,cancelSnap]=await Promise.all([
+    const [liveSnap,ttSnap,specSnap,cancelSnap]=await Promise.all([
       get(ref(database,`classrooms/${room}/live`)),
-      get(ref(database,`cancelled_lectures/${today}/${room}`))
+      get(ref(database,`classrooms/${room}/timetable/${day}/${slot}`)),
+      get(ref(database,`classrooms/${room}/specialBookings/${today}/${slot}`)),
+      get(ref(database,`cancelled_lectures/${today}/${room}/${slot}`))
     ]);
+    const lecture = specSnap.exists() ? specSnap.val() : (ttSnap.exists() ? ttSnap.val() : null);
+    const isCancelled = cancelSnap.exists();
     let status="Free", subject="–", faculty="–";
-    if (liveSnap.exists()) {
-      const lv=liveSnap.val(); status=lv.status||"Free"; subject=lv.subject||"No Lecture"; faculty=lv.faculty||"–";
+    if (!isReal) {
+      status="Break";
+    } else if (isCancelled) {
+      status="Free";
+    } else if (liveSnap.exists()) {
+      const lv=liveSnap.val(); let ts=lv.timestamp||0;
+      if (ts<10000000000) ts*=1000;
+      const isValid=lv.status==="Ongoing"&&lv.slot&&lv.slot.toLowerCase()===slot.toLowerCase()&&(Date.now()-ts)<70*60*1000;
+      if (isValid) { status="Ongoing"; subject=lv.subject||"–"; faculty=lv.faculty||"–"; }
+      else { status=lecture?"Waiting":"Free"; subject=lecture?lecture.subject||"–":"–"; faculty=lecture?lecture.faculty||"–":"–"; }
+    } else if (lecture) {
+      status="Waiting"; subject=lecture.subject||"–"; faculty=lecture.faculty||"–";
     }
     if (typeOrRoom!=="all"&&status!==typeOrRoom) continue;
-    const bg={Ongoing:"#FEE2E2",Waiting:"#FEF9C3",Free:"#D1FAE5"}[status]||"#D1FAE5";
+    const bgMap={Ongoing:"#FEE2E2",Waiting:"#FEF9C3",Break:"#F1F5F9",Free:"#D1FAE5"};
+    const bg=bgMap[status]||"#D1FAE5";
     html+=`<div style="padding:14px;margin:8px 0;border-radius:12px;background:${bg};text-align:left;font-size:13px;cursor:pointer;" onclick="filterRooms('${room}','room')">
       <strong>🏫 ${room}</strong><br>📚 ${subject}<br>👤 ${faculty}<br>📌 ${status}
     </div>`;

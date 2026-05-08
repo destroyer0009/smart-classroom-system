@@ -30,7 +30,7 @@
 #include <time.h>
 
 // ── ROOM NAME ──────────────────────────────────────────
-#define ROOM_NAME "CR125"
+#define ROOM_NAME "LAB31"
 
 // ── WIFI ────────────────────────────────────────────────
 #define WIFI_SSID     "group5"
