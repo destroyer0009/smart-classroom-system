@@ -43,7 +43,7 @@ FirebaseConfig config;
 // ── PINS ────────────────────────────────────────────────
 #define ADMIN_SS_PIN   5
 #define ADMIN_RST_PIN  4
-#define ENROLL_BTN     0    // BOOT button
+#define ENROLL_BTN     17    // BOOT button
 #define ADMIN_BUZZER   2
 
 // ── HARDWARE ────────────────────────────────────────────

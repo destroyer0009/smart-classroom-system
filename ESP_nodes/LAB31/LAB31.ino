@@ -179,6 +179,18 @@ int getSlotStartMinutes(String slot) {
   return -1;
 }
 
+int getSlotEndMinutes(String slot) {
+  if (slot == "s1") return 570;
+  if (slot == "s2") return 630;
+  if (slot == "s3") return 700;
+  if (slot == "s4") return 760;
+  if (slot == "s5") return 860;
+  if (slot == "s6") return 920;
+  if (slot == "s7") return 980;
+  if (slot == "s8") return 1040;
+  return -1;
+}
+
 // ═══════════════════════════════════════════════════════
 //  FIND FACULTY BY UID
 //  FIX [1]: iteratorEnd() is now called before every return
@@ -390,6 +402,34 @@ void loop() {
   }
   lastSlot = slot;
 
+// ── Auto-clear when slot ends and teacher is still marked inside ──
+if (isInside) {
+  time_t nowAuto = time(nullptr);
+  struct tm *tAuto = localtime(&nowAuto);
+  int currentMinutes = tAuto->tm_hour * 60 + tAuto->tm_min;
+  int slotEnd = getSlotEndMinutes(slot);
+
+  if (slotEnd > 0 && currentMinutes >= slotEnd) {
+    Serial.println("Auto-clearing: slot ended, faculty still marked inside.");
+
+    // Log the auto-exit
+    FirebaseJson autoLog;
+    char tbuf[6];
+    sprintf(tbuf, "%02d:%02d", tAuto->tm_hour, tAuto->tm_min);
+    autoLog.set("teacher", currentFaculty);
+    autoLog.set("room",    ROOM_NAME);
+    autoLog.set("time",    String(tbuf));
+    autoLog.set("status",  "Auto Exit");
+    Firebase.RTDB.pushJSON(&fbdo, "/logs/" + todayDate, &autoLog);
+
+    clearRoomState();
+    scanMode = false;
+    updateLCD("Slot Over", "Room Free");
+    delay(2000);
+    return;
+  }
+}
+
   // ── Fetch timetable for current slot (cached) ─────────
   if (slot != cachedSlot || todayDate != cachedDate) {
     Serial.println("Fetching from Firebase...");
@@ -453,7 +493,7 @@ void loop() {
     if (currentSlotNow == "lunch" || currentSlotNow == "none") {
       updateLCD("Outside", "Lecture Hours");
       delay(1500);
-      updateLCD(ROOM_NAME, line2);
+      updateLCD(ROOM_NAME, "Ready");
     } else if (!scanMode) {
       updateLCD("Ready", "Scan Card");
       scanMode = true;
