@@ -119,8 +119,9 @@ button:active { transform:scale(0.97); }
 
 /* Availability tag in booking requests */
 .avail-tag { font-size:11px; font-weight:700; padding:2px 8px; border-radius:50px; display:inline-block; margin-left:6px; }
-.avail-conflict { background:#FEE2E2; color:#DC2626; }
-.avail-ok { background:#D1FAE5; color:#065F46; }
+.avail-conflict  { background:#FEE2E2; color:#DC2626; }
+.avail-ok        { background:#D1FAE5; color:#065F46; }
+.avail-cancelled { background:#FEF3C7; color:#92400E; }
 
 @media (max-width:600px) {
   .navbar button { font-size:11px; padding:7px 11px; }
@@ -406,16 +407,20 @@ function loadBookingRequests() {
             <button onclick="rejectRequest('${reqId}')"  class="btn-red btn-sm">❌ Reject</button>
           </div>
         </div>`;
-      // Async availability check
+      // Async availability check — cancelled slots are NOT a conflict
       const day=new Date(d.date+"T12:00:00").toLocaleString("en-US",{weekday:"long"});
       Promise.all([
         get(ref(database,`classrooms/${d.room}/specialBookings/${d.date}/${d.slot}`)),
-        get(ref(database,`classrooms/${d.room}/timetable/${day}/${d.slot}`))
-      ]).then(([spec,tt]) => {
+        get(ref(database,`classrooms/${d.room}/timetable/${day}/${d.slot}`)),
+        get(ref(database,`cancelled_lectures/${d.date}/${d.room}/${d.slot}`))
+      ]).then(([spec,tt,cancel]) => {
         const el=document.getElementById(conflictId);
         if (!el) return;
-        if (spec.exists()||tt.exists()) {
+        const isCancelled = cancel.exists();
+        if (!isCancelled && (spec.exists()||tt.exists())) {
           el.className="avail-tag avail-conflict"; el.textContent="⚠ Slot Conflict";
+        } else if (isCancelled) {
+          el.className="avail-tag avail-cancelled"; el.textContent="🟡 Cancelled slot — OK to book";
         } else {
           el.className="avail-tag avail-ok"; el.textContent="✓ Available";
         }
@@ -429,16 +434,22 @@ window.approveRequest=async function(id) {
   const snap=await get(ref(database,"booking_requests/"+id));
   if (!snap.exists()) return;
   const d=snap.val(), now=new Date();
-  // Final conflict check
+  // Final conflict check — cancelled slots are free to book
   const day=new Date(d.date+"T12:00:00").toLocaleString("en-US",{weekday:"long"});
-  const [spec,tt]=await Promise.all([
+  const [spec,tt,cancel]=await Promise.all([
     get(ref(database,`classrooms/${d.room}/specialBookings/${d.date}/${d.slot}`)),
-    get(ref(database,`classrooms/${d.room}/timetable/${day}/${d.slot}`))
+    get(ref(database,`classrooms/${d.room}/timetable/${day}/${d.slot}`)),
+    get(ref(database,`cancelled_lectures/${d.date}/${d.room}/${d.slot}`))
   ]);
-  if (spec.exists()||tt.exists()) {
+  const isCancelled = cancel.exists();
+  if (!isCancelled && (spec.exists()||tt.exists())) {
     if (!confirm(`⚠️ This slot (${d.room} / ${slotMap[d.slot]}) is already occupied. Approve anyway?`)) return;
   }
   await set(ref(database,`classrooms/${d.room}/specialBookings/${d.date}/${d.slot}`),{subject:d.subject,faculty:d.teacher});
+  // If this slot was cancelled, remove the cancellation so it no longer shows as cancelled
+  if (isCancelled) {
+    await set(ref(database,`cancelled_lectures/${d.date}/${d.room}/${d.slot}`),null);
+  }
   await set(ref(database,"notifications/"+Date.now()),{teacher:d.teacher,message:`✅ Your booking for ${d.room} (${d.subject}) on ${d.date} at ${slotMap[d.slot]} is APPROVED`,status:"approved",time:now.toISOString(),expiry:new Date(now.getTime()+172800000).toISOString()});
   await set(ref(database,"booking_requests/"+id),null);
   showToast("✅ Approved & teacher notified","success");

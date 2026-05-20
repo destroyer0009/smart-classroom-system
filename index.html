@@ -343,112 +343,157 @@ function getStripColor(status) {
   return "#94A3B8";
 }
 
-async function loadRooms() {
-  const day=getCurrentDay(), currentSlot=getCurrentTimeSlot();
-  const todayDate=getTodayDate(), isRealSlot=isActiveSlotTime(), nextSlot=getNextSlot(currentSlot);
+// ── REAL-TIME room state cache (keyed by room) ───────
+const roomStateCache = {};  // { [room]: { live, cancelled, specialBookings, timetable } }
+let roomListCache = [];
+let roomsInitialized = false;
 
-  const classroomsSnap = await get(ref(database,"classrooms"));
-  if (!classroomsSnap.exists()) {
-    document.getElementById("loadingSpinner").style.display="none";
-    document.getElementById("roomsContainer").innerHTML="<p style='text-align:center;color:#888;padding:40px;'>No classrooms configured.</p>";
-    return;
+// ── Render a single room card from cached state ───────
+function renderRoomCard(room, i) {
+  const day = getCurrentDay(), currentSlot = getCurrentTimeSlot();
+  const todayDate = getTodayDate(), isRealSlot = isActiveSlotTime(), nextSlot = getNextSlot(currentSlot);
+  const state = roomStateCache[room] || {};
+
+  let lecture = null, nextLecture = null, isCancelled = false;
+
+  if (currentSlot) {
+    // A specialBooking for this slot overrides any cancellation
+    const hasSpecialOverride = !!(state.specialBookings && state.specialBookings[currentSlot]);
+    isCancelled = !!(state.cancelled && state.cancelled[currentSlot]) && !hasSpecialOverride;
+    if (!isCancelled) {
+      if (hasSpecialOverride)
+        lecture = state.specialBookings[currentSlot];
+      else if (state.timetable && state.timetable[day] && state.timetable[day][currentSlot])
+        lecture = state.timetable[day][currentSlot];
+    }
   }
-  const roomList = Object.keys(classroomsSnap.val());
+  if (nextSlot) {
+    if (state.specialBookings && state.specialBookings[nextSlot])
+      nextLecture = state.specialBookings[nextSlot];
+    else if (state.timetable && state.timetable[day] && state.timetable[day][nextSlot])
+      nextLecture = state.timetable[day][nextSlot];
+  }
+
+  let currentSubject = isCancelled ? "Lecture Cancelled" : (lecture ? lecture.subject : "No Lecture");
+  let currentFaculty = isCancelled ? "–" : (lecture ? lecture.faculty : "–");
+  let nextSubject = (isRealSlot && nextLecture) ? nextLecture.subject : "–";
+  let status = "Free";
+
+  if (!isRealSlot) { status = "Break"; }
+  else if (isCancelled) { status = "Free"; }
+  else {
+    const live = state.live;
+    if (live) {
+      let ts = live.timestamp || 0;
+      if (ts < 10000000000) ts *= 1000;
+      const isValid = live.status === "Ongoing" && live.slot && currentSlot &&
+        live.slot.toLowerCase() === currentSlot.toLowerCase() && (Date.now() - ts) < 70 * 60 * 1000;
+      if (isValid) {
+        status = "Ongoing";
+        currentSubject = live.subject || currentSubject;
+        currentFaculty = live.faculty || currentFaculty;
+      } else { status = lecture ? "Waiting" : "Free"; }
+    } else if (lecture) { status = "Waiting"; }
+  }
+
   const container = document.getElementById("roomsContainer");
-  container.innerHTML="";
-  document.getElementById("loadingSpinner").style.display="none";
-  document.getElementById("roomsHeader").style.display="flex";
-
-  for (const [i,room] of roomList.entries()) {
-    let lecture=null, nextLecture=null, isCancelled=false;
-
-    if (currentSlot) {
-      // Check if current slot is cancelled
-      const cancelSnap = await get(ref(database,`cancelled_lectures/${todayDate}/${room}/${currentSlot}`));
-      isCancelled = cancelSnap.exists();
-
-      if (!isCancelled) {
-        const specSnap = await get(ref(database,`classrooms/${room}/specialBookings/${todayDate}/${currentSlot}`));
-        if (specSnap.exists()) { lecture = specSnap.val(); }
-        else {
-          const normSnap = await get(ref(database,`classrooms/${room}/timetable/${day}/${currentSlot}`));
-          if (normSnap.exists()) lecture = normSnap.val();
-        }
-      }
-    }
-    if (nextSlot) {
-      const specNext = await get(ref(database,`classrooms/${room}/specialBookings/${todayDate}/${nextSlot}`));
-      if (specNext.exists()) { nextLecture = specNext.val(); }
-      else {
-        const normNext = await get(ref(database,`classrooms/${room}/timetable/${day}/${nextSlot}`));
-        if (normNext.exists()) nextLecture = normNext.val();
-      }
-    }
-
-    let currentSubject = isCancelled ? "Lecture Cancelled" : (lecture ? lecture.subject : "No Lecture");
-    let currentFaculty = isCancelled ? "–" : (lecture ? lecture.faculty : "–");
-    let nextSubject = (isRealSlot && nextLecture) ? nextLecture.subject : "–";
-    let nextFaculty = (isRealSlot && nextLecture) ? nextLecture.faculty : "–";
-    let status = "Free";
-
-    if (!isRealSlot) { status = "Break"; }
-    else if (isCancelled) { status = "Free"; }
-    else {
-      const liveSnap = await get(ref(database,`classrooms/${room}/live`));
-      if (liveSnap.exists()) {
-        const live = liveSnap.val(); let ts = live.timestamp||0;
-        if (ts<10000000000) ts*=1000;
-        const isValid = live.status==="Ongoing" && live.slot && currentSlot &&
-          live.slot.toLowerCase()===currentSlot.toLowerCase() && (Date.now()-ts)<70*60*1000;
-        if (isValid) {
-          status="Ongoing";
-          currentSubject=live.subject||currentSubject;
-          currentFaculty=live.faculty||currentFaculty;
-        } else { status = lecture ? "Waiting" : "Free"; }
-      } else if (lecture) { status="Waiting"; }
-    }
-
-    const card = document.createElement("div");
-    card.className="room-card"; card.style.animationDelay=`${i*0.06}s`;
-    card.onclick=() => openRoom(room);
-    const stripColor=getStripColor(status), statusCls=getStatusClass(status);
-    card.innerHTML=`
-      <div class="room-card-strip" style="background:${stripColor};"></div>
-      <div class="room-card-top">
-        <div class="room-name"><span class="room-icon">🏫</span>${room}</div>
-        <div class="status-badge ${statusCls}">
-          <div class="status-dot"></div>${status}
-        </div>
+  let card = document.getElementById(`room-card-${room}`);
+  const stripColor = getStripColor(status), statusCls = getStatusClass(status);
+  const cardHTML = `
+    <div class="room-card-strip" style="background:${stripColor};"></div>
+    <div class="room-card-top">
+      <div class="room-name"><span class="room-icon">🏫</span>${room}</div>
+      <div class="status-badge ${statusCls}">
+        <div class="status-dot"></div>${status}
       </div>
-      <div class="room-card-divider"></div>
-      <div class="room-card-body">
-        <div class="room-info-row">
-          <span class="room-info-label">📚 Subject</span>
-          <span class="room-info-value" style="${isCancelled ? 'color:#EF4444;text-decoration:line-through;' : ''}">${currentSubject}</span>
-        </div>
-        <div class="room-info-row">
-          <span class="room-info-label">👤 Faculty</span>
-          <span class="room-info-value">${currentFaculty}</span>
-        </div>
-        <div class="room-info-row">
-          <span class="room-info-label">⏰ Time</span>
-          <span class="room-info-value">${isRealSlot ? slotMap[currentSlot] : "Break Time"}</span>
-        </div>
+    </div>
+    <div class="room-card-divider"></div>
+    <div class="room-card-body">
+      <div class="room-info-row">
+        <span class="room-info-label">📚 Subject</span>
+        <span class="room-info-value" style="${isCancelled ? 'color:#EF4444;text-decoration:line-through;' : ''}">${currentSubject}</span>
       </div>
-      <div class="room-card-footer">
-        <div class="next-label">⏭ Next Up</div>
-        <div class="room-info-row" style="margin-bottom:3px;">
-          <span class="room-info-label">Subject</span>
-          <span class="room-info-value">${nextSubject}</span>
-        </div>
-        <div class="room-info-row">
-          <span class="room-info-label">Time</span>
-          <span class="room-info-value">${isRealSlot&&nextSlot ? slotMap[nextSlot] : "–"}</span>
-        </div>
-      </div>`;
+      <div class="room-info-row">
+        <span class="room-info-label">👤 Faculty</span>
+        <span class="room-info-value">${currentFaculty}</span>
+      </div>
+      <div class="room-info-row">
+        <span class="room-info-label">⏰ Time</span>
+        <span class="room-info-value">${isRealSlot ? slotMap[currentSlot] : "Break Time"}</span>
+      </div>
+    </div>
+    <div class="room-card-footer">
+      <div class="next-label">⏭ Next Up</div>
+      <div class="room-info-row" style="margin-bottom:3px;">
+        <span class="room-info-label">Subject</span>
+        <span class="room-info-value">${nextSubject}</span>
+      </div>
+      <div class="room-info-row">
+        <span class="room-info-label">Time</span>
+        <span class="room-info-value">${isRealSlot && nextSlot ? slotMap[nextSlot] : "–"}</span>
+      </div>
+    </div>`;
+
+  if (!card) {
+    card = document.createElement("div");
+    card.className = "room-card";
+    card.id = `room-card-${room}`;
+    card.style.animationDelay = `${i * 0.06}s`;
+    card.onclick = () => openRoom(room);
     container.appendChild(card);
   }
+  card.innerHTML = cardHTML;
 }
+
+// ── Load rooms with real-time Firebase listeners ──────
+async function loadRooms() {
+  if (roomsInitialized) return; // listeners already set up
+  roomsInitialized = true;
+
+  const todayDate = getTodayDate();
+
+  const classroomsSnap = await get(ref(database, "classrooms"));
+  if (!classroomsSnap.exists()) {
+    document.getElementById("loadingSpinner").style.display = "none";
+    document.getElementById("roomsContainer").innerHTML = "<p style='text-align:center;color:#888;padding:40px;'>No classrooms configured.</p>";
+    return;
+  }
+
+  roomListCache = Object.keys(classroomsSnap.val());
+  document.getElementById("loadingSpinner").style.display = "none";
+  document.getElementById("roomsHeader").style.display = "flex";
+
+  for (const [i, room] of roomListCache.entries()) {
+    roomStateCache[room] = {};
+
+    // Pre-load full timetable (static, just fetch once)
+    const ttSnap = await get(ref(database, `classrooms/${room}/timetable`));
+    roomStateCache[room].timetable = ttSnap.exists() ? ttSnap.val() : {};
+
+    // ── Real-time: live session ────────────────────────
+    onValue(ref(database, `classrooms/${room}/live`), snap => {
+      roomStateCache[room].live = snap.exists() ? snap.val() : null;
+      renderRoomCard(room, i);
+    });
+
+    // ── Real-time: today's cancellations ──────────────
+    onValue(ref(database, `cancelled_lectures/${todayDate}/${room}`), snap => {
+      roomStateCache[room].cancelled = snap.exists() ? snap.val() : {};
+      renderRoomCard(room, i);
+    });
+
+    // ── Real-time: today's special bookings ───────────
+    onValue(ref(database, `classrooms/${room}/specialBookings/${todayDate}`), snap => {
+      roomStateCache[room].specialBookings = snap.exists() ? snap.val() : {};
+      renderRoomCard(room, i);
+    });
+  }
+}
+
+// Re-render all cards every minute (slot change, time display)
+setInterval(() => {
+  roomListCache.forEach((room, i) => renderRoomCard(room, i));
+}, 60000);
 
 /* ── AUTH ─────────────────────────────────── */
 const teacher = localStorage.getItem("teacherID");
@@ -516,27 +561,44 @@ window.openRoom=async function(room) {
   container.innerHTML="<p style='color:#94A3B8;text-align:center;padding:20px;'>Loading...</p>";
   const day=getCurrentDay(), todayDate=getTodayDate(), currentSlot=getCurrentTimeSlot();
 
-  const [ttSnap,specSnap,cancelSnap,liveSnap]=await Promise.all([
-    get(ref(database,`classrooms/${room}/timetable/${day}`)),
-    get(ref(database,`classrooms/${room}/specialBookings/${todayDate}`)),
-    get(ref(database,`cancelled_lectures/${todayDate}/${room}`)),
-    get(ref(database,`classrooms/${room}/live`))
-  ]);
-  const ttData    = ttSnap.exists()     ? ttSnap.val()     : {};
-  const specData  = specSnap.exists()   ? specSnap.val()   : {};
-  const cancelData= cancelSnap.exists() ? cancelSnap.val() : {};
-  const liveData  = liveSnap.exists()   ? liveSnap.val()   : null;
+  // Use cached state if available, else fetch
+  const state = roomStateCache[room] || {};
+  const ttData    = state.timetable?.[day] || {};
+  const specData  = state.specialBookings || {};
+  const cancelData= state.cancelled || {};
+  const liveData  = state.live || null;
+
+  // If not cached yet, fetch fresh
+  let fetchedTT = {}, fetchedSpec = {}, fetchedCancel = {}, fetchedLive = null;
+  if (!roomStateCache[room]) {
+    const [ttSnap,specSnap,cancelSnap,liveSnap]=await Promise.all([
+      get(ref(database,`classrooms/${room}/timetable/${day}`)),
+      get(ref(database,`classrooms/${room}/specialBookings/${todayDate}`)),
+      get(ref(database,`cancelled_lectures/${todayDate}/${room}`)),
+      get(ref(database,`classrooms/${room}/live`))
+    ]);
+    fetchedTT    = ttSnap.exists()     ? ttSnap.val()     : {};
+    fetchedSpec  = specSnap.exists()   ? specSnap.val()   : {};
+    fetchedCancel= cancelSnap.exists() ? cancelSnap.val() : {};
+    fetchedLive  = liveSnap.exists()   ? liveSnap.val()   : null;
+  }
+
+  const finalTT     = Object.keys(ttData).length     ? ttData     : fetchedTT;
+  const finalSpec   = Object.keys(specData).length   ? specData   : fetchedSpec;
+  const finalCancel = Object.keys(cancelData).length ? cancelData : fetchedCancel;
+  const finalLive   = liveData || fetchedLive;
 
   container.innerHTML="";
   let hasLecture=false;
   for (const slot of slots) {
     let lecture=null, isSpecial=false;
-    if (specData[slot])  { lecture=specData[slot]; isSpecial=true; }
-    else if (ttData[slot]) { lecture=ttData[slot]; }
+    if (finalSpec[slot])  { lecture=finalSpec[slot]; isSpecial=true; }
+    else if (finalTT[slot]) { lecture=finalTT[slot]; }
     if (!lecture) continue;
     hasLecture=true;
 
-    const isCancelled = !!cancelData[slot];
+    // A specialBooking for this slot overrides any cancellation entry
+    const isCancelled = !!finalCancel[slot] && !finalSpec[slot];
     const slotIdx=slots.indexOf(slot), curIdx=slots.indexOf(currentSlot);
     let borderColor="#CBD5E1", bg="#F8FAFC";
     if (isCancelled) { borderColor="#EF4444"; bg="#FEF2F2"; }
@@ -544,11 +606,10 @@ window.openRoom=async function(room) {
     else if (slotIdx>curIdx) { borderColor="#60A5FA"; bg="#EFF6FF"; }
     if (isSpecial && !isCancelled) borderColor="#8B5CF6";
 
-    // Check if this slot is currently live
-    let ts=liveData?.timestamp||0;
+    let ts=finalLive?.timestamp||0;
     if (ts<10000000000) ts*=1000;
-    const isLive = !isCancelled && liveData && liveData.status==="Ongoing" &&
-                   liveData.slot?.toLowerCase()===slot.toLowerCase() &&
+    const isLive = !isCancelled && finalLive && finalLive.status==="Ongoing" &&
+                   finalLive.slot?.toLowerCase()===slot.toLowerCase() &&
                    (Date.now()-ts)<70*60*1000;
 
     const badges=[];
@@ -638,7 +699,7 @@ document.querySelectorAll(".overlay").forEach(overlay => {
   overlay.addEventListener("click", e => { if (e.target===overlay) overlay.style.display="none"; });
 });
 
-window.addEventListener("DOMContentLoaded", () => { loadRooms(); setInterval(loadRooms,10000); });
+window.addEventListener("DOMContentLoaded", () => { loadRooms(); });
 </script>
 </body>
 </html>
